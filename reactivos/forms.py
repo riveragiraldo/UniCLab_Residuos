@@ -373,8 +373,7 @@ class SolicitudesExternasForm(forms.ModelForm):
 
     # Campo adicional para el token de acceso
     access_token = forms.CharField(widget=forms.HiddenInput(attrs={'id': 'access_token'}), required=False)
-    # Obtener los nombres de los laboratorios para usar en el campo 'lab'
-    lab_choices = [(lab.id, lab.name) for lab in Laboratorios.objects.all()]
+    
 
     # Validador para números de móvil en el rango especificado
     mobile_number_validator = RegexValidator(

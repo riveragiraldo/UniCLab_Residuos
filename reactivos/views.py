@@ -250,7 +250,7 @@ def enviar_correo_alerta_vencimiento(subject, recipient_list, message, reactivos
     # Template
     message = render_to_string('reactivos/alerta_vencimiento_reactivos.html', context)
     plain_message = strip_tags(message)
-    from_email = "noreply@unal.edu.co"  # Agrega el correo electrónico desde el cual se enviará el mensaje
+    from_email = "Notificaciones UniCLab <noreply@unal.edu.co>"
     recipient_list = recipient_list
     subject = subject
     send_mail(subject, plain_message, from_email, recipient_list, fail_silently=False, html_message=message)
@@ -511,7 +511,7 @@ def enviar_correo_alerta(request, alerta, reactivo, marca, referencia,cantidad,u
     # Template
     message = render_to_string('reactivos/alerta_reactivos.html', context)
     plain_message = strip_tags(message)
-    from_email = "noreply@unal.edu.co"  # Agrega el correo electrónico desde el cual se enviará el mensaje
+    from_email = "Notificaciones UniCLab <noreply@unal.edu.co>"
     rol_coordinador=get_object_or_404(Rol, name='COORDINADOR')
     rol_tecnico=get_object_or_404(Rol, name='TECNICO')
     coordinators=User.objects.filter(lab=inventario_existente.lab, rol=rol_coordinador, is_active=True)
@@ -550,7 +550,7 @@ def enviar_correo_solicitud(request, suffix, id, initial_message,shipping_email,
     # Template
     message = render_to_string('solicitudes/registro_exitoso_solicitud.html', context)
     plain_message = strip_tags(message)
-    from_email = "noreply@unal.edu.co"  # Agrega el correo electrónico desde el cual se enviará el mensaje
+    from_email = "Notificaciones UniCLab <noreply@unal.edu.co>"
      
     recipient_list = [shipping_email]
     tipo_solicitud=get_object_or_404(TipoSolicitud, name='OTRA')
@@ -1154,7 +1154,7 @@ def enviar_correo(recipient_list, subject, message,attach_path):
     # Template
     html_message = render_to_string('dir_lab/enviar_correo.html', context)
     plain_message = strip_tags(html_message)
-    from_email = "noreply@unal.edu.co"  # Agrega el correo electrónico desde el cual se enviará el mensaje
+    from_email = "Notificaciones UniCLab <noreply@unal.edu.co>"
     recipient_list = recipient_list
     subject = f'{subject} - {url}'
 
@@ -2139,7 +2139,7 @@ def crear_reactivo(request):
         # Template
         message = render_to_string('reactivos/registro_exitoso_reactivo.html', context)
         plain_message = strip_tags(message)
-        from_email = "noreply@unal.edu.co"  # Agrega el correo electrónico desde el cual se enviará el mensaje
+        from_email = "Notificaciones UniCLab <noreply@unal.edu.co>"
         current_lab=request.user.lab
         rol=get_object_or_404(Rol,name='COORDINADOR')
         coordinators=User.objects.filter(lab=current_lab, rol=rol, is_active=True)
@@ -2844,7 +2844,7 @@ def registrar_salida(request):
             # Template
             message = render_to_string('reactivos/registro_exitoso_salida.html', context)
             plain_message = strip_tags(message)
-            from_email = "noreply@unal.edu.co"  # Agrega el correo electrónico desde el cual se enviará el mensaje
+            from_email = "Notificaciones UniCLab <noreply@unal.edu.co>"
             current_lab=request.user.lab
             rol=get_object_or_404(Rol, name='COORDINADOR')
             coordinators=User.objects.filter(lab=current_lab, rol=rol, is_active=True)
@@ -4526,7 +4526,7 @@ class CrearUsuario(LoginRequiredMixin, CreateView):
         }
         message = render_to_string('registration/registro_exitoso_email.html', context)
         plain_message = strip_tags(message)
-        from_email = None  # Agrega el correo electrónico desde el cual se enviará el mensaje
+        from_email = "Notificaciones UniCLab <noreply@unal.edu.co>"
         recipient_list = [user.email]
         # envío de correo electrónico en segundo plano
         # Archivo adjunto nulo
@@ -4632,7 +4632,7 @@ class CrearUsuario(LoginRequiredMixin, CreateView):
         }
         message = render_to_string('registration/registro_exitoso_email.html', context)
         plain_message = strip_tags(message)
-        from_email = None  # Agrega el correo electrónico desde el cual se enviará el mensaje
+        from_email = "Notificaciones UniCLab <noreply@unal.edu.co>"
         recipient_list = [user.email]
         # envío de correo electrónico en segundo plano
         # Archivo adjunto nulo
@@ -7997,7 +7997,7 @@ class PasswordResetView(PasswordContextMixin, FormView):
     email_template_name = "registration/password_reset_email_reactivos.html"
     extra_email_context = None
     
-    from_email = None
+    from_email = "Notificaciones UniCLab <noreply@unal.edu.co>"
     html_email_template_name = None
     subject_template_name = "registration/password_reset_subject.txt"
     success_url = reverse_lazy("reactivos:password_reset_done_reactivos")
@@ -8029,7 +8029,7 @@ class CustomPasswordResetView(PasswordResetView):
     email_template_name = "registration/password_reset_email_reactivos.html"
     extra_email_context = None
     
-    from_email = None
+    from_email = "Notificaciones UniCLab <noreply@unal.edu.co>"
     html_email_template_name = None
     subject_template_name = "registration/password_reset_subject.txt"
     success_url = reverse_lazy("reactivos:password_reset_done_reactivos")

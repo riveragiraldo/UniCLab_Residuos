@@ -14,7 +14,7 @@ import os
 from pathlib import Path
 
 # Para DB en render
-import dj_database_url
+# import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -95,9 +95,9 @@ DATABASES = {
         }
 }
 
-DATABASES['default'] = dj_database_url.config(
-    default='postgres://dirlabor_man_unal:PpKGklM6fx9Vxq0y0xAcEmJZjuLt8BPj@dpg-coa15e0cmk4c73e7uo30-a.oregon-postgres.render.com/dejango_reactivos'
-)
+# DATABASES['default'] = dj_database_url.config(
+#     default='postgres://dirlabor_man_unal:PpKGklM6fx9Vxq0y0xAcEmJZjuLt8BPj@dpg-coa15e0cmk4c73e7uo30-a.oregon-postgres.render.com/dejango_reactivos'
+# )
 
 
 
