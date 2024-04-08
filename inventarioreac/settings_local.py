@@ -14,7 +14,7 @@ import os
 from pathlib import Path
 
 # Para DB en render
-import dj_database_url
+# import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,14 +24,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = 'django-insecure-h3d7k6@k)1sk)y961&1yk=kjax7un8quf2480&z&ler$o!=e!l'
-SECRET_KEY = os.environ.get("SECRET_KEY")
+SECRET_KEY = 'django-insecure-h3d7k6@k)1sk)y961&1yk=kjax7un8quf2480&z&ler$o!=e!l'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = True
-DEBUG = os.environ.get("DEBUG", "False").lower()=="true"
-# ALLOWED_HOSTS = []
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(" ")
+DEBUG = True
+
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -101,8 +99,7 @@ DATABASES = {
 #     default='postgres://dirlabor_man_unal:PpKGklM6fx9Vxq0y0xAcEmJZjuLt8BPj@dpg-coa15e0cmk4c73e7uo30-a.oregon-postgres.render.com/dejango_reactivos'
 # )
 
-database_url = os.environ.get("DATABASE_URL")
-DATABASES['default'] = dj_database_url.parse(database_url)
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
