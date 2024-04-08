@@ -1,0 +1,14 @@
+Django
+reportlab
+openpyxl 
+psycopg
+psycopg2
+pillow
+django-recaptcha
+django-simple-captcha
+django-import-export
+apscheduler
+django-apscheduler
+babel
+html2text
+dj_database_url
