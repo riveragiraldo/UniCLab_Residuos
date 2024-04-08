@@ -1,0 +1,308 @@
+{% extends "webtemplate.html" %}
+{% load has_group %}
+<!doctype html>
+<html lang="es">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Listado de salidas{% endblock %}</title>
+    {% block head %}
+    <!-- jquery para autocomplete -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    
+    <script src="https://code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.0/themes/smoothness/jquery-ui.css">
+
+    <!-- Incluir SweetAlert2 desde CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.min.css">
+
+    {% load static %}
+    {% if request.user|has_group:"COORDINADOR" or request.user|has_group:"TECNICO" %}
+    {% for lab in laboratorios %}
+    {% if lab.id == laboratorio.id %}
+
+    <script>
+        labDefault = '{{ lab.id }}'
+    </script>
+    {% endif %}
+    {% endfor %}
+    {% endif %}
+
+    {% if request.user|has_group:"ADMINISTRADOR" or request.user.is_superuser %}
+
+    <script>
+        labDefault = "0"
+    </script>
+    {% endif %}
+    <script>
+        today = "{{ today|date:'Y-m-d' }}"
+    </script>
+    <link rel="stylesheet" href="{% static 'inventarioreac/inventoryStyles.css' %}">
+
+    <script src="{% static 'inventarioreac/paginationInventoryControl.js' %}"></script>
+    <!-- Llama Script que controla la paginación -->
+   
+    <script src="{% static 'inventarioreac/holdSelectIn.js' %}" defer></script>
+    <!-- Llama Script que controla los select según el inventario -->
+    <script src="{% static 'inventarioreac/highlightPaginationControl.js' %}" defer></script>
+    <!-- Llama Script que resalta los controles de paginación -->
+    <script>var inventarioUrl = "{% url 'reactivos:inventario' %}";</script>
+    <script src="{% static 'inventarioreac/sortByControl.js' %}" defer></script>
+    <!-- Llama Script que envía datos de ordenamiento de registros -->
+    <script src="{% static 'inventarioreac/openDetailOut.js' %}" defer></script>
+    <!-- Llama Script que resalta los controles de paginación -->
+    <script src="{% static 'inventarioreac/updateUrl.js' %}"></script>
+    <!-- Llama Script que actualiza URL -->
+    <script src="{% static 'inventarioreac/validateLapse.js' %}"></script>
+    <!-- Llama Script que valida las fechas -->
+    <script src="{% static 'inventarioreac/listActionsControl.js' %}" defer></script>
+    <!-- Llama Script que controla las acciones de la lista -->
+    <script src="{% static 'inventarioreac/autocompletelistoutput.js' %}"></script>
+    <!-- Llama Script que coloca una lista autocompletable de reactivos sobre el campo name -->
+    <script src="{% static 'inventarioreac/js/clearFieldsFindEvent.js' %}" defer></script>
+    <!-- Llama Script que Limpia la búsqueda -->
+    {% endblock %}
+</head>
+
+<body>
+    {% block content %}
+    <div class="row col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h1>Listado de registros de salidas</h1>
+            </div>
+            <br>
+            <div class="card-body">
+                <form method="get" onsubmit="guardarValoresSelect()" class="row g-3" id="listadoSalidas" name="listadoEntradas">
+
+                    <div class="form-group col-md-3">
+                        <label for="lab">Laboratorio:</label>
+                        {% if request.user|has_group:"COORDINADOR" or request.user|has_group:"TECNICO" %}
+                        <select name="lab" class="form-control" id="lab">
+                            {% for lab in laboratorios %}
+                            {% if lab.id == laboratorio.id %}
+                            <option value="{{ lab.id }}" selected="">{{ lab.name }}</option>
+                            {% endif %}
+                            {% endfor %}
+                        </select>
+                        {% endif %}
+
+                        {% if request.user|has_group:"ADMINISTRADOR" or request.user.is_superuser %}
+                        <select name="lab" class="form-control" id="lab">
+                            <option value='0' selected="">Todos</option>
+                            {% for lab in laboratorios %}
+                            <option value="{{ lab.id }}">{{ lab.name }}</option>
+                            {% endfor %}
+                        </select>
+                        {% endif %}
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="name">Nombre, código o cas:</label>
+                        <input type="text" class="form-control" id="name" name="name">
+                        <input type="hidden" id="id_r" name="id_r">
+                    </div>
+                    
+
+                    
+
+                    <div class="form-group col-md-3">
+                        <label for="start_date">Fecha Inicial:</label>
+                        <input type="date" id="start_date" name="start_date" class="form-control"
+                            max="{{ today|date:'Y-m-d' }}">
+                        <span class="validation-message" id="start-date-validation" style="color: red;">La fecha incial
+                            debe ser igual o anterior a "{{ today|date:'Y-m-d' }}".</span>
+                    </div>
+
+                    <div class="form-group col-md-3">
+                        <label for="end_date">Fecha Final:</label>
+                        <input type="date" id="end_date" name="end_date" class="form-control"
+                            value="{{ today|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}">
+                        <span class="validation-message" id="end-date-validation" style="color: red;">La fecha incial
+                            debe ser igual o anterior a "{{ today|date:'Y-m-d' }}"</span>
+                    </div>
+            </div>
+
+            <div class="card-footer text-md-left">
+                <div class="form-group">
+                    <button id="boton-buscar" type="submit" class="btn btn-primary">Buscar</button>
+                    <button type="button" class="btn btn-success visible-xs-inline" onclick="limpiarCampos('listadoSalidas')">Limpiar búsqueda</button>
+                </div>
+            </div>
+            </form>
+        </div>
+    </div>
+
+    <br>
+
+    <div class="col-md-12 mx-auto" style="margin-bottom: 5px;">
+        <!-- Control de paginación -->
+        <div class="d-flex justify-content-between">
+            <div>Ver&nbsp;
+                <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                    <a href="{% url 'reactivos:GuardarPerPageOut' per_page=10 %}" class="btn btn-secondary btn-sm"
+                        id="per-page-10">10</a>
+                    <a href="{% url 'reactivos:GuardarPerPageOut' per_page=20 %}" class="btn btn-secondary btn-sm"
+                        id="per-page-20">20</a>
+                    <a href="{% url 'reactivos:GuardarPerPageOut' per_page=50 %}" class="btn btn-secondary btn-sm"
+                        id="per-page-50">50</a>
+                </div>&nbsp;Registros por página
+            </div>
+        </div>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table custom-table" id="tabla-inventario">
+
+            <thead style="background-color: rgb(205, 203, 203); position: sticky; top: 0; z-index: 10; border-bottom: 1px solid black; border-top: 1px solid black;">
+                <tr>
+                    <th class="sortable-header" data-column="0" data-column-name="date" title="Ordenar por fecha" style="border-bottom: 1px solid black; border-top: 1px solid black;text-align: left; vertical-align: middle;">Fecha</th>
+                    <th class="sortable-header" data-column="1" title="Ordenar por nombre de reactivo" style="border-bottom: 1px solid black; border-top: 1px solid black;text-align: left; vertical-align: middle;">Reactivo</th>
+                    <th class="sortable-header hidden-xs" data-column="2" title="Ordenar por marca" style="border-bottom: 1px solid black; border-top: 1px solid black;text-align: left; vertical-align: middle;">Marca - Referencia</th>
+                    <th class="sortable-header" data-column="3" title="Ordenar por cantidad" style="border-bottom: 1px solid black; border-top: 1px solid black;text-align: left; vertical-align: middle;">Cantidad</th>
+                    <th class="sortable-header hidden-xs" data-column="4" title="Ordenar por laboratorio" style="border-bottom: 1px solid black; border-top: 1px solid black;text-align: left; vertical-align: middle;">Laboratorio</th>
+                    <th class="sortable-header hidden-xs" title="Visualización de detalle (no ordena)" style="border-bottom: 1px solid black; border-top: 1px solid black;text-align: left; vertical-align: middle; cursor: default;">Detalle</th>
+                    <th class="sortable-header" title="Acciones con el registro (no ordena)" style="border-bottom: 1px solid black; border-top: 1px solid black;text-align: left; vertical-align: middle; cursor: default;"> Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for item in object_list %}
+                <tr class="table-row">
+                    
+                    <td class="codes-reagent" title="Fecha de entrada: {{ item.date_create|date:'d/m/Y H:i:s' }}" style="vertical-align: middle; border-bottom: 1px solid black; border-top: 1px solid black; cursor: default;">{{ item.date_create|date:"d/m/Y" }}</td>
+                    <td class="name-reagent" title="Reactivo: {{ item.name }}, Cantidad actual en inventario: {{ item.inventario.weight|floatformat:0 }} {{ item.name.unit }}" style="vertical-align: middle; border-bottom: 1px solid black; border-top: 1px solid black; cursor: default;"><a class="detalle-reactivo"
+                        data-reactivo-id="{{ item.id }}"
+                            data-reactivo-name="{{ item.name }}" data-reactivo-order="{{ item.order }}"
+                            data-reactivo-date="{{ item.date_create|date:'d/m/Y' }}"
+                            data-reactivo-trademark="{{ item.trademark }}"
+                            data-reactivo-reference="{{ item.reference }}"
+                            data-reactivo-quantity="{{ item.weight|floatformat:1 }}"
+                            data-reactivo-unit="{{ item.name.unit }}" data-reactivo-date_order="{{ item.date_order }}"
+                            data-reactivo-lab="{{ item.lab }}" data-reactivo-date_create="{{ item.date_create }}"
+                            data-reactivo-nproject="{{ item.nproject }}"
+                            data-reactivo-price="{{ item.price|floatformat:0 }}"
+                            data-reactivo-destination="{{ item.destination }}"
+                            data-reactivo-manager="{{ item.manager }}" data-reactivo-location="{{ item.location }}"
+                            data-reactivo-school="{{ item.location.facultad }}"
+                            data-reactivo-observations="{{ item.observations }}"
+                            data-reactivo-create_by="{{ item.created_by.first_name }} {{ item.created_by.last_name }}"
+                            data-reactivo-lastupdate="{{ item.last_update }}"
+                            data-reactivo-update_by="{{ item.last_updated_by.first_name }} {{ item.last_updated_by.last_name }}"
+                            data-reactivo-id_inventario="{{ item.inventario.id }}">{{ item.name }}</a></td>
+                    <td class="name-reagent hidden-xs" title="Marca: {{ item.trademark }} - Referencia: {{ item.reference }}" style="vertical-align: middle; border-bottom: 1px solid black; border-top: 1px solid black; cursor: default;">{{ item.trademark }} - {{ item.reference }}</td>
+                    <td class="amount-reagent" title="Cantidad  registrada de {{ item.name }} en la entrada: {{ item.weight|floatformat:0 }} {{ item.name.unit }}" style="vertical-align: middle; border-bottom: 1px solid black; border-top: 1px solid black; cursor: default;">{{ item.weight|floatformat:0 }} {{ item.name.unit }}</td>
+                    <td class="name-reagent hidden-xs" title="Laboratorio asociado a la entrada: {{ item.lab }}" style="border-bottom: 1px solid black; border-top: 1px solid black; cursor: default; vertical-align: middle;">{{ item.lab }}</td>
+                    
+                    <!-- Modifica el evento click de la imagen para mostrar SweetAlert -->
+                    <td class="hidden-xs" style="border-bottom: 1px solid black; border-top: 1px solid black; cursor: default; text-align: center; vertical-align: middle;">
+                        <img src="{% static 'inventarioreac/Images/moreInfo.ico' %}" alt="" width="18" height="18"
+                            class="detalle-reactivo" 
+                            data-reactivo-id="{{ item.id }}"
+                            data-reactivo-name="{{ item.name }}" data-reactivo-order="{{ item.order }}"
+                            data-reactivo-date="{{ item.date_create|date:'d/m/Y' }}"
+                            data-reactivo-trademark="{{ item.trademark }}"
+                            data-reactivo-reference="{{ item.reference }}"
+                            data-reactivo-quantity="{{ item.weight|floatformat:1 }}"
+                            data-reactivo-unit="{{ item.name.unit }}" data-reactivo-date_order="{{ item.date_order }}"
+                            data-reactivo-lab="{{ item.lab }}" data-reactivo-date_create="{{ item.date_create }}"
+                            data-reactivo-nproject="{{ item.nproject }}"
+                            data-reactivo-price="{{ item.price|floatformat:0 }}"
+                            data-reactivo-destination="{{ item.destination }}"
+                            data-reactivo-manager="{{ item.manager }}" data-reactivo-location="{{ item.location }}"
+                            data-reactivo-school="{{ item.location.facultad }}"
+                            data-reactivo-observations="{{ item.observations }}"
+                            data-reactivo-create_by="{{ item.created_by.first_name }} {{ item.created_by.last_name }}"
+                            data-reactivo-lastupdate="{{ item.last_update }}"
+                            data-reactivo-update_by="{{ item.last_updated_by.first_name }} {{ item.last_updated_by.last_name }}"
+                            data-reactivo-id_inventario="{{ item.inventario.id }}
+                            title="Más información sobre el registro de entrada de: {{ item.name }}">
+                    </td>
+
+                    <td class="action-list" style="border-bottom: 1px solid black; border-top: 1px solid black; cursor: default; text-align: center; vertical-align: middle;" title="Acciones disponibles para este registro"><!-- si es administrador permite crud, de lo contrario solo permite agregar -->
+                        <!-- Agregar -->
+                        <a href="javascript:void(0);" onclick="openPopupAdd('{% url 'reactivos:registrar_salida' %}')">
+                            <img src="{% static 'inventarioreac/Images/add_register.png' %}" alt="" width="18" height="18" title="Agregar una nueva entrada de reactivo">
+                        </a>
+                        {% if request.user|has_group:"ADMINISTRADOR" or request.user.is_superuser %}
+                        <!-- Editar -->
+                        <a href="javascript:void(0);" onclick="openEditFormOut({{ item.id }})">
+                            <img src="{% static 'inventarioreac/Images/edit_register.png' %}" alt="" width="18" height="18" title="Editar registro número {{ item.id }}">
+                        </a>
+                        <!-- Eliminar -->
+                        <a href="javascript:void(0);" onclick="confirmDeleteOut({{ item.id }}, '{{ item.name }}')">
+                            <img src="{% static 'inventarioreac/Images/delete_register.png' %}" alt="" width="18" height="18" title="Borrar registro número {{ item.id }}">
+                        </a>
+                        {% elif request.user|has_group:"COORDINADOR" or request.user|has_group:"TECNICO" %}
+                        <!-- Editar -->
+                        <img src="{% static 'inventarioreac/Images/edit_register.png' %}" alt="" width="18" height="18" title="Editar registro número {{ item.id }}, solo disponible para administradores">
+                        <!-- Eliminar -->
+                        <img src="{% static 'inventarioreac/Images/delete_register.png' %}" alt="" width="18" height="18" title="Eliminar registro número {{ item.id }}, solo disponible para administradores">
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <br>
+        <div class="d-flex justify-content-between">
+            <!-- Controles de navegación de página -->
+            <div class="pagination">
+                <span class="step-links">
+                    {% if page_obj.has_previous %}
+                    <a href="" id="first-page-link">Primera</a>
+                    <a href="" id="previous-page-link">Anterior</a>
+                    {% endif %}
+                    <span class="current-page">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages}}.</span>
+
+                    {% if page_obj.has_next %}
+                    <a href="" id="next-page-link">Siguiente</a>
+                    <a href="" id="last-page-link">Última</a>
+                    {% endif %}
+                </span>
+            </div>
+            <!-- Información de paginación -->
+            <div class="pagination-info">
+                Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ paginator.count }} registros
+            </div>
+        </div>
+
+        <br>
+        <!-- Opciones de exportación -->
+        <a href="{% url 'reactivos:export_to_excel_output' %}" class="btn btn-primary">Exportar a Excel</a>
+    </div>
+
+    <!-- Este script no puede ser llamado de manera independiente ya que tiene muchas variables provenientes del servidor -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const baseUrl = window.location.href;
+            const currentPage = '{{ page_obj.number }}';
+            const nextPage = parseInt(currentPage) + 1
+            const previousPage = parseInt(currentPage) - 1
+            const totalPages = '{{ page_obj.paginator.num_pages }}';
+
+
+            '{% if page_obj.has_previous %}'
+            const firstPageLink = document.getElementById('first-page-link');
+            const previousPageLink = document.getElementById('previous-page-link');
+            firstPageLink.href = baseUrl + '&page=1';
+            previousPageLink.href = baseUrl + '&page=' + previousPage;
+            '{% endif %}'
+
+            '{% if page_obj.has_next %}'
+            const nextPageLink = document.getElementById('next-page-link');
+            const lastPageLink = document.getElementById('last-page-link');
+            nextPageLink.href = baseUrl + '&page=' + nextPage;
+            lastPageLink.href = baseUrl + '&page=' + totalPages;
+
+            '{% endif %}'
+        });
+    </script>
+
+    {% endblock %}
+</body>
+
+</html>
