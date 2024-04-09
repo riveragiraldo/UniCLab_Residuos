@@ -142,13 +142,6 @@ USE_TZ = True
 STATIC_URL=os.environ.get("STATIC_URL")
 STATIC_ROOT=os.environ.get("STATIC_ROOT")
 # STATIC_ROOT = 'staticfiles'
-static = os.environ.get("STATIC")
-staticfiles_dir = os.path.join(BASE_DIR, static)
-
-
-STATICFILES_DIRS = [
-    staticfiles_dir,
-]
 
 #Ubicacioón de archivos adjuntos
 
@@ -166,7 +159,9 @@ SESSION_COOKIE_AGE = 28800  # 8 horas
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+]
 
 AUTH_USER_MODEL = 'reactivos.User'
 
