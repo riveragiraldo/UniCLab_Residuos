@@ -97,7 +97,7 @@
 			</li>
 			<li>
 				<a href="{% url 'reactivos:index'%}" title="Volver al UniCLab"><img
-						src="{% static 'inventarioreac/images/home_icon.png' %}" width="32" height="32">UniCLab</a>
+						src="{% static 'inventarioreac/images/UniCLabReactivos_icon.png' %}" width="32" height="32">UniCLab Reactivos</a>
 
 			</li>
 			<li>
@@ -189,7 +189,7 @@
 			<ol class="breadcrumb" style="background-color: transparent;">
 				<li class="breadcrumb-item active" title="Inicio">Está en:</li>
 				<li class="breadcrumb-item"><a href="{% url 'residuos:home_residuos' %}" target="_self" title="Inicio: "
-						id="breadcrumb_title">Laboratorio{{ request.user.lab|title}}</a></li>
+						id="breadcrumb_title">{{ request.user.lab|title}}</a></li>
 				<li class="breadcrumb-item active" aria-current="page" id="breadcrumb-title"></li>
 			</ol>
 		</nav>
@@ -235,7 +235,7 @@
 				<span>Sección</span>
 			  </button>
 			</nav>
-			<nav class="nav">
+			<nav>
 			  
 			  <button type="button">
 				<img src="{% static '/inventarioreac/images//assets/icon-levels.svg' %}" />
@@ -249,15 +249,15 @@
 				<img src="{% static '/inventarioreac/images//assets/icon-folders.svg' %}" />
 				<span>Informes</span>
 			  </button>
-			  <button type="button">
-				<img src="{% static '/inventarioreac/images//assets/icon-lock.svg' %}" />
-				<span>Seguridad</span>
+			  <button type="button" onclick="redirect('{% url 'reactivos:index' %}')">
+				<img src="{% static '/inventarioreac/images/assets/UniCLabReactivos.png' %}" alt="Reactivos"/>
+				<span>UniCLab Reactivos</span>
 			  </button>
 			</nav>
 		  </aside>
 
 		
-			<div class="content">
+			<div class="content_waste">
 				{% block content %}
 				{% endblock %}
 			</div>

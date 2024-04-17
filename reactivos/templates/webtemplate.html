@@ -87,6 +87,7 @@
 						alt="Plataforma de Laboratorios Remotos">Plataforma de Laboratorios Remotos</a>
 
 			</li>
+			{% if request.user|has_group:"COORDINADOR" or request.user|has_group:"ADMINISTRADOR" or request.user|has_group:"TECNICO" or request.user.is_superuser %}
 			<li>
 				<a href="{% url 'reactivos:index'%}" title="Volver al inicio"><img
 						src="{% static 'inventarioreac/images/home_icon.png' %}" width="32" height="32">Inicio</a>
@@ -118,6 +119,13 @@
 				<a href="{% url 'reactivos:enlaces' category='administrar' %}"
 					title="Enlaces referentes a Administrar"><img
 						src="{% static 'inventarioreac/images/admin_icon.png' %}" width="32" height="32">Administrar</a>
+
+			</li>
+			{% endif %}
+			<li>
+				<a href="{% url 'residuos:home_residuos' %}"
+					title="Ir a UniCLab Residuos"><img
+						src="{% static 'inventarioreac/images/wastedchemical_icon.png' %}" width="32" height="32">Residuos</a>
 
 			</li>
 		</ul>
@@ -205,11 +213,13 @@
 				<li class="breadcrumb-item active" aria-current="page" id="breadcrumb-title"></li>
 			</ol>
 		</nav>
+		
 
 
 		{% if not category %}
 		<div class="sidebar-content ">
 			<div id="accordion" class="side-left-bar hidden-xs">
+				{% if request.user|has_group:"COORDINADOR" or request.user|has_group:"ADMINISTRADOR" or request.user|has_group:"TECNICO" or request.user.is_superuser %}
 				<div class="card">
 					<div class="card-header" id="headingSix">
 						<h5 class="mb-0">
@@ -473,17 +483,37 @@
 					</div>
 				</div>
 				{% endif %}
+				{% endif %}
+				<div class="card">
+					<div class="card-header" id="headingTwelve">
+						<h5 class="mb-0">
+							<a class="btn btn-primary  lateral_button" id="button_reagent" href="{% url 'residuos:home_residuos'%}"
+								title="Ir a UniCLab Residuos">
+								<img style="vertical-align: middle; margin-right: 5px;"
+									src="{% static 'inventarioreac/images/wastedchemical_icon.png' %}" width="32" height="32"
+									alt="Residuos" class="lateral_button">
+								Residuos
+							</a>
+						</h5>
+					</div>
+					<div id="collapseTwelve" class="collapse" aria-labelledby="headingTwelve" data-parent="#accordion">
+						<div class="card-body " style="color: white;">
+
+						</div>
+					</div>
+				</div>
 			
-		
+			{% endif %}
+		</div>	
+
+
+		<div class="content">
+			{% if request.user|has_group:"COORDINADOR" or request.user|has_group:"ADMINISTRADOR" or request.user|has_group:"TECNICO" or request.user.is_superuser %}
+			{% block content %}
+			{% endblock %}
 			{% endif %}
 		</div>
 		
-
-
-			<div class="content">
-				{% block content %}
-				{% endblock %}
-			</div>
 		
 		
 

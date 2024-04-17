@@ -1179,6 +1179,7 @@ def enviar_correo(recipient_list, subject, message,attach_path):
 class Index(LoginRequiredMixin, View):  # Utiliza LoginRequiredMixin como clase base
     template_name = 'reactivos/index.html'  # Nombre de la plantilla
 
+    @check_group_permission(groups_required=['ADMINISTRADOR','COORDINADOR','TECNICO'])
     def get(self, request,*args,**kwargs):
         laboratorio = request.user.lab   
              

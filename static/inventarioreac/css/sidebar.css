@@ -4,7 +4,7 @@
 
 body {
   margin: 0;
-  background: #173260;
+  background: #0c5813;
 }
 
 .detalle {
@@ -46,7 +46,8 @@ button {
   left: 0;
   width: 72px;
   height: 100%;
-  background: #14274c;
+  background: #0c5813;
+  
   transition: 0.4s;
 }
 
@@ -118,9 +119,10 @@ body.open .burger {
   display: grid;
 }
 
-.sidebar > nav:not(:last-child) {
+.sidebar > nav {
   padding-bottom: 1rem;
-  border-bottom: 1px solid #1e3660;
+  border-top: 1.5px solid #052708;
+  /* border-left: 2px solid #052708; */
   margin-bottom: 1rem;
 }
 
