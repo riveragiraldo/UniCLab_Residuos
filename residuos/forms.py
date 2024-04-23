@@ -1,7 +1,26 @@
 from django import forms
 from .models import *
+from reactivos.forms import estandarizar_nombre
 
+
+# ------------------------------------------- #
+# Formulario para clasificaciones de residuos #
 class ClasificacionResiduosForm(forms.ModelForm):
+    def clean_name(self):
+        # Obtener el valor del campo name
+        name = self.cleaned_data['name']
+        # Obtener la instancia actual (si existe)
+        instance = getattr(self, 'instance', None)
+        # Verificar si existe una clasificación con el mismo nombre (ignorando mayúsculas y minúsculas)
+        if CLASIFICACION_RESIDUOS.objects.filter(name__iexact=name).exclude(pk=instance.pk).exists():
+            raise forms.ValidationError("Ya existe una clasificación de residuos con este nombre.")
+        return name
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        if 'description' in cleaned_data:
+            cleaned_data['description'] = estandarizar_nombre(cleaned_data['description'])
+
     class Meta:
         model = CLASIFICACION_RESIDUOS
         fields = ['name', 'description']
@@ -14,6 +33,36 @@ class ClasificacionResiduosForm(forms.ModelForm):
             'description': 'Máximo 500 caracteres'
         }
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control', 'title':'El nombre de la clasificación debe ser de máximo 10 caracteres'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'title':'La descripción de la clasificación debe ser de máximo 500 caracteres','max':500})
+            'name': forms.TextInput(attrs={'class': 'form-control', 'title': 'El nombre de la clasificación debe ser de máximo 10 caracteres'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'title': 'La descripción de la clasificación debe ser de máximo 500 caracteres', 'max': 500})
+        }
+
+
+# ------------------------------------ #
+# Formulario para registro de residuos #
+class RegistroResiduosForm(forms.ModelForm):
+    class Meta:
+        model = REGISTRO_RESIDUOS
+        fields = ['dependencia', 'area', 'laboratorio','nombre_residuo', 'cantidad', 'unidades', 'numero_envases', 'clasificado', 'estado']
+        labels = {
+            'dependencia': 'Tipo de Dependencia',
+            'area': 'Área',
+            'laboratorio': 'Laboratorio',
+            'nombre_residuo': 'Nombre del Residuo',
+            'cantidad': 'Cantidad',
+            'unidades': 'Unidades',
+            'numero_envases': 'Número de Envases',
+            'clasificado': 'Clasificado',
+            'estado': 'Estado',
+        }
+        widgets = {
+            'dependencia': forms.Select(attrs={'class': 'form-control'}),
+            'area': forms.TextInput(attrs={'class': 'form-control'}),
+            'laboratorio': forms.Select (attrs={'class': 'form-control'}),
+            'nombre_residuo': forms.TextInput(attrs={'class': 'form-control'}),
+            'cantidad': forms.NumberInput(attrs={'class': 'form-control', 'min':0.01}),
+            'unidades': forms.Select(attrs={'class': 'form-control'}),
+            'numero_envases': forms.NumberInput(attrs={'class': 'form-control'}),
+            'clasificado': forms.SelectMultiple(attrs={'class': 'form-control'}),
+            'estado': forms.Select(attrs={'class': 'form-control'}),
         }

@@ -26,6 +26,7 @@ from django.db.models import Q
 from datetime import datetime
 import os
 from .forms import *
+import base64
 
 
 
@@ -210,6 +211,7 @@ class ExportToExcelClassification(LoginRequiredMixin, View):
         sheet['B2'] = 'Fecha de Creación: '+fecha_creacion
         sheet['A4'] = 'Nombre'
         sheet['B4'] = 'Descripción'
+        sheet['C4'] = 'Estado'
 
         sheet.row_dimensions[1].height = 30
         sheet.row_dimensions[2].height = 30
@@ -235,24 +237,29 @@ class ExportToExcelClassification(LoginRequiredMixin, View):
         
 
         row = 4
-        for col in range(1, 3):
+        for col in range(1, 4):
             sheet.cell(row=row, column=col).border = thin_border
             sheet.cell(row=row, column=col).font = bold_font
 
         row = 5
         for item in queryset:
+            if item.is_active:
+                Estado="Activo"
+            else:
+                Estado="Inactivo"
             sheet.cell(row=row, column=1).value = (item.name)
             sheet.cell(row=row, column=2).value = (item.description)
+            sheet.cell(row=row, column=3).value = Estado
             
 
-            for col in range(1, 3):
+            for col in range(1, 4):
                 sheet.cell(row=row, column=col).border = thin_border
                 sheet.cell(row=row, column=col).alignment = alignment
 
             row += 1
 
         start_column = 1
-        end_column = 2
+        end_column = 3
         start_row = 4
         end_row = row - 1
 
@@ -285,7 +292,7 @@ class ExportToExcelClassification(LoginRequiredMixin, View):
 
         return response
     
-# ------------------------------------------------------- #
+# ------------------------------- #
 # Crear Clasificación de Residuos #
 
 class CrateWasteClassification(LoginRequiredMixin ,View):
@@ -303,9 +310,16 @@ class CrateWasteClassification(LoginRequiredMixin ,View):
         
         try:
             if form.is_valid():
-                
-                # Guardar la solicitud si el formulario es válido
+                # Asignar el usuario actual a los campos created_by y last_updated_by
+                form.instance.created_by = request.user
+                form.instance.last_updated_by = request.user
+                # Guardar la clasificación si el formulario es válido
                 clasificacion = form.save()
+                
+                # Registrar evento
+                tipo_evento = 'CREAR CLASIFICACION DE RESIDUOS'
+                usuario_evento = request.user
+                crear_evento(tipo_evento, usuario_evento)
                 
                 mensaje=f'Clasificación de residuos creada correctamente.'
                 # Devuelve una respuesta JSON de éxito
@@ -315,9 +329,163 @@ class CrateWasteClassification(LoginRequiredMixin ,View):
             else:
                 # Devuelve una respuesta JSON con los errores de validación
                 return JsonResponse({'success': False, 'errors': form.errors})
+            
         except Exception as e:
             # Imprimir el error en la consola o logs
             print(e)
             mensaje=f'Error: {e}'
             # Devolver una respuesta de error o redirigir a una página de error
             return HttpResponseBadRequest(f'Error interno del servidor:{mensaje}')
+   
+# -------------------------------- #
+# Editar Clasificación de Residuos #
+
+class EditWasteClassification(LoginRequiredMixin, View):
+    template_name = 'UniCLab_Residuos/editar_clasificacion.html'
+
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
+    def get(self, request, *args, **kwargs):
+        try:
+            # Decodificar el ID en base64 dos veces
+            class_key = kwargs.get('pk')
+            classification_id = base64.urlsafe_b64decode(base64.urlsafe_b64decode(class_key)).decode('utf-8')
+            
+            # Obtener la clasificación de residuos que se va a editar
+            clasificacion = get_object_or_404(CLASIFICACION_RESIDUOS, id=classification_id)
+            
+            # Crear el formulario con los datos de la clasificación
+            form = ClasificacionResiduosForm(instance=clasificacion)
+            return render(request, self.template_name, {'form': form, 'clasificacion': clasificacion})
+        except Exception as e:
+            print(e)
+            return HttpResponseBadRequest('Error interno del servidor')
+
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
+    def post(self, request, *args, **kwargs):
+        try:
+            # Decodificar el ID en base64 dos veces
+            class_key = kwargs.get('pk')
+            classification_id = base64.urlsafe_b64decode(base64.urlsafe_b64decode(class_key)).decode('utf-8')
+            
+            # Obtener la clasificación de residuos que se va a editar
+            clasificacion = get_object_or_404(CLASIFICACION_RESIDUOS, id=classification_id)
+            
+            form = ClasificacionResiduosForm(request.POST, request.FILES, instance=clasificacion)
+            if form.is_valid():
+                # Asignar el usuario actual a last_updated_by
+                form.instance.last_updated_by = request.user
+                # Guardar los cambios si el formulario es válido
+                clasificacion = form.save()
+
+                # Registrar evento
+                tipo_evento = 'EDICION CLASIFICACION DE RESIDUOS'
+                usuario_evento = request.user
+                crear_evento(tipo_evento, usuario_evento)
+
+                mensaje = 'Clasificación de residuos actualizada correctamente.'
+                return JsonResponse({'success': True, 'message': mensaje})
+            else:
+                return JsonResponse({'success': False, 'errors': form.errors})
+        except Exception as e:
+            print(e)
+            mensaje = f'Error: {e}'
+            return HttpResponseBadRequest(f'Error interno del servidor:{mensaje}')
+
+# ------------------------------------ #
+# Desactivar Clasificación de Residuos #
+
+class DisableWasteSorting(View):
+    def post(self, request, *args, **kwargs):
+        try:
+            # Obtener el ID codificado dos veces desde los parámetros de la solicitud
+            class_key = kwargs.get('pk')
+            item_id_encoded = base64.urlsafe_b64decode(class_key).decode('utf-8')
+            classification_id = base64.urlsafe_b64decode(item_id_encoded).decode('utf-8')
+            
+            # Obtener la instancia de la clasificación de residuos
+            clasificacion = get_object_or_404(CLASIFICACION_RESIDUOS, id=classification_id)
+            # incluir el usuario que realiza el cambio
+            clasificacion.last_updated_by= request.user
+            # Desactivar la clasificación de residuos
+            clasificacion.is_active = False
+            clasificacion.save()
+            
+            # Registrar evento
+            tipo_evento = 'DESACTIVAR CLASIFICACION DE RESIDUOS'
+            usuario_evento = request.user
+            crear_evento(tipo_evento, usuario_evento)
+
+            # Devolver una respuesta JSON de éxito
+            return JsonResponse({'success': True, 'message': f'Clasificación "{clasificacion.name}" desactivada correctamente.'})
+        except Exception as e:
+            print(e)
+            return JsonResponse({'success': False, 'message': 'Error interno del servidor'})
+        
+# --------------------------------- #
+# Activar Clasificación de Residuos #
+
+class EnableWasteSorting(View):
+    def post(self, request, *args, **kwargs):
+        try:
+            # Obtener el ID codificado dos veces desde los parámetros de la solicitud
+            class_key = kwargs.get('pk')
+            item_id_encoded = base64.urlsafe_b64decode(class_key).decode('utf-8')
+            classification_id = base64.urlsafe_b64decode(item_id_encoded).decode('utf-8')
+            
+            # Obtener la instancia de la clasificación de residuos
+            clasificacion = get_object_or_404(CLASIFICACION_RESIDUOS, id=classification_id)
+            # incluir el usuario que realiza el cambio
+            clasificacion.last_updated_by= request.user
+            # Desactivar la clasificación de residuos
+            clasificacion.is_active = True
+            clasificacion.save()
+
+            # Registrar evento
+            tipo_evento = 'ACTIVAR CLASIFICACION DE RESIDUOS'
+            usuario_evento = request.user
+            crear_evento(tipo_evento, usuario_evento)
+            
+            # Devolver una respuesta JSON de éxito
+            return JsonResponse({'success': True, 'message': f'Clasificación "{clasificacion.name}" activada correctamente.'})
+        except Exception as e:
+            print(e)
+            return JsonResponse({'success': False, 'message': 'Error interno del servidor'})
+        
+# -------------------------- #
+# Crear Registro de Residuos #
+
+class CreateRegisterWaste(LoginRequiredMixin, View):
+    template_name = 'UniCLab_Residuos/crear_registro_residuos.html'
+
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL', 'COORDINADOR', 'TECNICO'])
+    def get(self, request, *args, **kwargs):
+        form = RegistroResiduosForm()
+        laboratorios=Laboratorios.objects.all()
+        lab_id=request.user.lab.id
+
+        return render(request, self.template_name, {'form': form, 'laboratorios':laboratorios, 'lab_id':lab_id})
+
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL', 'COORDINADOR', 'TECNICO'])
+    def post(self, request, *args, **kwargs):
+        form = RegistroResiduosForm(request.POST)
+        try:
+            if form.is_valid():
+                # Asignar el usuario actual a los campos created_by y last_updated_by
+                form.instance.created_by = request.user
+                form.instance.last_updated_by = request.user
+                # Guardar el registro si el formulario es válido
+                registro_residuo = form.save()
+                
+                # Registrar evento
+                tipo_evento = 'CREAR REGISTRO DE RESIDUOS'
+                usuario_evento = request.user
+                crear_evento(tipo_evento, usuario_evento)
+                
+                mensaje = 'Registro de residuo creado correctamente.'
+                return JsonResponse({'success': True, 'message': mensaje})
+            else:
+                return JsonResponse({'success': False, 'errors': form.errors})
+        except Exception as e:
+            print(e)
+            mensaje = f'Error: {e}'
+            return HttpResponseBadRequest(f'Error interno del servidor: {mensaje}')

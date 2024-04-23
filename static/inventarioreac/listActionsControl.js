@@ -698,9 +698,134 @@ function solicitudNoLeida(itemId, itemName) {
     });
 }
 
+// -------------------------------------------------------- //
+// Abre formulario de Edición  de clasificación de residuos //
+
+function openEditFormClass(itemId) {
+    // Construye la URL del formulario de edición con el ID del elemento
+    var editUrl = '/UniCLab_Residuos/Clasificacion_Residuos/Editar/' + itemId + '/';
+
+    // Abre una nueva ventana emergente con el formulario de edición
+    window.open(editUrl, '_blank', 'width=600,height=800');
+}
 
 
-// Función para obtener el token CSRF de las cookies
+// --------------------------------------------------- //
+// Función para inactivar la clasificación de residuos //
+
+function disableWasteSorting(itemId, itemName) {
+    // Muestra una Sweet Alert de confirmación
+    Swal.fire({
+        title: 'Deshabilitar Clasificación',
+        text: '¿Está seguro que desea desactivar la clasificación "' + itemName + '"?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí',
+        cancelButtonText: 'No',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Si el usuario hace clic en "Sí", realiza una solicitud AJAX 
+            var deactivateUrl = '/UniCLab_Residuos/Clasificacion_Residuos/Desactivar/' + itemId + '/';  // Ruta de la vista de desactivación
+
+            fetch(deactivateUrl, {
+                method: 'POST', // Método HTTP POST
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'), // Incluir el token CSRF si se utiliza Django
+                },
+            })
+            .then(response => {
+                // Verificar el estado de la respuesta y capturar el mensaje
+                if (response.ok) {
+                    return response.json();  // Leer los datos JSON de la respuesta
+                } else {
+                    throw new Error('Error al desactivar la clasificación');
+                }
+            })
+            .then(data => {
+                // Mostrar el mensaje de éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Mensaje del servidor',
+                    text: data.message,
+                }).then(() => {
+                    // Recargar la página o realizar otras acciones si es necesario
+                    location.reload(); // Recarga la página después de desactivar la clasificación
+                });
+            })
+            .catch(error => {
+                // Manejar errores de la solicitud AJAX
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message,
+                });
+            });
+        } else {
+            // Si el usuario hace clic en "No", cierra la Sweet Alert
+            Swal.close();
+        }
+    });
+}
+
+// --------------------------------------------------- //
+// Función para activar la clasificación de residuos //
+
+function enableWasteSorting(itemId, itemName) {
+    // Muestra una Sweet Alert de confirmación
+    Swal.fire({
+        title: 'Habilitar Clasificación',
+        text: '¿Está seguro que desea activar la clasificación "' + itemName + '"?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí',
+        cancelButtonText: 'No',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Si el usuario hace clic en "Sí", realiza una solicitud AJAX 
+            var deactivateUrl = '/UniCLab_Residuos/Clasificacion_Residuos/Activar/' + itemId + '/';  // Ruta de la vista de acción
+
+            fetch(deactivateUrl, {
+                method: 'POST', // Método HTTP POST
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'), // Incluir el token CSRF si se utiliza Django
+                },
+            })
+            .then(response => {
+                // Verificar el estado de la respuesta y capturar el mensaje
+                if (response.ok) {
+                    return response.json();  // Leer los datos JSON de la respuesta
+                } else {
+                    throw new Error('Error al ejecutar la acción');
+                }
+            })
+            .then(data => {
+                // Mostrar el mensaje de éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Mensaje del servidor',
+                    text: data.message,
+                }).then(() => {
+                    // Recargar la página o realizar otras acciones si es necesario
+                    location.reload(); // Recarga la página después de desactivar la clasificación
+                });
+            })
+            .catch(error => {
+                // Manejar errores de la solicitud AJAX
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message,
+                });
+            });
+        } else {
+            // Si el usuario hace clic en "No", cierra la Sweet Alert
+            Swal.close();
+        }
+    });
+}
+
+// ------------------------------------------------- //
+// Función para obtener el token CSRF de las cookies //
 function getCookie(name) {
     var cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -716,3 +841,5 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+

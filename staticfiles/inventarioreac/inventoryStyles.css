@@ -8,6 +8,7 @@
 .btn-group-toggle a.active {
     background-color: #515355;
     color: #fff;
+    z-index: 0;
 }
 
 select.form-control-sm {

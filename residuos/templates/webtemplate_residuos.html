@@ -208,24 +208,22 @@
 			
 			<nav>
 				<button type="button" onclick="redirect('{% url 'residuos:home_residuos' %}')">
-					<img src="{% static '/inventarioreac/images/assets/icon-home.svg' %}" />
+					<img src="{% static '/inventarioreac/images/assets/home_icon.png' %}" title="Ir a la página de inicio UniCLab residuos"/>
 					<span class="span">Inicio</span>
 				</button>
 			  
-			  <button type="button">
-				<img src="{% static '/inventarioreac/images/assets/icon-settings.svg' %}" />
-				<span>Configuraciones</span>
-			  </button>
+			  
 			</nav>
 			<nav>
+				<button type="button" onclick="redirect('{% url 'residuos:create_register' %}')">
+					<img src="{% static '/inventarioreac/images//assets/register_waste_icon.png' %}" />
+					<span>Registrar Residuos</span>
+				  </button>
 			  <button type="button" onclick="redirect('{% url 'residuos:clasificacion_residuos' %}')">
 				<img src="{% static '/inventarioreac/images//assets/classification_wastes.png' %}" />
 				<span>Clasificación de residuos</span>
 			  </button>
-			  <button type="button">
-				<img src="{% static '/inventarioreac/images//assets/icon-database.svg' %}" />
-				<span>Sección</span>
-			  </button>
+			  
 			  <button type="button">
 				<img src="{% static '/inventarioreac/images//assets/icon-speaker.svg' %}" />
 				<span>Sección</span>

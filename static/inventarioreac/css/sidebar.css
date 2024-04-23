@@ -139,6 +139,7 @@ body.open .burger {
   .sidebar > nav > button:hover > span {
     opacity: 0.8;
     visibility: visible;
+    z-index: 1;
     
   }
 } 
