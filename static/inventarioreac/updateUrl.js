@@ -72,3 +72,12 @@ if (currentUrl.endsWith('/solicitudes/solicitudes_externas/')) {
     // Redirigir a la nueva URL
     window.location.href = newUrl;
 }
+
+// Verificar si la URL no tiene parámetros de búsqueda para inventario
+if (currentUrl.endsWith('/UniCLab_Residuos/Clasificacion_Residuos/Listado/')) {
+    // Modificar la URL agregando los parámetros de búsqueda deseados
+    const newUrl = currentUrl + '?name=&id_classification=';
+
+    // Redirigir a la nueva URL
+    window.location.href = newUrl;
+}

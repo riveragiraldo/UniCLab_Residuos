@@ -218,9 +218,9 @@
 			  </button>
 			</nav>
 			<nav>
-			  <button type="button">
-				<img src="{% static '/inventarioreac/images//assets/icon-blockchain.svg' %}" />
-				<span>Sección</span>
+			  <button type="button" onclick="redirect('{% url 'residuos:clasificacion_residuos' %}')">
+				<img src="{% static '/inventarioreac/images//assets/classification_wastes.png' %}" />
+				<span>Clasificación de residuos</span>
 			  </button>
 			  <button type="button">
 				<img src="{% static '/inventarioreac/images//assets/icon-database.svg' %}" />
