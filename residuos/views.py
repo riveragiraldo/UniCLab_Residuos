@@ -27,6 +27,8 @@ from datetime import datetime
 import os
 from .forms import *
 import base64
+import pytz
+from django.db.models import F, ExpressionWrapper, DecimalField
 
 
 
@@ -124,8 +126,8 @@ class Wastes_Classification_List(LoginRequiredMixin,ListView):
         queryset = queryset.order_by('id')
         return queryset
     
-# ---------------------------------------------------------- #
-# Paginación de listado de clasifición de residuos
+# ------------------------------------------------ #
+# Paginación de listado de clasifición de residuos #
 class Wastes_Classification_Pagination(LoginRequiredMixin,View):
     @check_group_permission(groups_required=['ADMINISTRADOR','COORDINADOR','TECNICO', 'ADMINISTRADOR AMBIENTAL'])
     def get(self, request, *args, **kwargs):
@@ -152,8 +154,8 @@ class Wastes_Classification_Pagination(LoginRequiredMixin,View):
         return redirect(url)
 
 
-# ---------------------------------------------------------- #
-# Autocompletado de clasificaciones
+# --------------------------------- #
+# Autocompletado de clasificaciones #
 
 class AutocompleteClassification(LoginRequiredMixin,View):
     @check_group_permission(groups_required=['ADMINISTRADOR','COORDINADOR','TECNICO', 'ADMINISTRADOR AMBIENTAL'])
@@ -465,6 +467,12 @@ class CreateRegisterWaste(LoginRequiredMixin, View):
 
         return render(request, self.template_name, {'form': form, 'laboratorios':laboratorios, 'lab_id':lab_id})
 
+    def enviar_correo_asincrono(self, recipient_list, subject, message, attach_path):
+        try:
+            enviar_correo(recipient_list, subject, message, attach_path)
+        except Exception as e:
+            print(f'Error al enviar correo: {e}')
+
     @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL', 'COORDINADOR', 'TECNICO'])
     def post(self, request, *args, **kwargs):
         form = RegistroResiduosForm(request.POST)
@@ -475,11 +483,69 @@ class CreateRegisterWaste(LoginRequiredMixin, View):
                 form.instance.last_updated_by = request.user
                 # Guardar el registro si el formulario es válido
                 registro_residuo = form.save()
+                registro_residuo.total_residuo=registro_residuo.cantidad*registro_residuo.numero_envases
+                registro_residuo.save()
                 
                 # Registrar evento
                 tipo_evento = 'CREAR REGISTRO DE RESIDUOS'
                 usuario_evento = request.user
                 crear_evento(tipo_evento, usuario_evento)
+
+                # Datos para correo electrónico
+
+                # Usuarios que recepcionan
+                # Obtener el correo del usuario que realiza el registro
+                correo_usuario = request.user.email
+
+                # Obtener los correos de todos los usuarios activos con rol 'ADMINISTRADOR AMBIENTAL'
+                usuarios_admin_ambiental = User.objects.filter(is_active=True, rol__name='ADMINISTRADOR AMBIENTAL').values_list('email', flat=True)
+
+                # Crear una lista de destinatarios
+                recipient_list = list(usuarios_admin_ambiental)
+                recipient_list.append(correo_usuario)  # Agregar el correo del usuario que realiza el registro
+
+                # Asunto
+                subject= f'Registro exitoso de residuo {registro_residuo.nombre_residuo}'
+
+                # Mensaje
+                # Definir como dependencia el area o laboratorio
+                if registro_residuo.area and registro_residuo.laboratorio:
+                    dependencia=f'{registro_residuo.area} {registro_residuo.laboratorio.name}'
+                elif registro_residuo.area:
+                    dependencia=f'{registro_residuo.area}'
+                elif registro_residuo.laboratorio:
+                    dependencia=f'{registro_residuo.laboratorio.name}'
+                
+                # sacar el total del residuo del registro
+                total_residuo=registro_residuo.numero_envases*registro_residuo.cantidad
+
+                # Organizar las clasificaciones
+                clasificaciones = ', '.join(registro_residuo.clasificado.values_list('name', flat=True)) if registro_residuo.clasificado.exists() else 'NO DEFINIDA'
+                
+                # Formatear fecha    
+                # Obtener el huso horario deseado (GMT-5)
+                tz = pytz.timezone('America/Bogota')
+
+                # Convertir la fecha al huso horario deseado y formatearla
+                fecha_registro = registro_residuo.date_create.astimezone(tz).strftime('%d/%m/%Y %H:%M:%S')
+    
+
+                header=f'<p>El siguiente mensaje tiene el fin de informarte que recientemente se ha realizado un registro de residuos dirgido a la <i>OFICINA AMBIENTAL</i> de la Universidad Nacional de Colombia, los datos del registro son los siguientes:</p>'
+                body=f'<p><b>Fecha del registro: </b>{fecha_registro}<br><b>Consecutivo: </b>{registro_residuo.pk}<br><b>Dependencia: </b>{dependencia}<br><b>Nombre del residuo: </b>{registro_residuo.nombre_residuo}<br><b>Cantidad: </b>{registro_residuo.cantidad} {registro_residuo.unidades.name}<br><b>Cantidad de envases: </b>{registro_residuo.numero_envases}<br><b>Total residuo: </b>{total_residuo} {registro_residuo.unidades.name}<br><b>Clasificación Y - A: </b>{clasificaciones}<br><b>Estado: </b>{registro_residuo.estado.name}<br><b>Responsable del registro: </b>{registro_residuo.created_by.first_name} {registro_residuo.created_by.last_name}<br><b>Correo electrónio: </b>{registro_residuo.created_by.email}<br><b>Observaciones: </b>{registro_residuo.observaciones}</p>'
+                footer=f'<p>Este correo es informativo, para más detalle dirigite a la web principal de UniCLab Residuos.</p>'
+                message=header+body+footer
+                
+                # Adjuntos
+                attach_path=None
+               
+                
+                # Crear un hilo y ejecutar enviar_correo en segundo plano
+                correo_thread = threading.Thread(
+                    target=self.enviar_correo_asincrono,
+                    args=(recipient_list, subject, message, attach_path),
+                )
+                correo_thread.start()
+
                 
                 mensaje = 'Registro de residuo creado correctamente.'
                 return JsonResponse({'success': True, 'message': mensaje})
@@ -489,3 +555,121 @@ class CreateRegisterWaste(LoginRequiredMixin, View):
             print(e)
             mensaje = f'Error: {e}'
             return HttpResponseBadRequest(f'Error interno del servidor: {mensaje}')
+        
+# ------------------------------------------- #
+# Listado de Registro de residups de residuos #
+class Wastes_Record_List(LoginRequiredMixin,ListView):
+    model = REGISTRO_RESIDUOS
+    template_name = "UniCLab_Residuos/listado_registros_residuos.html"
+    paginate_by = 10
+    
+    
+    @check_group_permission(groups_required=['ADMINISTRADOR','ADMINISTRADOR AMBIENTAL','COORDINADOR','TECNICO'])
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        # Obtener el número de registros por página de la sesión del usuario
+        per_page = request.session.get('per_page')
+        if per_page:
+            self.paginate_by = int(per_page)
+        else:
+            self.paginate_by = 10  # Valor predeterminado si no hay variable de sesión
+
+        # Obtener los parámetros de filtrado
+        
+        # Obtener las fechas de inicio y fin de la solicitud GET
+        id_laboratorio = self.request.GET.get('id_laboratorio')
+        name = self.request.GET.get('name')
+        id_name = self.request.GET.get('id_classification')
+        start_date = self.request.GET.get('start_date')   
+        end_date = self.request.GET.get('end_date')   
+        # Guardar los valores de filtrado en la sesión
+        
+        request.session['filtered_id_laboratorio'] = id_laboratorio
+        request.session['filtered_name'] = name
+        request.session['filtered_id_name'] = id_name
+        request.session['filtered_start_date'] = start_date
+        request.session['filtered_end_date'] = end_date
+        
+        return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        
+        # Otros datos que quieras pasar al contexto
+        context['usuarios'] = User.objects.all()
+        context['laboratorios'] = Laboratorios.objects.all()
+        # Obtener la fecha de hoy
+        today = timezone.now().date()
+
+        # Pasar la fecha de hoy al contexto
+        context['today'] = today
+
+        return context
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        id_classification = self.request.GET.get('id_classification')
+        if id_classification:
+            queryset = queryset.filter(id=id_classification)
+
+        queryset = queryset.order_by('id')
+        return queryset
+    
+# --------------------------------------------- #
+# Paginación de listado de registro de residuos #
+class Wastes_Record_Pagination(LoginRequiredMixin,View):
+    @check_group_permission(groups_required=['ADMINISTRADOR','COORDINADOR','TECNICO', 'ADMINISTRADOR AMBIENTAL'])
+    def get(self, request, *args, **kwargs):
+        per_page = kwargs.get('per_page')
+        request.session['per_page'] = per_page
+
+        # Redirigir a la página de inventario con los parámetros de filtrado actuales
+        filtered_id_laboratorio = request.session.get('filtered_id_laboratorio')
+        filtered_name = request.session.get('filtered_name')
+        filtered_id_name = request.session.get('filtered_id_name')
+        filtered_start_date = request.session.get('filtered_start_date')
+        filtered_end_date = request.session.get('filtered_end_date')
+        
+        url = reverse('residuos:record_waste_list')
+        params = {}
+        
+        if filtered_id_laboratorio:
+            params['id_laboratorio'] = filtered_id_laboratorio
+        if filtered_name:
+            params['name'] = filtered_name
+        if filtered_id_name:
+            params['id_name'] = filtered_id_name
+        if filtered_start_date:
+            params['start_date'] = filtered_start_date
+        if filtered_end_date:
+            params['end_date'] = filtered_end_date
+        
+        if params:
+            url += '?' + urlencode(params)
+
+        return redirect(url)
+
+    
+# --------------------------------- #
+# Autocompletar listado de residuos #
+class AutocompleteWaste(LoginRequiredMixin, View):
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'COORDINADOR', 'TECNICO', 'ADMINISTRADOR AMBIENTAL'])
+    def get(self, request):
+        term = request.GET.get('term', '')
+
+        # Filtrar los residuos y obtener valores únicos
+        residuos = REGISTRO_RESIDUOS.objects.filter(
+            nombre_residuo__icontains=term
+        ).values('nombre_residuo').distinct()[:10]
+
+        # Convertir a mayúsculas y obtener valores únicos
+        nombres_mayuscula = set(residuo['nombre_residuo'].upper() for residuo in residuos)
+
+        # Crear una lista de resultados
+        results = [{'name': nombre} for nombre in nombres_mayuscula]
+
+        return JsonResponse(results, safe=False)

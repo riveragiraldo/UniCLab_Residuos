@@ -219,15 +219,16 @@
 					<img src="{% static '/inventarioreac/images//assets/register_waste_icon.png' %}" />
 					<span>Registrar Residuos</span>
 				  </button>
+				  <button type="button" onclick="redirect('{% url 'residuos:record_waste_list' %}')">
+					<img src="{% static '/inventarioreac/images//assets/list_record_waste_icon.png' %}" />
+					<span>Listado de registros</span>
+				  </button>
 			  <button type="button" onclick="redirect('{% url 'residuos:clasificacion_residuos' %}')">
 				<img src="{% static '/inventarioreac/images//assets/classification_wastes.png' %}" />
 				<span>Clasificación de residuos</span>
 			  </button>
 			  
-			  <button type="button">
-				<img src="{% static '/inventarioreac/images//assets/icon-speaker.svg' %}" />
-				<span>Sección</span>
-			  </button>
+			  
 			  <button type="button">
 				<img src="{% static '/inventarioreac/images//assets/icon-acoustic.svg' %}" />
 				<span>Sección</span>

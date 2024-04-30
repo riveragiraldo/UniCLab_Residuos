@@ -33,7 +33,7 @@ class Reactivosadmin(ImportExportModelAdmin, admin.ModelAdmin):
 # Inclusión del modelo registro de residuos en el Admin #
 @admin.register(REGISTRO_RESIDUOS)
 class RegistroAdmin(admin.ModelAdmin):
-    list_display = ('id', 'dependencia', 'area', 'laboratorio', 'nombre_residuo', 'cantidad', 'unidades', 'numero_envases', 'clasificado_list', 'estado', 'is_active', 'created_by', 'date_create', 'last_update', 'last_updated_by',)
+    list_display = ('id', 'dependencia', 'area', 'laboratorio', 'nombre_residuo', 'cantidad', 'unidades', 'numero_envases', 'total_residuo','clasificado_list', 'estado', 'observaciones','is_active', 'created_by', 'date_create', 'last_update', 'last_updated_by',)
     list_filter = ('nombre_residuo',)
     search_fields = ('nombre_residuo',)
     list_per_page = 10

@@ -81,3 +81,12 @@ if (currentUrl.endsWith('/UniCLab_Residuos/Clasificacion_Residuos/Listado/')) {
     // Redirigir a la nueva URL
     window.location.href = newUrl;
 }
+
+// Verificar si la URL no tiene parámetros de búsqueda para inventario
+if (currentUrl.endsWith('/UniCLab_Residuos/Registro_Residuos/Listado/')) {
+    // Modificar la URL agregando los parámetros de búsqueda deseados
+    const newUrl = currentUrl + '?id_laboratorio='+lab_id+'name=&id_name&start_date=&end_date=';
+
+    // Redirigir a la nueva URL
+    window.location.href = newUrl;
+}

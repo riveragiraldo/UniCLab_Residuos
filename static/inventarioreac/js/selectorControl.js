@@ -92,5 +92,20 @@ document.addEventListener("DOMContentLoaded", function () {
     ajustarEstado();
 
 
+    
+
 
 });
+
+// Función para abrir ventane emergente de listado de clasificaciones
+function openPopup(url) {
+    // Definir las dimensiones de la ventana emergente
+    var width = 600;
+    var height = 400;
+    // Calcular la posición del centro de la pantalla
+    var left = (screen.width - width) / 2;
+    var top = (screen.height - height) / 2;
+    // Abrir la ventana emergente
+    window.open(url, '_blank', 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=yes, resizable=yes, copyhistory=no, width=' + width + ', height=' + height + ', top=' + top + ', left=' + left);
+    return false;
+}

@@ -43,7 +43,7 @@ class ClasificacionResiduosForm(forms.ModelForm):
 class RegistroResiduosForm(forms.ModelForm):
     class Meta:
         model = REGISTRO_RESIDUOS
-        fields = ['dependencia', 'area', 'laboratorio','nombre_residuo', 'cantidad', 'unidades', 'numero_envases', 'clasificado', 'estado']
+        fields = ['dependencia', 'area', 'laboratorio','nombre_residuo', 'cantidad', 'unidades', 'numero_envases', 'clasificado', 'estado', 'observaciones']
         labels = {
             'dependencia': 'Tipo de Dependencia',
             'area': 'Área',
@@ -54,15 +54,32 @@ class RegistroResiduosForm(forms.ModelForm):
             'numero_envases': 'Número de Envases',
             'clasificado': 'Clasificado',
             'estado': 'Estado',
+            'observaciones':'Observaciones'
         }
         widgets = {
             'dependencia': forms.Select(attrs={'class': 'form-control'}),
             'area': forms.TextInput(attrs={'class': 'form-control'}),
             'laboratorio': forms.Select (attrs={'class': 'form-control'}),
             'nombre_residuo': forms.TextInput(attrs={'class': 'form-control'}),
-            'cantidad': forms.NumberInput(attrs={'class': 'form-control', 'min':0.01}),
+            'cantidad': forms.NumberInput(attrs={'class': 'form-control', 'min':0}),
             'unidades': forms.Select(attrs={'class': 'form-control'}),
             'numero_envases': forms.NumberInput(attrs={'class': 'form-control'}),
             'clasificado': forms.SelectMultiple(attrs={'class': 'form-control'}),
             'estado': forms.Select(attrs={'class': 'form-control'}),
+            'observaciones': forms.TextInput(attrs={'class': 'form-control'}),
         }
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        area = cleaned_data.get('area')
+        nombre_residuo = cleaned_data.get('nombre_residuo')
+        observaciones = cleaned_data.get('observaciones')
+
+        if area is not None:
+            cleaned_data['area'] = estandarizar_nombre(area)
+        if nombre_residuo is not None:
+            cleaned_data['nombre_residuo'] = estandarizar_nombre(nombre_residuo)
+        if observaciones is not None:
+            cleaned_data['observaciones'] = estandarizar_nombre(observaciones)
+
+        return cleaned_data
