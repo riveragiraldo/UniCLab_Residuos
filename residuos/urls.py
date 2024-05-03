@@ -23,6 +23,7 @@ urlpatterns = [
     path('UniCLab_Residuos/Registro_Residuos/Listado/', Wastes_Record_List.as_view(), name='record_waste_list'),# Listado Registro de residuos
     path('UniCLab_Residuos/Registro_Residuos/Listado/Pag/<int:per_page>/', Wastes_Record_Pagination.as_view(), name='Wastes_Record_Pagination'),# Maneja paginación de listado de residuos
     path('UniCLab_Residuos/Autocompletar_Residuos/', AutocompleteWaste.as_view(), name='autocomplete_waste'), # Autocompletar Residuos
+    path('UniCLab_Residuos/Registro_Residuos/Listado/Exportar_a_Excel/', Export2ExcelWastes.as_view(), name='export_2_xls_wastes'),# Maneja paginación de listado de residuos
     
     ]
 

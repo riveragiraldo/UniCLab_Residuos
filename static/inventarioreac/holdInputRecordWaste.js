@@ -4,13 +4,13 @@ function configurarSelectoresDesdeURL() {
     
     const idLabValue = urlParams.get('id_laboratorio');
     const nameValue = urlParams.get('name');    
-    const idNameValue = urlParams.get('id_name');
+  
     const startDateValue = urlParams.get('start_date');
     const endDateValue = urlParams.get('end_date');
 
     const idLabInput = document.getElementById('id_laboratorio');
     const nameInput = document.getElementById('name');   
-    const idNameInput = document.getElementById('id_name');
+  
     const startDateInput = document.getElementById('start_date');
     const endDateInput = document.getElementById('end_date');
 
@@ -28,11 +28,7 @@ function configurarSelectoresDesdeURL() {
     }
 
     
-    if (idNameValue !== null) {
-        idNameInput.value = idNameValue;
-    } else {
-        idNameInput.value = ''; // Valor por defecto de la entrada "id_name"
-    }
+
 
     if (startDateValue !== null) {
         startDateInput.value = startDateValue;

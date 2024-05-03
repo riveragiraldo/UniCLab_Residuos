@@ -86,8 +86,8 @@
                             <form method="get" onsubmit="guardarValoresSelect()" name="listadoRegistros" class="row g-3">
                                 
 
-                                <div class="form-group col-md-4">
-                                    <label for="id_laboratorio">Laboratorio:</label>
+                                <div class="form-group col-md-3">
+                                    <label for="id_laboratorio">Laboratorio que realiza el registro:</label>
                                     {% if request.user|has_group:"ADMINISTRADOR" or request.user.is_superuser or request.user|has_group:"ADMINISTRADOR AMBIENTAL" %}
                                     <select name="id_laboratorio" id="id_laboratorio" class="form-control">
                                         <option value="">TODOS</option>
@@ -108,11 +108,11 @@
                                 </div>
             
                                 <div class="form-group  col-md-4">
-                                    <label for="name">Nombre del residuos:</label>
+                                    <label for="name">Palabra clave (Nombre, Dependencia o Clasificación):</label>
                                     <input type="text" id="name" name="name" class="form-control">
             
                                 </div>
-                                <input type="hidden" id="id_name" name="id_name" >
+                                
 
                                 <div class="form-group col-md-2">
                                     <label for="start_date">Fecha Inicial:</label>
@@ -232,9 +232,9 @@
                                         registro-creador-email="{{ item.created_by.email }}"
                                         registro-fecha-actualizacion="{{ item.last_update|date:'d/m/Y H:i:s' }}"
                                         registro-actualizador="{{ item.last_updated_by.first_name }} {{ item.last_updated_by.last_name }}">{{ item.date_create|date:'d/m/Y' }}</td>
-                                    <td title="Dependencia: {% if item.laboratorio and item.area %}{{ item.laboratorio.name }} {{ item.laboratorio.area }}{% elif item.laboratorio %}{{ item.laboratorio.name }}{% elif item.area %}{{ item.area }}{% endif %}"
+                                    <td title="Dependencia: {% if item.laboratorio and item.area %}{{ item.name }} {{ item.laboratorio.area }}{% elif item.laboratorio %}{{ item.laboratorio.name }}{% elif item.area %}{{ item.area }}{% endif %}"
                                         style="border-bottom: 1px solid black; border-top: 1px solid black;text-align: left; vertical-align: middle;"
-                                        class="hidden-xs">{% if item.laboratorio and item.area %}{{ item.laboratorio.name }} {{ item.laboratorio.area }}{% elif item.laboratorio %}{{ item.laboratorio.name }}{% elif item.area %}{{ item.area }}{% endif %}</td>
+                                        class="hidden-xs">{% if item.laboratorio and item.area %}{{ item.laboratorio.name }} {{ item.area }}{% elif item.laboratorio %}{{ item.laboratorio.name }}{% elif item.area %}{{ item.area }}{% endif %}</td>
                                     <td title="Residuo: {{ item.nombre_residuo }}"
                                         style="border-bottom: 1px solid black; border-top: 1px solid black;text-align: left; vertical-align: middle; cursor: pointer;"
                                         class="detalle-residuo list-name"
@@ -360,7 +360,7 @@
             
                         <div class="text-md-left">
                         <!-- Opciones de exportación -->
-                        <a href="{% url 'residuos:export_2_xls_classification' %}" class="btn btn-primary" style="color: white;">Exportar a Excel</a>
+                        <a href="{% url 'residuos:export_2_xls_wastes' %}" class="btn btn-primary" style="color: white;">Exportar a Excel</a>
                         </div>
                     
             

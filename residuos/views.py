@@ -191,7 +191,7 @@ class ExportToExcelClassification(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         def get_file_name():
             now = datetime.now()
-            return f'clasificacion_residuos_decreto_1076_2015_{now.strftime("%d%m%Y%H%M%S")}.xlsx'
+            return f'Clasificacion_residuos_decreto_1076_2015_{now.strftime("%d%m%Y%H%M%S")}.xlsx'
         id_classification = request.session.get('filtered_id_classification')
         queryset=CLASIFICACION_RESIDUOS.objects.all()
         if id_classification:
@@ -581,14 +581,12 @@ class Wastes_Record_List(LoginRequiredMixin,ListView):
         # Obtener las fechas de inicio y fin de la solicitud GET
         id_laboratorio = self.request.GET.get('id_laboratorio')
         name = self.request.GET.get('name')
-        id_name = self.request.GET.get('id_classification')
         start_date = self.request.GET.get('start_date')   
         end_date = self.request.GET.get('end_date')   
         # Guardar los valores de filtrado en la sesión
         
         request.session['filtered_id_laboratorio'] = id_laboratorio
         request.session['filtered_name'] = name
-        request.session['filtered_id_name'] = id_name
         request.session['filtered_start_date'] = start_date
         request.session['filtered_end_date'] = end_date
         
@@ -612,9 +610,41 @@ class Wastes_Record_List(LoginRequiredMixin,ListView):
     def get_queryset(self):
         queryset = super().get_queryset()
 
-        id_classification = self.request.GET.get('id_classification')
-        if id_classification:
-            queryset = queryset.filter(id=id_classification)
+        id_laboratorio = self.request.GET.get('id_laboratorio')
+
+        name = self.request.GET.get('name')
+        
+        # Obtener las fechas de inicio y fin de la solicitud GET
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+        
+        # Validar y convertir las fechas
+        try:
+            if start_date:
+                start_date = make_aware(datetime.strptime(start_date, '%Y-%m-%d'))
+            if end_date:
+                end_date = make_aware(datetime.strptime(end_date, '%Y-%m-%d').replace(hour=23, minute=59, second=59))
+        except ValueError:
+            # Manejar errores de formato de fecha aquí si es necesario
+            pass
+
+        
+        # Realiza la filtración de acuerdo a las fechas
+        if start_date:
+            queryset = queryset.filter(date_create__gte=start_date)
+        if end_date:
+            queryset = queryset.filter(date_create__lte=end_date)
+        elif start_date and end_date:
+            queryset = queryset.filter(date_create__gte=start_date,date_create__lte=end_date)
+
+
+        # Filtrar por  campos que contengan la palabra clave en su nombre
+        if name:
+            queryset = queryset.filter(Q(nombre_residuo__icontains=name) | Q(area__icontains=name) | Q(laboratorio__name__icontains=name) | Q(clasificado__name__icontains=name))
+        
+
+        if id_laboratorio:
+            queryset = queryset.filter(laboratorio=id_laboratorio)
 
         queryset = queryset.order_by('id')
         return queryset
@@ -630,7 +660,6 @@ class Wastes_Record_Pagination(LoginRequiredMixin,View):
         # Redirigir a la página de inventario con los parámetros de filtrado actuales
         filtered_id_laboratorio = request.session.get('filtered_id_laboratorio')
         filtered_name = request.session.get('filtered_name')
-        filtered_id_name = request.session.get('filtered_id_name')
         filtered_start_date = request.session.get('filtered_start_date')
         filtered_end_date = request.session.get('filtered_end_date')
         
@@ -641,8 +670,6 @@ class Wastes_Record_Pagination(LoginRequiredMixin,View):
             params['id_laboratorio'] = filtered_id_laboratorio
         if filtered_name:
             params['name'] = filtered_name
-        if filtered_id_name:
-            params['id_name'] = filtered_id_name
         if filtered_start_date:
             params['start_date'] = filtered_start_date
         if filtered_end_date:
@@ -673,3 +700,191 @@ class AutocompleteWaste(LoginRequiredMixin, View):
         results = [{'name': nombre} for nombre in nombres_mayuscula]
 
         return JsonResponse(results, safe=False)
+    
+# ------------------------------------- #
+# Exportar a Excel registro de residuos #
+class Export2ExcelWastes(LoginRequiredMixin, View):
+    @check_group_permission(groups_required=['ADMINISTRADOR','COORDINADOR','TECNICO', 'ADMINISTRADOR AMBIENTAL'])
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+       
+    @check_group_permission(groups_required=['ADMINISTRADOR','COORDINADOR','TECNICO', 'ADMINISTRADOR AMBIENTAL'])
+    def get(self, request, *args, **kwargs):
+        def get_file_name():
+            now = datetime.now()
+            return f'Registro_de_residuos_{now.strftime("%d%m%Y%H%M%S")}.xlsx'
+           
+        queryset=REGISTRO_RESIDUOS.objects.all()
+        
+        # Obtener datos filtrados de la sesión
+        id_laboratorio = request.session.get('filtered_id_laboratorio')
+        name = request.session.get('filtered_name')
+        start_date = request.session.get('filtered_start_date')
+        end_date = request.session.get('filtered_end_date')
+        
+        # Validar y convertir las fechas
+        try:
+            if start_date:
+                start_date = make_aware(datetime.strptime(start_date, '%Y-%m-%d'))
+            if end_date:
+                end_date = make_aware(datetime.strptime(end_date, '%Y-%m-%d').replace(hour=23, minute=59, second=59))
+        except ValueError:
+            # Manejar errores de formato de fecha aquí si es necesario
+            pass
+
+        
+        # Realiza la filtración de acuerdo a las fechas
+        if start_date:
+            queryset = queryset.filter(date_create__gte=start_date)
+        if end_date:
+            queryset = queryset.filter(date_create__lte=end_date)
+        elif start_date and end_date:
+            queryset = queryset.filter(date_create__gte=start_date,date_create__lte=end_date)
+
+
+        # Filtrar por  campos que contengan la palabra clave en su nombre
+        if name:
+            queryset = queryset.filter(Q(nombre_residuo__icontains=name) | Q(area__icontains=name) | Q(laboratorio__name__icontains=name) | Q(clasificado__name__icontains=name))
+        
+
+        if id_laboratorio:
+            queryset = queryset.filter(laboratorio=id_laboratorio)
+
+        queryset = queryset.order_by('id')
+
+        workbook = openpyxl.Workbook()
+        sheet = workbook.active
+
+        logo_path = finders.find('inventarioreac/Images/escudoUnal_black.png')
+        pil_image = PILImage.open(logo_path)
+        image = ExcelImage(pil_image)
+        sheet.add_image(image, 'A1')
+
+        fecha_creacion = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        
+        sheet['C1'] = 'Listado de registro de residuos'
+        sheet['C2'] = 'Fecha de Creación: '+fecha_creacion
+        sheet['A4'] = 'Consecutivo'
+        sheet['B4'] = 'Dependencia'
+        sheet['C4'] = 'Nombre del residuo'
+        sheet['D4'] = 'Cantidad'
+        sheet['E4'] = 'Número de envases'
+        sheet['F4'] = 'Total Residuo'
+        sheet['G4'] = 'Unidades'
+        sheet['H4'] = 'Clasificado Y - A'
+        sheet['I4'] = 'Estado'
+        sheet['J4'] = 'Dependencia que realiza registro'
+        sheet['K4'] = 'Usuario que registra'
+        sheet['L4'] = 'Registro Activo?'
+
+        sheet.row_dimensions[1].height = 30
+        sheet.row_dimensions[2].height = 30
+        sheet.row_dimensions[3].height = 25
+
+        Titulo = sheet['C1']
+        Titulo.font = Font(bold=True, size=16)
+        Titulo.alignment = Alignment(horizontal='left')
+
+        Fecha = sheet['C2']
+        Fecha.alignment = Alignment(horizontal='left')
+        
+        
+
+        thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+
+        bold_font = Font(bold=True)
+
+        # Establecer Anchos personalizados
+        sheet.column_dimensions['A'].width = 12
+        sheet.column_dimensions['B'].width = 31
+        sheet.column_dimensions['C'].width = 27
+        sheet.column_dimensions['D'].width = 10
+        sheet.column_dimensions['E'].width = 10
+        sheet.column_dimensions['F'].width = 10
+        sheet.column_dimensions['G'].width = 10
+        sheet.column_dimensions['H'].width = 10
+        sheet.column_dimensions['I'].width = 10
+        sheet.column_dimensions['J'].width = 21
+        sheet.column_dimensions['K'].width = 31
+        sheet.column_dimensions['L'].width = 10
+
+        alignment = Alignment(wrap_text=True, vertical="top", horizontal="left")
+        
+
+        row = 4
+        for col in range(1, 13):
+            sheet.cell(row=row, column=col).border = thin_border
+            sheet.cell(row=row, column=col).font = bold_font
+            sheet.cell(row=row, column=col).alignment = alignment
+
+        row = 5
+        for item in queryset:
+            # Crear la dependencia
+
+            if item.laboratorio and item.area:
+                dependencia=f'{item.laboratorio.name} {item.area}'
+            elif item.laboratorio:
+                dependencia=f'{item.laboratorio.name}'
+            elif item.area:
+                dependencia=f'{item.area}'
+            
+            # Organizar las clasificaciones
+            clasificaciones = ', '.join(item.clasificado.values_list('name', flat=True)) if item.clasificado.exists() else 'NO DEFINIDA'
+
+            # Definir el estado de activación
+            if item.is_active:
+                estado="SÍ"
+            else:
+                estado="NO"
+            sheet.cell(row=row, column=1).value = (item.id)
+            sheet.cell(row=row, column=2).value = (dependencia)
+            sheet.cell(row=row, column=3).value = item.nombre_residuo
+            sheet.cell(row=row, column=4).value = item.cantidad
+            sheet.cell(row=row, column=5).value = item.numero_envases
+            sheet.cell(row=row, column=6).value = item.total_residuo
+            sheet.cell(row=row, column=7).value = item.unidades.name
+            sheet.cell(row=row, column=8).value = clasificaciones
+            sheet.cell(row=row, column=9).value = item.estado.name
+            sheet.cell(row=row, column=10).value =item.created_by.lab.name
+            sheet.cell(row=row, column=11).value = f'{item.created_by.first_name} {item.created_by.last_name}'
+            sheet.cell(row=row, column=12).value = estado       
+            
+            for col in range(1, 13):
+                sheet.cell(row=row, column=col).border = thin_border
+                sheet.cell(row=row, column=col).alignment = alignment
+
+            row += 1
+
+        start_column = 1
+        end_column = 12
+        start_row = 4
+        end_row = row - 1
+
+        start_column_letter = get_column_letter(start_column)
+        end_column_letter = get_column_letter(end_column)
+
+        table_range = f"{start_column_letter}{start_row}:{end_column_letter}{end_row}"
+
+        sheet.auto_filter.ref = table_range
+
+        fill = PatternFill(fill_type="solid", fgColor=WHITE)
+        start_cell = sheet['A1']
+        end_column_letter = get_column_letter(end_column+1)
+        end_row = row+1
+        end_cell = sheet[end_column_letter + str(end_row)]
+        table_range = start_cell.coordinate + ':' + end_cell.coordinate
+
+        for row in sheet[table_range]:
+            for cell in row:
+                cell.fill = fill
+
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename={get_file_name()}'
+
+        workbook.save(response)
+
+        tipo_evento = 'DESCARGA DE ARCHIVOS'
+        usuario_evento = request.user
+        crear_evento(tipo_evento, usuario_evento)
+
+        return response
