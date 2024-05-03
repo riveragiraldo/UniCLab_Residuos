@@ -35,7 +35,7 @@
 	<link rel="stylesheet" type="text/css" href="{% static 'inventarioreac/css/phone.css' %}" media="all">
 	<link rel="stylesheet" type="text/css" href="{% static 'inventarioreac/css/small.css' %}" media="all">
 	<link rel="stylesheet" type="text/css" href="{% static 'inventarioreac/css/printer.css' %}" media="print">
-
+		<script>document.getElementById("breadcrumb_title").setAttribute("title", "Inicio: " + "{{ request.user.lab.name|title}}");</script>
 
 
 	<script src="{% static 'inventarioreac/js/jquery.js' %}" type="text/javascript"></script>
@@ -187,8 +187,10 @@
 		<!-- Miga de pan -->
 		<nav aria-label="breadcrumb" class="hidden-xs" >
 			<ol class="breadcrumb" style="background-color: transparent;">
-				<li class="breadcrumb-item active" title="Inicio">Está en:</li>
-				<li class="breadcrumb-item"><a href="{% url 'residuos:home_residuos' %}" target="_self" title="Inicio: "
+				<li class="breadcrumb-item active" title="Inicio">Bienvenido(a) <a class="datos-usuario"
+					data-name="{{ request.user.first_name }} {{request.user.last_name }}"
+					data-message="<li><strong>Nombre:</strong> {{ request.user.first_name }} {{request.user.last_name }}</li><li><strong>Nombre de usuario:</strong> {{request.user.username }}</li><li><strong>Correo eléctrónico:</strong> {{request.user.email }}</li><li><strong>Teléfono:</strong> {{request.user.phone_number }}</li><li><strong>Laboratorio:</strong>{{request.user.lab }}</li><li><strong>Rol:</strong> {{request.user.rol }}</li><li><strong>Su último acceso:</strong> {{request.user.last_login }}</li>" style="cursor: pointer;">{{request.user.first_name|title}}</a>, estás en:</li>
+				<li class="breadcrumb-item"><a href="{% url 'residuos:home_residuos' %}" target="_self" title="Inicio: {{ request.user.lab|title}}"
 						id="breadcrumb_title">{{ request.user.lab|title}}</a></li>
 				<li class="breadcrumb-item active" aria-current="page" id="breadcrumb-title"></li>
 			</ol>
@@ -229,30 +231,30 @@
 			  </button>
 			  
 			  
-			  <button type="button">
-				<img src="{% static '/inventarioreac/images//assets/icon-acoustic.svg' %}" />
-				<span>Sección</span>
-			  </button>
+			  
 			</nav>
+			{% if request.user|has_group:"ADMINISTRADOR" or request.user.is_superuser or request.user|has_group:"COORDINADOR" or request.user.is_superuser or request.user|has_group:"TECNICO" %}
+				
 			<nav>
 			  
-			  <button type="button">
-				<img src="{% static '/inventarioreac/images//assets/icon-levels.svg' %}" />
-				<span>Sección</span>
-			  </button>
-			  <button type="button">
-				<img src="{% static '/inventarioreac/images//assets/icon-accounts.svg' %}" />
-				<span>Usuarios</span>
-			  </button>
-			  <button type="button">
-				<img src="{% static '/inventarioreac/images//assets/icon-folders.svg' %}" />
-				<span>Informes</span>
-			  </button>
 			  <button type="button" onclick="redirect('{% url 'reactivos:index' %}')">
 				<img src="{% static '/inventarioreac/images/assets/UniCLabReactivos.png' %}" alt="Reactivos"/>
 				<span>UniCLab Reactivos</span>
 			  </button>
 			</nav>
+			{% endif %}
+			<nav>
+				{% if request.user|has_group:"ADMINISTRADOR" or request.user.is_superuser or request.user|has_group:"ADMINISTRADOR AMBIENTAL" %}
+				<button type="button" onclick="redirect('{% url 'residuos:change_password' %}')">
+				  <img src="{% static '/inventarioreac/images/assets/passwordchange_icon.png' %}" alt="Reactivos"/>
+				  <span>Cambiar Contraseña</span>
+				{% endif %}
+				</button>
+				<button type="button" onclick="redirect('{% url 'residuos:logout' %}')">
+					<img src="{% static '/inventarioreac/images/assets/logout_icon.png' %}" alt="Reactivos"/>
+					<span>Cerrar sesión</span>
+				  </button>
+			  </nav>
 		  </aside>
 
 		

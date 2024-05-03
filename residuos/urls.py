@@ -27,6 +27,8 @@ urlpatterns = [
     path('UniCLab_Residuos/Registro_Residuos/Editar/<str:pk>/', EditarRegistroResiduos.as_view(), name='edit_register'),# Editar Registro de residuos
     path('UniCLab_Residuos/Registro_Residuos/Desactivar/<str:pk>/', DisableWasteRecord.as_view(), name='disable_record_waste'), # Deshabilitar Clasificación
     path('UniCLab_Residuos/Registro_Residuos/Activar/<str:pk>/', EnableWasteRecord.as_view(), name='enable_record_waste'), # Habilitar Registro
+    path('UniCLab_Residuos/Usuarios/Cambiar_pass/', PasswordChangeView.as_view(), name='change_password'), # Cambiar contraseña
+    path('UniCLab_Residuos/Cerrar_Sesion/', LogoutView.as_view(), name='logout'), # Cerrar Sesión
     
     ]
 

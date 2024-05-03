@@ -39,7 +39,7 @@ var pageTitle = document.title;
 
 // Asignar el valor al elemento de breadcrumb
 document.getElementById("breadcrumb-title").textContent = pageTitle;
-document.getElementById("breadcrumb_title").setAttribute("title", "Inicio: " + "{{ laboratorio|title}}");
+
 
 
 // $(document).ready(function () {

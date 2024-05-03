@@ -952,6 +952,7 @@ class EditarRegistroResiduos(LoginRequiredMixin, View):
 # Desactivar Clasificación de Residuos #
 
 class DisableWasteRecord(View):
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
     def post(self, request, *args, **kwargs):
         try:
             # Obtener el ID codificado dos veces desde los parámetros de la solicitud
@@ -982,6 +983,7 @@ class DisableWasteRecord(View):
 # Activar Clasificación de Residuos #
 
 class EnableWasteRecord(View):
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
     def post(self, request, *args, **kwargs):
         try:
             # Obtener el ID codificado dos veces desde los parámetros de la solicitud
@@ -1007,3 +1009,118 @@ class EnableWasteRecord(View):
         except Exception as e:
             print(e)
             return JsonResponse({'success': False, 'message': 'Error interno del servidor'})
+        
+# ----------------------------- #        
+# Vista para cambiar contraseña #        
+class PasswordChangeView(PasswordContextMixin, FormView):
+    form_class = PasswordChangeForm
+    success_url = reverse_lazy("residuos:home_residuos")
+    template_name = "UniCLab_Residuos/cambiar_pass.html"
+    title = ("Password change")
+
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
+    @method_decorator(sensitive_post_parameters())
+    @method_decorator(csrf_protect)
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
+
+    def form_valid(self, form):
+        form.save()
+        tipo_evento = 'CAMBIAR CONTRASENA'
+        usuario_evento = self.request.user
+        crear_evento(tipo_evento, usuario_evento)
+
+        update_session_auth_hash(self.request, form.user)
+
+        # Agregar un mensaje de éxito
+        messages.success(self.request, 'Contraseña cambiada exitosamente.')
+
+        return super().form_valid(form)
+
+# ------------- #
+# Cerrar Sesión #
+class LogoutView(RedirectURLMixin, TemplateView):
+    """
+    Log out the user and display the 'You are logged out' message.
+    """
+
+    # RemovedInDjango50Warning: when the deprecation ends, remove "get" and
+    # "head" from http_method_names.
+    http_method_names = ["get", "head", "post", "options"]
+    template_name = "UniCLab_Residuos/logged_out_residuos.html"
+    extra_context = None
+
+    # RemovedInDjango50Warning: when the deprecation ends, move
+    # @method_decorator(csrf_protect) from post() to dispatch().
+    @method_decorator(never_cache)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    @method_decorator(csrf_protect)
+    def post(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            # Crea un evento de cierre de sesión
+            tipo_evento = 'CIERRE DE SESION'
+            usuario_evento = self.request.user
+            crear_evento(tipo_evento, usuario_evento)
+
+        """Logout may be done via POST."""
+        auth_logout(request)
+        redirect_to = self.get_success_url()
+        if redirect_to != request.get_full_path():
+            # Redirect to target page once the session has been cleared.
+            return HttpResponseRedirect(redirect_to)
+        return super().get(request, *args, **kwargs)
+
+    # RemovedInDjango50Warning.
+    get = post
+
+    def get_default_redirect_url(self):
+        """Return the default redirect URL."""
+        if self.next_page:
+            return resolve_url(self.next_page)
+        elif settings.LOGOUT_REDIRECT_URL:
+            return resolve_url(settings.LOGOUT_REDIRECT_URL)
+        else:
+            return self.request.path
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        current_site = get_current_site(self.request)
+        context.update(
+            {
+                "site": current_site,
+                "site_name": current_site.name,
+                "title": ("Logged out"),
+                "subtitle": None,
+                **(self.extra_context or {}),
+            }
+        )
+        return context
+    
+    def logout_then_login(request, login_url=None):
+            """
+            Log out the user if they are logged in. Then redirect to the login page.
+            """
+            login_url = resolve_url(login_url or settings.LOGIN_URL)
+            return LogoutView.as_view(next_page=login_url)(request)
+        
+    def redirect_to_login(next, login_url=None, redirect_field_name=REDIRECT_FIELD_NAME):
+            """
+            Redirect the user to the login page, passing the given 'next' page.
+            """
+            resolved_url = resolve_url(login_url or settings.LOGIN_URL)
+    
+            login_url_parts = list(urlparse(resolved_url))
+            if redirect_field_name:
+                querystring = QueryDict(login_url_parts[4], mutable=True)
+                querystring[redirect_field_name] = next
+                login_url_parts[4] = querystring.urlencode(safe="/")
+    
+            return HttpResponseRedirect(urlunparse(login_url_parts))

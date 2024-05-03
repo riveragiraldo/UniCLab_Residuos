@@ -1,0 +1,65 @@
+{% extends "webtemplate_before.html" %}
+{% load i18n %}
+<title>{% block title %}Cierre de sesión: UniCLab Residuos{% endblock %}</title>
+
+{% block head %}
+<style>
+    body {
+        font-family: Ancizar sans;
+        margin: 0;
+        padding: 0;
+        /* background-color: #f7f7f7; */
+    }
+    .container {
+        max-width: 600px;
+        margin: 100px auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+        color: #333;
+    }
+    p {
+        margin-top: 20px;
+        color: #666;
+    }
+    ul {
+        list-style-type: none;
+        padding: 0;
+    }
+    li {
+        margin-bottom: 10px;
+    }
+    a {
+        color: #007bff;
+        text-decoration: none;
+    }
+    a:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock head %}
+    
+{% block breadcrumbs %}<div class="breadcrumbs" style="background-color: #606060;"><a href="{% url 'residuos:home_residuos' %}">{% translate 'Home' %}</a></div>{% endblock %}
+
+{% block nav-sidebar %}{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <h1>¡Gracias por visitar UniCLab Residuos!</h1>
+    <p>Esperamos tenerte de vueta pronto</p>
+    <p>
+        <li><a href="{% url 'residuos:home_residuos' %}">Iniciar sesión nuevamente</a></li>
+        <li><a href="{% url 'dir_lab:home_dir_lab' %}">Volver a Dirección de Laboratorios</a></li>
+    </p>
+    
+</div>
+
+<!-- En tu plantilla -->
+
+
+
+{% endblock %}

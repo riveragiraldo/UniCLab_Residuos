@@ -109,7 +109,10 @@
       </div>
       {% endif %}
       <div class="password-reset-link text-center">
-        <a href="{% url 'reactivos:password_reset' %}">{% translate 'Forgotten your password or username?' %}</a>
+        <a href="{% url 'reactivos:password_reset' %}" title="Redirecciona al formulario de restablecimiento de la contraseña">{% translate 'Forgotten your password or username?' %}</a>
+      </div>
+      <div class="password-reset-link text-center">
+        <a href="{% url 'dir_lab:home_dir_lab' %}" title="Volver a la página principal de dirección de laboratorios">Volver a Dirección de Laboratorios</a>
       </div>
     </div>
       <div class="submit-row form-group text-center">

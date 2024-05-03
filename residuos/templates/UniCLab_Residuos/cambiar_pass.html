@@ -1,0 +1,167 @@
+{% extends "webtemplate_residuos.html" %}
+{% load static %}
+{% load i18n static %}
+
+<head><!-- Permite invocar archivos estáticos -->
+    {% block head %}
+
+
+    <!-- Jquery -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+    <!-- Incluir SweetAlert2 desde CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.min.css">
+    <!-- Agrega el enlace de estilos para ícono de ojo -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <!-- Llama Script  que envía la información al servidor -->
+    <script src="{% static 'inventarioreac/js/sendInfoClasificacion.js' %}" defer></script>
+    <!-- Llama Script  que coloca función al botón cancelar -->
+    <script src="{% static 'inventarioreac/cancelButtonFunction.js' %}" defer></script>
+    <script src="{% static 'inventarioreac/showHidePassChangePass.js' %}" defer></script>
+  <!-- Llama Script al final que muestra u oculta el password en los campos correspondientes-->
+
+
+
+
+
+    {% endblock %}
+
+
+    <title>{% block title %}Cambiar Contraseña{% endblock %}</title>
+</head>
+
+<body>
+
+    {% block content %}
+
+
+
+
+    <div class="col-lg-10 container container-list">
+        <div class="row">
+            <!-- Primera columna con el formulario -->
+            <div id="content-main" style="margin-top: 3%; margin-left: 2%;">
+                <div class="card col-md-6">
+                    <form method="post" name="form">{% csrf_token %}
+                        <div>
+                            <div class="card-header">
+                                <div class="form-group">
+                                    <h2>Cambiar contraseña</h2><br>
+                                    
+
+
+                                    <p>{% translate 'Please enter your old password, for security’s sake, and then enter your new password twice so we can verify you typed it in correctly.' %}</p>
+                                    {% if form.errors %}
+                                    <p class="errornote" style="color: rgb(25, 50, 174);">
+                                        {% blocktranslate count counter=form.errors.items|length %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktranslate %}
+                                    </p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <!-- <fieldset class="module aligned wide"> -->
+
+                                <div class="form-group">
+                                    
+                                    <label for="id_old_password" class="form-label">{{ form.old_password.label_tag }}</label>
+                                    <div style="color: rgb(25, 50, 174); margin-left: -12px;">{{ form.old_password.errors }}</div>   
+                                    
+                                    
+                                    <div class="input-group">
+                                    {{ form.old_password }}
+                                    <div class="input-group-addon">
+                                        <span class="input-group-text password-toggle" id="toogle-pass-1">
+                                          <i class="fas fa-eye" title="Ver contraseña" style="cursor: pointer;" ></i>
+                                        </span>
+                                      </div>
+                                </div>
+                                </div>
+
+                                <div class="form-group">
+                                    {{ form.new_password1.label_tag }}
+                                    <div style="color: rgb(25, 50, 174);margin-left: -12px;">{{ form.new_password1.errors }}</div>
+                                    <div class="input-group">
+                                    {{ form.new_password1 }}
+                                    <div class="input-group-addon">
+                                        <span class="input-group-text password-toggle" id="toogle-pass-2">
+                                          <i class="fas fa-eye" title="Ver contraseña" style="cursor: pointer;" ></i>
+                                        </span>
+                                      </div>
+                                </div>
+                                </div>
+                                <div class="form-group">
+                                    {% if form.new_password1.help_text %}
+                                    <div class="help" {% if form.new_password1.id_for_label %}
+                                        id="{{ form.new_password1.id_for_label }}_helptext" {% endif %}>{{ form.new_password1.help_text|safe }}</div>
+                                    {% endif %}
+                                </div>
+
+                                   <div class="form-group">
+                                    {{ form.new_password2.label_tag }}
+                                    <div style="color: rgb(25, 50, 174);margin-left: -12px;">{{ form.new_password2.errors }}</div>
+                                    <div class="input-group">
+                                    {{ form.new_password2 }}
+                                    <div class="input-group-addon">
+                                        <span class="input-group-text password-toggle" id="toogle-pass-3">
+                                          <i class="fas fa-eye" title="Ver contraseña" style="cursor: pointer;" ></i>
+                                        </span>
+                                      </div>
+                                </div>
+                                    {% if form.new_password2.help_text %}
+                                    <div class="help" {% if form.new_password2.id_for_label %}
+                                        id="{{ form.new_password2.id_for_label }}_helptext" {% endif %}>{{ form.new_password2.help_text|safe }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- </fieldset> -->
+                            </div>
+                            <div class="card-footer">
+                                <div class="submit-row">
+                                    <div class="form-group text-center">
+                                        <button type="button" class="btn btn-success" onclick="limpiarCampos('form')">Cancelar</button>
+                                        <input type="submit" value="{% translate 'Change my password' %}"
+                                            class="btn btn-primary">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+
+                    const oldPassField = document.getElementById("id_old_password");
+                    const onePassField = document.getElementById("id_new_password1");
+                    const twoPassField = document.getElementById("id_new_password2");
+                    if (oldPassField, onePassField, twoPassField) {
+                        oldPassField.classList.add("form-control");
+                        onePassField.classList.add("form-control");
+                        twoPassField.classList.add("form-control");
+                    }
+                });
+            </script>
+            <!-- Segunda columna con la imagen representativa -->
+            <div class="col-lg-3 col-md-3"
+                style="padding: 2%; margin: 5%; margin-left: 12%; display: flex; justify-content: center; align-items: center;">
+                <img src="{% static 'inventarioreac/Images/change_pass.png' %}" alt="Clasificación de residuos"
+                    class="img-responsive"
+                    style="border-radius: 50%; border: 1px solid #ffffff; box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);">
+            </div>
+
+        </div>
+    </div>
+
+
+
+
+    {% endblock %}
+
+
+
+
+</body>
+
+</html>
