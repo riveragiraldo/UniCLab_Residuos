@@ -888,3 +888,122 @@ class Export2ExcelWastes(LoginRequiredMixin, View):
         crear_evento(tipo_evento, usuario_evento)
 
         return response
+    
+# ----------------------------------------- #
+# Editar Registro de Residuos #
+class EditarRegistroResiduos(LoginRequiredMixin, View):
+    template_name = 'UniCLab_Residuos/editar_registro_residuos.html'
+
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
+    def get(self, request, *args, **kwargs):
+        try:
+            # Decodificar el ID en base64 dos veces
+            registro_key = kwargs.get('pk')
+            registro_id = base64.urlsafe_b64decode(base64.urlsafe_b64decode(registro_key)).decode('utf-8')
+            
+            # Obtener el registro de residuos que se va a editar
+            registro_residuo = get_object_or_404(REGISTRO_RESIDUOS, id=registro_id)
+            
+            # Crear el formulario con los datos del registro
+            form = RegistroResiduosForm(instance=registro_residuo)
+            laboratorios = Laboratorios.objects.all()
+            lab_id = request.user.lab.id
+
+            return render(request, self.template_name, {'form': form, 'laboratorios': laboratorios, 'lab_id': lab_id,'residuo': registro_residuo,})
+        except Exception as e:
+            print(e)
+            return HttpResponseBadRequest('Error interno del servidor')
+
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
+    def post(self, request, *args, **kwargs):
+        try:
+            # Decodificar el ID en base64 dos veces
+            registro_key = kwargs.get('pk')
+            registro_id = base64.urlsafe_b64decode(base64.urlsafe_b64decode(registro_key)).decode('utf-8')
+            
+            # Obtener el registro de residuos que se va a editar
+            registro_residuo = get_object_or_404(REGISTRO_RESIDUOS, id=registro_id)
+            
+            form = RegistroResiduosForm(request.POST, request.FILES, instance=registro_residuo)
+            if form.is_valid():
+                # Asignar el usuario actual a last_updated_by
+                form.instance.last_updated_by = request.user
+                # Totalizar el residuo
+                registro_residuo.total_residuo=registro_residuo.cantidad*registro_residuo.numero_envases
+                # Guardar los cambios si el formulario es válido
+                registro_residuo = form.save()
+
+                # Registrar evento
+                tipo_evento = 'EDICION REGISTRO DE RESIDUOS'
+                usuario_evento = request.user
+                crear_evento(tipo_evento, usuario_evento)
+
+                mensaje = 'Registro de residuos actualizado correctamente.'
+                return JsonResponse({'success': True, 'message': mensaje})
+            else:
+                return JsonResponse({'success': False, 'errors': form.errors})
+        except Exception as e:
+            print(e)
+            mensaje = f'Error: {e}'
+            return HttpResponseBadRequest(f'Error interno del servidor:{mensaje}')
+
+
+# ------------------------------------ #
+# Desactivar Clasificación de Residuos #
+
+class DisableWasteRecord(View):
+    def post(self, request, *args, **kwargs):
+        try:
+            # Obtener el ID codificado dos veces desde los parámetros de la solicitud
+            waste_key = kwargs.get('pk')
+            item_id_encoded = base64.urlsafe_b64decode(waste_key).decode('utf-8')
+            waste_record_id = base64.urlsafe_b64decode(item_id_encoded).decode('utf-8')
+            
+            # Obtener la instancia de la clasificación de residuos
+            wate_record = get_object_or_404(REGISTRO_RESIDUOS, id=waste_record_id)
+            # incluir el usuario que realiza el cambio
+            wate_record.last_updated_by= request.user
+            # Desactivar la clasificación de residuos
+            wate_record.is_active = False
+            wate_record.save()
+            
+            # Registrar evento
+            tipo_evento = 'DESACTIVAR REGISTRO DE RESIDUOS'
+            usuario_evento = request.user
+            crear_evento(tipo_evento, usuario_evento)
+
+            # Devolver una respuesta JSON de éxito
+            return JsonResponse({'success': True, 'message': f'Registro de residuo"{wate_record.nombre_residuo}" deshabilitado correctamente.'})
+        except Exception as e:
+            print(e)
+            return JsonResponse({'success': False, 'message': 'Error interno del servidor'})
+        
+# --------------------------------- #
+# Activar Clasificación de Residuos #
+
+class EnableWasteRecord(View):
+    def post(self, request, *args, **kwargs):
+        try:
+            # Obtener el ID codificado dos veces desde los parámetros de la solicitud
+            waste_key = kwargs.get('pk')
+            item_id_encoded = base64.urlsafe_b64decode(waste_key).decode('utf-8')
+            waste_record_id = base64.urlsafe_b64decode(item_id_encoded).decode('utf-8')
+            
+            # Obtener la instancia de la clasificación de residuos
+            wate_record = get_object_or_404(REGISTRO_RESIDUOS, id=waste_record_id)
+            # incluir el usuario que realiza el cambio
+            wate_record.last_updated_by= request.user
+            # Desactivar la clasificación de residuos
+            wate_record.is_active = True
+            wate_record.save()
+            
+            # Registrar evento
+            tipo_evento = 'ACTIVAR REGISTRO DE RESIDUOS'
+            usuario_evento = request.user
+            crear_evento(tipo_evento, usuario_evento)
+
+            # Devolver una respuesta JSON de éxito
+            return JsonResponse({'success': True, 'message': f'Registro de residuo"{wate_record.nombre_residuo}" habilitado correctamente.'})
+        except Exception as e:
+            print(e)
+            return JsonResponse({'success': False, 'message': 'Error interno del servidor'})
