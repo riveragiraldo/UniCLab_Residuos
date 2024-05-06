@@ -120,6 +120,7 @@ from babel.dates import format_datetime, format_time
 import threading
 import os  # Importa el módulo os para trabajar con rutas de archivo
 from openpyxl.styles import NamedStyle
+from django.utils.encoding import smart_str
 
 
 
@@ -210,12 +211,17 @@ from openpyxl.styles import NamedStyle
 
 # Función para crear enlace de descarga de manual de usuario
 def descargar_manual(request):
-    configuracion_sistema = ConfiguracionSistema.objects.first()  # Obtiene el primer registro
+    configuracion_sistema = ConfiguracionSistema.objects.first()
 
-    if configuracion_sistema:
+    if configuracion_sistema and configuracion_sistema.manual:
         manual = configuracion_sistema.manual
+        filename = manual.name.split('/')[-1]  # Obtener solo el nombre del archivo
         response = FileResponse(manual)
+        response['Content-Disposition'] = f'attachment; filename="Manual_Usuario_UniCLab"'
         return response
+    else:
+        # Si no se encuentra el archivo o la configuración del sistema, puedes devolver una respuesta de error
+        return HttpResponse("El manual no está disponible en este momento.", status=404)
     
 # Función para servir la imagen del logo institucional
 def logo_institucional(request):

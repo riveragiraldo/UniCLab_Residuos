@@ -1267,5 +1267,97 @@ class GuardarPerPageViewExternalRequests(LoginRequiredMixin,View):
             url += '?' + urlencode(params)
 
         return redirect(url)
+    
+
+# ----------------------- #
+# Registro de solicitudes #
+class RegistrarSolicitudResiduos(LoginRequiredMixin, CreateView):
+    model = Solicitudes
+    form_class = SolicitudForm
+    template_name = 'UniCLab_Residuos/registrar_solicitud.html'
+    success_url = '/'
+
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Agregar el usuario en sesión y el laboratorio al contexto
+        context['usuario'] = self.request.user
+        context['laboratorio'] = self.request.user.lab
+        return context
+    # Decorador para asegurar que la función get tenga el permiso requerido
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+    
+    @check_group_permission(groups_required=['ADMINISTRADOR','ADMINISTRADOR AMBIENTAL'])
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST, request.FILES)
+
+        # Validar el tamaño del archivo adjunto
+        archivos_adjuntos = request.FILES.get('archivos_adjuntos')
+        if archivos_adjuntos and archivos_adjuntos.size > 5 * 1024 * 1024:  # 2 MB en bytes
+            nombre=archivos_adjuntos.name
+            peso=archivos_adjuntos.size / (1024 * 1024)
+            mensaje = f'No se ha podido registrar la solicitud porque el tamaño del archivo adjunto con nombre {nombre}, con tamaño de {peso:.2f} MB es superior al máximo permitido (5 MB).'
+            messages.error(request, mensaje)  # Agregar mensaje de error
+            return redirect('residuos:internal_requests_form')
+        
+        if form.is_valid():
+            solicitud = form.save(commit=False)  # No guardar aún, solo crear una instancia
+            solicitud.created_by = request.user
+            solicitud.last_updated_by = request.user
+            solicitud.save()  # guarda la instancia con los archivos
+            form.save()
+            # Crea un evento de registrar solicitud
+            tipo_evento = 'REGISTRAR SOLICITUD'
+            usuario_evento = request.user
+            crear_evento(tipo_evento, usuario_evento)
+
+            mensaje = f'La solicitud se ha registrado correctamente, se a enviado un correo al administrador del sistema el radicado de su solicitud es: {solicitud.id:04}'
+            messages.success(request, mensaje)  # Agregar mensaje de éxito
+            
+            # Enviar correo al usuario que registra la solicitud
+            id = solicitud.id
+            solicitud_code = base64.urlsafe_b64encode(str(id).encode()).decode()
+            suffix = f'UniCLab/solicitudes/estado_solicitud/{solicitud_code}'
+            shipping_email=solicitud.created_by.email
+            email_type=f'Registro de solicitud'
+            initial_message= f'El presente mensaje de correo electrónico es porque recientemente se ha registrado una solicitud en el aplicativo de inventario y gestión de reactivos, con la siguiente información:'
+            # enviar_correo_solicitud(request, suffix, id, initial_message,shipping_email, email_type )
+            # envío de correo electrónico en segundo plano
+        
+            # Crear un hilo y ejecutar enviar_correo en segundo plano
+            correo_thread = threading.Thread(
+            target=enviar_correo_solicitud, args=(request, suffix, id, initial_message,shipping_email, email_type),)
+            correo_thread.start()
+            # Enviar correo al administrador del aplicativo
+            # Obtener el correo del administrador desde la base de datos
+            configuracion = ConfiguracionSistema.objects.first()
+            if configuracion:
+                admin_email = configuracion.correo_administrador
+            else:
+                admin_email = 'uniclab_man@unal.edu.co'
+
+            id = solicitud.id
+            protocol = 'https' if request.is_secure() else 'http'
+            domain = request.get_host()
+            url=f'{protocol}://{domain}/UniCLab/solicitudes/listado_solicitudes'
+            solicitud_code = base64.urlsafe_b64encode(str(id).encode()).decode()
+            suffix = f'UniCLab/solicitudes/responder_solicitud/{solicitud_code} o visita: {url}'
+            shipping_email=admin_email
+            email_type=f'Registro de solicitud'
+            initial_message= f'Recientemente se ha registrado una solicitud en el aplicativo de inventario y gestión de reactivos, con la siguiente información:'
+            # enviar_correo_solicitud(request, suffix, id, initial_message,shipping_email,email_type )
+            # Crear un hilo y ejecutar enviar_correo en segundo plano
+            correo_thread = threading.Thread(
+            target=enviar_correo_solicitud, args=(request, suffix, id, initial_message,shipping_email, email_type),)
+            correo_thread.start()
+        else:
+            mensaje = f'La solicitud no se ha podido enviar, por favor consulte el administrador del sistema, error:.'
+            error = form.errors
+            mensaje = f'{mensaje} {error}'
+            messages.error(request, mensaje)  # Agregar mensaje de error
+
+        return redirect('residuos:internal_requests_form')
 
     

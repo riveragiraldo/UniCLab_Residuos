@@ -188,10 +188,13 @@
 			<ol class="breadcrumb" style="background-color: transparent;">
 				<li class="breadcrumb-item active" title="Inicio">Bienvenido(a) <a class="datos-usuario"
 					data-name="{{ request.user.first_name }} {{request.user.last_name }}"
-					data-message="<li><strong>Nombre:</strong> {{ request.user.first_name }} {{request.user.last_name }}</li><li><strong>Nombre de usuario:</strong> {{request.user.username }}</li><li><strong>Correo eléctrónico:</strong> {{request.user.email }}</li><li><strong>Teléfono:</strong> {{request.user.phone_number }}</li><li><strong>Laboratorio:</strong>{{request.user.lab }}</li><li><strong>Rol:</strong> {{request.user.rol }}</li><li><strong>Su último acceso:</strong> {{request.user.last_login }}</li>" style="cursor: pointer;">{{request.user.first_name|title}}</a>, estás en:</li>
-				<li class="breadcrumb-item"><a href="{% url 'residuos:home_residuos' %}" target="_self" title="Inicio: {{ request.user.lab|title}}"
-						id="breadcrumb_title">{{ request.user.lab|title}}</a></li>
-				<li class="breadcrumb-item active" aria-current="page" id="breadcrumb-title"></li>
+					data-message="<li><strong>Nombre:</strong> {{ request.user.first_name }} {{request.user.last_name }}</li><li><strong>Nombre de usuario:</strong> {{request.user.username }}</li><li><strong>Correo eléctrónico:</strong> {{request.user.email }}</li><li><strong>Teléfono:</strong> {{request.user.phone_number }}</li><li><strong>Laboratorio:</strong>{{request.user.lab }}</li><li><strong>Rol:</strong> {{request.user.rol }}</li><li><strong>Su último acceso:</strong> {{request.user.last_login }}</li>" style="cursor: pointer;">{{request.user.first_name|title}}</a>, estás en:
+				</li>
+					<span class="breadcrumb-item active" aria-current="page" id="breadcrumb-title"></span>
+					<span class="breadcrumb-item active" aria-current="page" id="breadcrumb-title"> / </span>
+					<span class="breadcrumb-item"></span><a href="{% url 'residuos:home_residuos' %}" target="_self" title="Inicio: {{ request.user.lab|title}}"
+						id="breadcrumb_title">Volver al inicio</a></span>
+				
 			</ol>
 		</nav>
 
@@ -207,14 +210,7 @@
 			</header>
 			
 			
-			<nav>
-				<button type="button" onclick="redirect('{% url 'residuos:home_residuos' %}')">
-					<img src="{% static '/inventarioreac/images/assets/home_icon.png' %}" title="Ir a la página de inicio UniCLab residuos"/>
-					<span class="span">Inicio</span>
-				</button>
-			  
-			  
-			</nav>
+			
 			<nav>
 				<button type="button" onclick="redirect('{% url 'residuos:create_register' %}')">
 					<img src="{% static '/inventarioreac/images//assets/register_waste_icon.png' %}" />
@@ -248,11 +244,20 @@
 				<button type="button" onclick="redirect('{% url 'residuos:external_requests' %}')">
 				  <img src="{% static '/inventarioreac/images/assets/email_icon.png' %}" alt="Reactivos"/>
 				  <span>Solicitudes Externas</span>
-				</nav>
+				
+				<button type="button" onclick="redirect('{% url 'residuos:internal_requests_form' %}')">
+					<img src="{% static '/inventarioreac/images/assets/help_icon.png' %}" alt="Reactivos"/>
+					<span>Registrar Solicitud</span>
+				  
+
+				  <button type="button" onclick="redirect('{% url 'reactivos:descargar_manual'%}')">
+					<img src="{% static '/inventarioreac/images/assets/manual_icon.png' %}" alt="Reactivos"/>
+					<span>Manual de usuarios</span>
+				  </nav>
 				{% endif %}
 			<nav>
 				{% if request.user|has_group:"ADMINISTRADOR" or request.user.is_superuser or request.user|has_group:"ADMINISTRADOR AMBIENTAL" %}
-				<button type="button" onclick="redirect('{% url 'residuos:change_password' %}')">
+				<button type="button" onclick="redirect('{% url 'residuos:change_password'%}')" >
 				  <img src="{% static '/inventarioreac/images/assets/passwordchange_icon.png' %}" alt="Reactivos"/>
 				  <span>Cambiar Contraseña</span>
 				{% endif %}
@@ -330,6 +335,8 @@
 		function redirect(link) {
     window.location.href = link;
 }
+
+
 	</script>
 </body>
 

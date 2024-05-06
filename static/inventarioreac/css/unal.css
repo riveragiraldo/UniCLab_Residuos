@@ -1660,7 +1660,7 @@ footer .logos a img {
 	/* Esquinas redondeadas */
 	position: relative;
 	/* Para posicionar la marca de agua */
-	height: 660px;
+	height: 450px;
 	width: 100%;
 }
 
@@ -1727,8 +1727,38 @@ footer .logos a img {
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
+	/* inicio uniclab */
+.inicio-container {
+	background-color: #ffffff6f;
+	/* Fondo blanco */
+	border: 1px solid #131313a7;
+	/* Borde gris claro */
+	border-radius: 3px;
+	/* Esquinas redondeadas */
+	position: relative;
+	/* Para posicionar la marca de agua */
+	height: 100%;
+	width: 100%;
+}
 }
 
+@media (max-width: 1024px) {
+
+	
+	/* inicio uniclab */
+.inicio-container {
+	background-color: #ffffff6f;
+	/* Fondo blanco */
+	border: 1px solid #131313a7;
+	/* Borde gris claro */
+	border-radius: 3px;
+	/* Esquinas redondeadas */
+	position: relative;
+	/* Para posicionar la marca de agua */
+	height: 100%;
+	width: 100%;
+}
+}
 
 
 

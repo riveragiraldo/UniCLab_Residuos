@@ -31,6 +31,7 @@ urlpatterns = [
     path('UniCLab_Residuos/Cerrar_Sesion/', LogoutView.as_view(), name='logout'), # Cerrar Sesión
     path('UniCLab_Residuos/Solicitudes_Externas/Listado/', SolicitudesExtListView.as_view(), name='external_requests'), # Listado de solicitudes Externas
     path('UniCLab_Residuos/Solicitudes_Externas/Listado/Pag/<int:per_page>/', GuardarPerPageViewExternalRequests.as_view(), name='External_Request_Pagination'),# Maneja paginación de listado de solicitudes externas
+    path('UniCLab_Residuos/Solicitudes/Registrar/', RegistrarSolicitudResiduos.as_view(), name='internal_requests_form'), # Listado de solicitudes Externas
     
     ]
 
