@@ -1124,3 +1124,148 @@ class LogoutView(RedirectURLMixin, TemplateView):
                 login_url_parts[4] = querystring.urlencode(safe="/")
     
             return HttpResponseRedirect(urlunparse(login_url_parts))
+    
+# ------------------------------- #
+# Listado de solicitudes Externas #
+class SolicitudesExtListView(LoginRequiredMixin,ListView):
+    model = SolicitudesExternas
+    template_name = "UniCLab_Residuos/listado_solicitudes_externas.html"
+    paginate_by = 10
+    
+    
+    @check_group_permission(groups_required=['ADMINISTRADOR','ADMINISTRADOR AMBIENTAL'])
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        # Obtener el número de registros por página de la sesión del usuario
+        per_page = request.session.get('per_page')
+        if per_page:
+            self.paginate_by = int(per_page)
+        else:
+            self.paginate_by = 10  # Valor predeterminado si no hay variable de sesión
+
+        # Obtener los parámetros de filtrado
+        
+        # Obtener las fechas de inicio y fin de la solicitud GET
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+        lab = self.request.GET.get('lab')
+        keyword = self.request.GET.get('keyword')  
+        
+        
+
+        # Guardar los valores de filtrado en la sesión
+        
+        request.session['filtered_start_date'] = start_date
+        request.session['filtered_end_date'] = end_date
+        request.session['filtered_lab'] = lab
+        request.session['filtered_keyword'] = keyword
+        
+
+        return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Obtener la fecha de hoy
+        today = date.today()
+        # Calcular la fecha hace un mes hacia atrás
+        one_month_ago = today - timedelta(days=30)
+
+        # Agregar la fecha al contexto
+        context['one_month_ago'] = one_month_ago
+
+        # Agregar la fecha de hoy al contexto
+        context['today'] = today
+        laboratorio = self.request.user.lab
+        
+    
+        context['usuarios'] = User.objects.all()
+        context['laboratorio'] = laboratorio
+        context['laboratorios'] = Laboratorios.objects.all()
+        
+        # Obtener la lista de inventarios
+        entradas = context['object_list']
+        # Recorrer los entradas y cambiar el formato de la fecha        
+               
+        context['object_list'] = entradas
+        return context
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        lab = self.request.GET.get('lab')
+        keyword = self.request.GET.get('keyword')
+        
+        
+
+        # si el valor de lab viene de sesión superusuario o ADMINISTRADOR lab=0 cambiar por lab=''
+        if lab=='0':
+             lab=''
+
+        # Obtener las fechas de inicio y fin de la solicitud GET
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+        
+        # Validar y convertir las fechas
+        try:
+            if start_date:
+                start_date = make_aware(datetime.strptime(start_date, '%Y-%m-%d'))
+            if end_date:
+                end_date = make_aware(datetime.strptime(end_date, '%Y-%m-%d').replace(hour=23, minute=59, second=59))
+        except ValueError:
+            # Manejar errores de formato de fecha aquí si es necesario
+            pass
+
+        
+        # Realiza la filtración de acuerdo a las fechas
+        if start_date:
+            queryset = queryset.filter(registration_date__gte=start_date)
+        if end_date:
+            queryset = queryset.filter(registration_date__lte=end_date)
+        elif start_date and end_date:
+            queryset = queryset.filter(registration_date__gte=start_date,date_create__lte=end_date)
+        
+        # Filtrar por  campos que contengan la palabra clave en su nombre
+        if keyword:
+            queryset = queryset.filter(Q(name__icontains=keyword) | Q(subject__icontains=keyword) | Q(message__icontains=keyword) | Q(attach__icontains=keyword))
+        
+        if lab:
+            queryset = queryset.filter(lab=lab)
+
+        queryset = queryset.order_by('id')
+        return queryset
+    
+# ------------------------------------------- #
+# Paginación de solicitudes externas residuos #
+class GuardarPerPageViewExternalRequests(LoginRequiredMixin,View):
+    def get(self, request, *args, **kwargs):
+        per_page = kwargs.get('per_page')
+        request.session['per_page'] = per_page
+
+        # Redirigir a la página de inventario con los parámetros de filtrado actuales
+        filtered_start_date = request.session.get('filtered_start_date')
+        filtered_end_date = request.session.get('filtered_end_date')
+        filtered_lab = request.session.get('filtered_lab')
+        filtered_keyword = request.session.get('filtered_keyword')
+        
+        url = reverse('residuos:external_requests')
+        params = {}
+        
+        if filtered_start_date:
+            params['start_date'] = filtered_start_date
+        if filtered_end_date:
+            params['end_date'] = filtered_end_date
+        if filtered_lab:
+            params['lab'] = filtered_lab
+        if filtered_keyword:
+            params['keyword'] = filtered_keyword
+        
+        
+        if params:
+            url += '?' + urlencode(params)
+
+        return redirect(url)
+
+    

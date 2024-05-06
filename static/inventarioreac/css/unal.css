@@ -1720,6 +1720,13 @@ footer .logos a img {
 		top: 60%;
 		opacity: 0.1;
 	}
+
+	.table-row .subject-column {
+		max-width: 100px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
 }
 
 

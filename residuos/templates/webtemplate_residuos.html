@@ -35,8 +35,7 @@
 	<link rel="stylesheet" type="text/css" href="{% static 'inventarioreac/css/phone.css' %}" media="all">
 	<link rel="stylesheet" type="text/css" href="{% static 'inventarioreac/css/small.css' %}" media="all">
 	<link rel="stylesheet" type="text/css" href="{% static 'inventarioreac/css/printer.css' %}" media="print">
-		<script>document.getElementById("breadcrumb_title").setAttribute("title", "Inicio: " + "{{ request.user.lab.name|title}}");</script>
-
+		
 
 	<script src="{% static 'inventarioreac/js/jquery.js' %}" type="text/javascript"></script>
 	<script src="{% static 'inventarioreac/js/unal.js' %}" type="text/javascript"></script>
@@ -243,6 +242,14 @@
 			  </button>
 			</nav>
 			{% endif %}
+			
+				{% if request.user|has_group:"ADMINISTRADOR" or request.user.is_superuser or request.user|has_group:"ADMINISTRADOR AMBIENTAL" %}
+				<nav>
+				<button type="button" onclick="redirect('{% url 'residuos:external_requests' %}')">
+				  <img src="{% static '/inventarioreac/images/assets/email_icon.png' %}" alt="Reactivos"/>
+				  <span>Solicitudes Externas</span>
+				</nav>
+				{% endif %}
 			<nav>
 				{% if request.user|has_group:"ADMINISTRADOR" or request.user.is_superuser or request.user|has_group:"ADMINISTRADOR AMBIENTAL" %}
 				<button type="button" onclick="redirect('{% url 'residuos:change_password' %}')">

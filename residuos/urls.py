@@ -29,6 +29,8 @@ urlpatterns = [
     path('UniCLab_Residuos/Registro_Residuos/Activar/<str:pk>/', EnableWasteRecord.as_view(), name='enable_record_waste'), # Habilitar Registro
     path('UniCLab_Residuos/Usuarios/Cambiar_pass/', PasswordChangeView.as_view(), name='change_password'), # Cambiar contraseña
     path('UniCLab_Residuos/Cerrar_Sesion/', LogoutView.as_view(), name='logout'), # Cerrar Sesión
+    path('UniCLab_Residuos/Solicitudes_Externas/Listado/', SolicitudesExtListView.as_view(), name='external_requests'), # Listado de solicitudes Externas
+    path('UniCLab_Residuos/Solicitudes_Externas/Listado/Pag/<int:per_page>/', GuardarPerPageViewExternalRequests.as_view(), name='External_Request_Pagination'),# Maneja paginación de listado de solicitudes externas
     
     ]
 
