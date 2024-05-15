@@ -59,3 +59,10 @@ class REGISTRO_RESIDUOS(models.Model):
     class Meta:
         verbose_name = 'Registro de Residuos'
         verbose_name_plural = 'Registros de Residuos'
+
+# --------------------------------------------------------------------------- #
+# Campo para almacenar una o más fichas de seguridad por registro de residuos #
+class FICHAS_SEGURIDAD(models.Model):
+    registro_residuo = models.ForeignKey(REGISTRO_RESIDUOS, related_name='archivos_adjuntos_residuos', on_delete=models.CASCADE)
+    file = models.FileField(upload_to='archivos/', blank=True, null=True, verbose_name='Ficha de seguiridad')
+    date_create = models.DateTimeField(auto_now_add=True, verbose_name='Fecha Creación', null=True, blank=True)

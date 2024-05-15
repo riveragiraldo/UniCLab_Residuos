@@ -1,7 +1,7 @@
 from django import forms
 from .models import *
 from reactivos.forms import estandarizar_nombre
-
+from django.core.exceptions import ValidationError
 
 # ------------------------------------------- #
 # Formulario para clasificaciones de residuos #
@@ -41,9 +41,15 @@ class ClasificacionResiduosForm(forms.ModelForm):
 # ------------------------------------ #
 # Formulario para registro de residuos #
 class RegistroResiduosForm(forms.ModelForm):
+    # ficha_seguridad = forms.FileField(widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'multiple': ''}), required=False)
+    
+    def __init__(self, *args, **kwargs):
+        super(RegistroResiduosForm, self).__init__(*args, **kwargs)
+        self.fields['ficha_seguridad'] = forms.FileField(widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'id': 'id_ficha_seguridad', 'style': 'display: none;'}), required=False)
+    
     class Meta:
         model = REGISTRO_RESIDUOS
-        fields = ['dependencia', 'area', 'laboratorio','nombre_residuo', 'cantidad', 'unidades', 'numero_envases', 'clasificado', 'estado', 'observaciones']
+        fields = ['dependencia', 'area', 'laboratorio','nombre_residuo', 'cantidad', 'unidades', 'numero_envases', 'clasificado', 'estado', 'observaciones' ]
         labels = {
             'dependencia': 'Tipo de Dependencia',
             'area': 'Área',
@@ -54,7 +60,7 @@ class RegistroResiduosForm(forms.ModelForm):
             'numero_envases': 'Número de Envases',
             'clasificado': 'Clasificado',
             'estado': 'Estado',
-            'observaciones':'Observaciones'
+            'observaciones':'Observaciones',
         }
         widgets = {
             'dependencia': forms.Select(attrs={'class': 'form-control'}),
@@ -67,6 +73,7 @@ class RegistroResiduosForm(forms.ModelForm):
             'clasificado': forms.SelectMultiple(attrs={'class': 'form-control'}),
             'estado': forms.Select(attrs={'class': 'form-control'}),
             'observaciones': forms.TextInput(attrs={'class': 'form-control'}),
+            
         }
     
     def clean(self):

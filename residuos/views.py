@@ -463,9 +463,10 @@ class CreateRegisterWaste(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         form = RegistroResiduosForm()
         laboratorios=Laboratorios.objects.all()
+        unidades=Unidades.objects.all()
         lab_id=request.user.lab.id
 
-        return render(request, self.template_name, {'form': form, 'laboratorios':laboratorios, 'lab_id':lab_id})
+        return render(request, self.template_name, {'form': form, 'laboratorios':laboratorios, 'lab_id':lab_id, 'unidades':unidades,})
 
     def enviar_correo_asincrono(self, recipient_list, subject, message, attach_path):
         try:
@@ -475,7 +476,7 @@ class CreateRegisterWaste(LoginRequiredMixin, View):
 
     @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL', 'COORDINADOR', 'TECNICO'])
     def post(self, request, *args, **kwargs):
-        form = RegistroResiduosForm(request.POST)
+        form = RegistroResiduosForm(request.POST, request.FILES)
         try:
             if form.is_valid():
                 # Asignar el usuario actual a los campos created_by y last_updated_by
@@ -485,6 +486,18 @@ class CreateRegisterWaste(LoginRequiredMixin, View):
                 registro_residuo = form.save()
                 registro_residuo.total_residuo=registro_residuo.cantidad*registro_residuo.numero_envases
                 registro_residuo.save()
+
+                # Guardar archivos adjuntos en el modelo FICHAS_SEGURIDAD
+                # fichas_seguridad = request.FILES.getlist('ficha_seguridad')
+                # for ficha_seguridad_file in fichas_seguridad:
+                #     ficha = FICHAS_SEGURIDAD(registro_residuo=registro_residuo, file=ficha_seguridad_file)
+                #     ficha.save()
+
+                # Guardar archivos adjuntos en el modelo FICHAS_SEGURIDAD
+                fichas_seguridad = request.FILES.getlist('ficha_seguridad')
+                for ficha_seguridad_file in fichas_seguridad:
+                    ficha = FICHAS_SEGURIDAD(registro_residuo=registro_residuo, file=ficha_seguridad_file)
+                    ficha.save()
                 
                 # Registrar evento
                 tipo_evento = 'CREAR REGISTRO DE RESIDUOS'
@@ -540,11 +553,11 @@ class CreateRegisterWaste(LoginRequiredMixin, View):
                
                 
                 # Crear un hilo y ejecutar enviar_correo en segundo plano
-                correo_thread = threading.Thread(
-                    target=self.enviar_correo_asincrono,
-                    args=(recipient_list, subject, message, attach_path),
-                )
-                correo_thread.start()
+                # correo_thread = threading.Thread(
+                #     target=self.enviar_correo_asincrono,
+                #     args=(recipient_list, subject, message, attach_path),
+                # )
+                # correo_thread.start()
 
                 
                 mensaje = 'Registro de residuo creado correctamente.'

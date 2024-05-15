@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Obtener el valor seleccionado en el selector de unidades (en minúsculas)
         var unidadesSeleccionadas = unidadesSelector.options[unidadesSelector.selectedIndex].text.toLowerCase();
-        console.log(unidadesSeleccionadas)
+        
 
         // Verificar las unidades seleccionadas y ajustar el estado en consecuencia
         if (unidadesSeleccionadas === 'g' || unidadesSeleccionadas === 'mg' || unidadesSeleccionadas === 'kg') {
@@ -70,12 +70,12 @@ document.addEventListener("DOMContentLoaded", function () {
             // Si las unidades son g, mg o Kg, establecer el estado en SOLIDO
             seleccionarOpcionPorNombre(estadoSelector, 'SOLIDO'); // Valor para SOLIDO
         } else if (unidadesSeleccionadas === 'l' || unidadesSeleccionadas === 'ml' || unidadesSeleccionadas === 'cc'|| unidadesSeleccionadas === 'gal') {
-            estadoSelector.disabled = true; // Deshabilitar el selector
+            //estadoSelector.disabled = true; // Deshabilitar el selector
             // Si las unidades son l, ml o cc, establecer el estado en LIQUIDO
             seleccionarOpcionPorNombre(estadoSelector, 'LIQUIDO'); // Valor para LIQUIDO
         } else {
             // No hacer cambios si las unidades no coinciden con las mencionadas
-            estadoSelector.disabled = false; // Deshabilitar el selector
+            //estadoSelector.disabled = false; // Deshabilitar el selector
             seleccionarOpcionPorNombre(estadoSelector, '---------'); // Valor inicial
         }
 

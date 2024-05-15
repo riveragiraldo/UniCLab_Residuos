@@ -5,6 +5,29 @@
 
 <head><!-- Permite invocar archivos estáticos -->
     {% block head %}
+    <style>
+        #file-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+#file-list li {
+    margin-bottom: 5px;
+}
+
+.remove-button {
+    width: 20px; /* Ajustar el ancho */
+    height: 20px; /* Ajustar la altura */
+    margin-left: 10px;
+    padding: 0; /* Eliminar el relleno */
+    display: inline-flex; /* Usar flexbox en línea */
+    justify-content: center; /* Centrar horizontalmente */
+    align-items: center; /* Centrar verticalmente */
+    
+    font-size: 16px; /* Ajustar el tamaño de la fuente */
+}
+
+    </style>
 
 
     <!-- Jquery -->
@@ -134,7 +157,14 @@
                                 <div style="margin-bottom: 5px;">
                                     {{ form.unidades.label_tag }}
                                 </div>
-                                {{ form.unidades }}
+                                <select name="unidades" id="id_unidades" class="form-control">
+                                    <option value="" selected>---------</option>
+                                    {% for unidad in unidades %}
+                                    {% if unidad.name == 'g' or unidad.name == 'ml' %}
+                                    <option value="{{ unidad.id }}">{{ unidad.name }}</option>
+                                    {% endif %}
+                                    {% endfor %}
+                                </select>
                                 <div style="color: red; margin-top: 5px; font-weight: bold; margin-left: -10px;">
                                     {{ form.unidades.errors }}
                                 </div>
@@ -185,6 +215,21 @@
                             </div>
                             <div class="form-group col-lg-12 col-md-12">
                                 <div style="margin-bottom: 5px;">
+                                    {{ form.ficha_seguridad.label_tag }}
+                                </div>
+                                
+                                <div id="file-list" style="margin-bottom: 15px;">
+                                    <!-- Aquí se mostrarán los archivos seleccionados -->
+                                </div>
+                                <button type="button" onclick="addFileInput()" class="btn btn-success">Agregar Archivo</button>
+                                {{ form.ficha_seguridad }}
+                                <div style="color: red; margin-top: 5px; font-weight: bold; margin-left: -10px;">
+                                    {{ form.ficha_seguridad.errors }}
+                                </div>
+                            </div>
+                            
+                            <div class="form-group col-lg-12 col-md-12">
+                                <div style="margin-bottom: 5px;">
                                     {{ form.observaciones.label_tag }}
                                 </div>
                                 {{ form.observaciones }}
@@ -216,6 +261,52 @@
 
         </div>
     </div>
+
+        <script>
+            var fileInputCounter = 0; // Contador para generar ID único
+
+            function addFileInput() {
+    var fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.name = 'ficha_seguridad';
+    fileInput.id = 'ficha_seguridad_' + fileInputCounter; // Generar ID único
+    fileInput.style.display = 'none';
+    // Abrir automáticamente la ventana de selección de archivo
+    fileInput.click();
+    fileInputCounter++; // Incrementar el contador para el próximo ID único
+    
+    fileInput.addEventListener('change', function() {
+        var fileName = this.value.split('\\').pop();
+        var fileList = document.getElementById('file-list');
+        var fileURL = URL.createObjectURL(this.files[0]);
+        var listItem = document.createElement('li');
+        listItem.innerHTML = '<span><a href="' + fileURL + '" download>' + fileName + '</a></span><button type="button" class="btn btn-danger remove-button" onclick="removeFileInput(this.parentElement, \'' + fileInput.id + '\')">x</button>';
+        fileList.appendChild(listItem);
+        
+        // Ocultar la entrada de archivo
+        this.style.display = 'none';
+    });
+
+    document.getElementById('id_ficha_seguridad').parentNode.insertBefore(fileInput, document.getElementById('id_ficha_seguridad').nextSibling);
+}
+        
+            function removeFileInput(listItem, idInput) {
+                
+                var fileName = listItem.querySelector('span').textContent;
+                var fileList = listItem.parentNode;
+                fileList.removeChild(listItem); // Remove the <li> element
+        
+                // Encontrar y eliminar la entrada de archivo correspondiente por ID
+                
+        var fileInput = document.getElementById(idInput);
+        if (fileInput) {
+            fileInput.remove();
+            
+        }
+            }
+        </script>
+    
+    
 
 
     {% endblock %}

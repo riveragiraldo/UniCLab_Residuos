@@ -217,7 +217,7 @@ def descargar_manual(request):
         manual = configuracion_sistema.manual
         filename = manual.name.split('/')[-1]  # Obtener solo el nombre del archivo
         response = FileResponse(manual)
-        response['Content-Disposition'] = f'attachment; filename="Manual_Usuario_UniCLab"'
+        response['Content-Disposition'] = f'attachment; filename="Manual_Usuario_UniCLab.pdf"'
         return response
     else:
         # Si no se encuentra el archivo o la configuración del sistema, puedes devolver una respuesta de error
