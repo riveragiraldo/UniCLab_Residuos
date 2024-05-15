@@ -1,6 +1,10 @@
 from django.db import models
 from reactivos.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
+from django.utils.text import slugify
+
 
 
 # -------------------------------- #
@@ -22,16 +26,37 @@ class CLASIFICACION_RESIDUOS(models.Model):
         verbose_name_plural = 'Clasificaciones de Residuos'
 
 
+
+
+# -----------------------_ #
+# Modelo solicitud Residuo #
+class SOLICITUD_RESIDUO(models.Model):
+    name = models.CharField(max_length=14, default='Sol')
+    is_active = models.BooleanField(verbose_name='Activo', help_text='Activo', default=True,)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Creado por', related_name='createby_solicitud_residuo',)
+    date_create = models.DateTimeField(auto_now_add=True,verbose_name='Fecha Creación', null=True, blank=True,)
+    last_update = models.DateTimeField(auto_now=True,verbose_name='Fecha Actualización', null=True, blank=True,)
+    last_updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Actualizado por', related_name='updateby_solicitud_residuo',)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Registro de Residuo'
+        verbose_name_plural = 'Registros de Residuos'
+
+
+            
 # --------------------------- #
 # Modelo Registro de residuos #
-
 class REGISTRO_RESIDUOS(models.Model):
     DEPENDENCIA_CHOICES = [
         
         ('Area', 'ÁREA'),
         ('Laboratorio', 'LABORATORIO'),
     ]
-
+    registro_solicitud = models.ForeignKey(SOLICITUD_RESIDUO, related_name='solicitud_residuos', on_delete=models.CASCADE, blank=True, null=True)
+    
     dependencia = models.CharField(max_length=11, choices=DEPENDENCIA_CHOICES, verbose_name='Dependencia')
     area = models.CharField(max_length=200, blank=True, null=True)
     laboratorio = models.ForeignKey('reactivos.Laboratorios', on_delete=models.SET_NULL, null=True, blank=True)
@@ -42,6 +67,7 @@ class REGISTRO_RESIDUOS(models.Model):
     clasificado = models.ManyToManyField('CLASIFICACION_RESIDUOS', verbose_name='Clasificado', blank=True, )
     estado = models.ForeignKey('reactivos.Estados', on_delete=models.CASCADE, verbose_name='Estado')
     observaciones = models.CharField(max_length=200, blank=True, null=True, verbose_name='Observaciones')
+    residuo_enviado = models.BooleanField(verbose_name='Estado de envío', help_text='Estado de envío de solicitud al servidor', default=False)
     is_active = models.BooleanField(verbose_name='Activo', help_text='Activo', default=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Creado por', related_name='createby_registro')
     date_create = models.DateTimeField(auto_now_add=True, verbose_name='Fecha Creación', null=True, blank=True)
@@ -66,3 +92,5 @@ class FICHAS_SEGURIDAD(models.Model):
     registro_residuo = models.ForeignKey(REGISTRO_RESIDUOS, related_name='archivos_adjuntos_residuos', on_delete=models.CASCADE)
     file = models.FileField(upload_to='archivos/', blank=True, null=True, verbose_name='Ficha de seguiridad')
     date_create = models.DateTimeField(auto_now_add=True, verbose_name='Fecha Creación', null=True, blank=True)
+
+

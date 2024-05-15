@@ -10,7 +10,7 @@ $(document).ready(function () {
         // Mostrar el mensaje de carga con una barra de progreso
         Swal.fire({
             title: 'Por favor espere...',
-            html: 'Enviando datos al servidor',
+            html: 'Agregando información',
             timerProgressBar: true,
             didOpen: () => {
                 Swal.showLoading();
