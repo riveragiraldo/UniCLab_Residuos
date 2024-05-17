@@ -48,7 +48,7 @@ $(document).ready(function () {
                                         window.location.reload(); // Actualiza la ventana actual si no hay ventana padre o está cerrada
                                     }
                                 }
-                                
+
                             });
 
                             // Puedes realizar acciones adicionales aquí según la respuesta del servidor
@@ -93,9 +93,18 @@ $(document).ready(function () {
 
                                 });
                             } else {
-                                for (const field in response.errors) {
-                                    if (response.errors.hasOwnProperty(field)) {
-                                        formattedErrors += `${response.errors[field][0]}\n`;
+                                const errorMessage = response.errors;
+                                console.log(errorMessage);
+
+                                if (typeof errorMessage === "string" && errorMessage.includes("fichas")) {
+                                    // Si errorMessage es una cadena que contiene "fichas"
+                                    formattedErrors = errorMessage;
+                                } else  {
+                                    // Si errorMessage es un arreglo de errores
+                                    for (const field in errorMessage) {
+                                        if (errorMessage.hasOwnProperty(field)) {
+                                            formattedErrors += `${errorMessage[field][0]}\n`;
+                                        }
                                     }
                                 }
                                 // Mostrar alerta de errores de validación

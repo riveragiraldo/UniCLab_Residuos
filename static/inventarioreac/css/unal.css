@@ -1727,37 +1727,38 @@ footer .logos a img {
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
+
 	/* inicio uniclab */
-.inicio-container {
-	background-color: #ffffff6f;
-	/* Fondo blanco */
-	border: 1px solid #131313a7;
-	/* Borde gris claro */
-	border-radius: 3px;
-	/* Esquinas redondeadas */
-	position: relative;
-	/* Para posicionar la marca de agua */
-	height: 100%;
-	width: 100%;
-}
+	.inicio-container {
+		background-color: #ffffff6f;
+		/* Fondo blanco */
+		border: 1px solid #131313a7;
+		/* Borde gris claro */
+		border-radius: 3px;
+		/* Esquinas redondeadas */
+		position: relative;
+		/* Para posicionar la marca de agua */
+		height: 100%;
+		width: 100%;
+	}
 }
 
 @media (max-width: 1024px) {
 
-	
+
 	/* inicio uniclab */
-.inicio-container {
-	background-color: #ffffff6f;
-	/* Fondo blanco */
-	border: 1px solid #131313a7;
-	/* Borde gris claro */
-	border-radius: 3px;
-	/* Esquinas redondeadas */
-	position: relative;
-	/* Para posicionar la marca de agua */
-	height: 100%;
-	width: 100%;
-}
+	.inicio-container {
+		background-color: #ffffff6f;
+		/* Fondo blanco */
+		border: 1px solid #131313a7;
+		/* Borde gris claro */
+		border-radius: 3px;
+		/* Esquinas redondeadas */
+		position: relative;
+		/* Para posicionar la marca de agua */
+		height: 100%;
+		width: 100%;
+	}
 }
 
 
@@ -1929,24 +1930,128 @@ footer .logos a img {
 		white-space: nowrap;
 
 
-		
+
 	}
 
 	/* clase para columna Descripción de la clasificación */
-.table-row .list-date {
-	max-width: 85px;
+	.table-row .list-date {
+		max-width: 85px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+
+	}
+
+	/* clase para columna Descripción de la clasificación */
+	.table-row .list-name {
+		max-width: 85px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+
+	}
+}
+
+
+/* clase para columna Dependencia */
+.table-row .dependencia-column {
+	max-width: 180px;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 
 }
 
-/* clase para columna Descripción de la clasificación */
-.table-row .list-name {
-	max-width: 85px;
+/* clase para columna Nombre residuoi */
+.table-row .residuo-column {
+	max-width: 180px;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 
 }
+
+/* clase para columna Total */
+.table-row .total-column {
+	max-width: 80px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+
+}
+
+
+
+
+/*  movil */
+@media (max-width: 767px) {
+
+	/* clase para columna Nombre residuoi */
+	.table-row .residuo-column {
+		max-width: 70px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+
+	}
+
+	/* clase para columna Nombre residuoi */
+	.table-row .adjuntos-column {
+		max-width: 110px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		text-align: center;
+
+	}
+
+	/* clase para columna Descripción de la clasificación */
+	.table-row .acciones-column {
+		max-width: 5px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+
+
+	}
+
+	
+	
+}
+
+.visual_adjuntos {
+	margin-top: 5px;
+	border: 1px solid #ccc;
+	padding: 5px;
+	display: inline-block;
+	border-radius: 15px;
+	width: 100px;
+	overflow: hidden;
+	vertical-align: middle;
+	margin-right: 10px;
+}
+
+
+
+/* Estilos para archivos adjuntos en registro de residuos */
+
+#file-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+#file-list li {
+    margin-bottom: 5px;
+}
+
+.remove-button {
+    width: 20px; /* Ajustar el ancho */
+    height: 20px; /* Ajustar la altura */
+    margin-left: 10px;
+    padding: 0; /* Eliminar el relleno */
+    display: inline-flex; /* Usar flexbox en línea */
+    justify-content: center; /* Centrar horizontalmente */
+    align-items: center; /* Centrar verticalmente */
+    
+    font-size: 16px; /* Ajustar el tamaño de la fuente */
 }

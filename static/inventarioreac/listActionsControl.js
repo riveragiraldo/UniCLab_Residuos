@@ -1020,7 +1020,7 @@ function deleteWaste(itemId, itemName) {
 
 
 
-// Función para habilitar registro de residuos //
+// Función para enviar registro de residuos //
 function sendInfoWasteRecord() {
     // Muestra una Sweet Alert de confirmación
     Swal.fire({
@@ -1088,6 +1088,73 @@ function sendInfoWasteRecord() {
 }
 
 
+// ------------------------------------------------------------- //
+// Función para cancelar toda la soolicitud registro de residuos //
+function cancelInfoWasteRecord() {
+    // Muestra una Sweet Alert de confirmación
+    Swal.fire({
+        title: 'Cancelar envío de Información',
+        text: '¿Está seguro que cancelar la solicitud?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí',
+        cancelButtonText: 'No',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Por favor espere...',
+                html: 'Enviando datos al servidor',
+                timerProgressBar: true,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Si el usuario hace clic en "Sí", realiza una solicitud AJAX 
+            var deactivateUrl = '/UniCLab_Residuos/Registro_Residuos/Cancelar_Solicitud/';  // Ruta de la vista de acción
+
+            fetch(deactivateUrl, {
+                method: 'POST', // Método HTTP POST
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'), // Incluir el token CSRF si se utiliza Django
+                },
+            })
+            .then(response => {
+                // Verificar el estado de la respuesta y capturar el mensaje
+                if (response.ok) {
+                    return response.json();  // Leer los datos JSON de la respuesta
+                } else {
+                    throw new Error('Error al ejecutar la acción');
+                }
+            })
+            .then(data => {
+                // Ocultar el loader
+                Swal.hideLoading();
+
+                // Mostrar el mensaje de éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Mensaje del servidor',
+                    text: data.message,
+                }).then(() => {
+                    // Recargar la página o realizar otras acciones si es necesario
+                    location.reload(); // Recarga la página después de desactivar la clasificación
+                });
+            })
+            .catch(error => {
+                // Ocultar el loader
+                Swal.hideLoading();
+
+                // Manejar errores de la solicitud AJAX
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message,
+                });
+            });
+        }
+    });
+}
 
 // ------------------------------------------------- //
 // Función para obtener el token CSRF de las cookies //

@@ -2,7 +2,7 @@ from django import forms
 from .models import *
 from reactivos.forms import estandarizar_nombre
 from django.core.exceptions import ValidationError
-
+from django.core.files.uploadedfile import InMemoryUploadedFile
 # ------------------------------------------- #
 # Formulario para clasificaciones de residuos #
 class ClasificacionResiduosForm(forms.ModelForm):
@@ -45,8 +45,11 @@ class RegistroResiduosForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super(RegistroResiduosForm, self).__init__(*args, **kwargs)
-        self.fields['ficha_seguridad'] = forms.FileField(widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'id': 'id_ficha_seguridad', 'style': 'display: none;'}), required=False)
-    
+        self.fields['ficha_seguridad'] = forms.FileField(
+            label='Ficha de seguridad (Máx. 5MB)',  # Agregar el texto deseado a la etiqueta del campo
+            widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'id': 'id_ficha_seguridad', 'style': 'display: none;'}),
+            required=False
+        )    
     class Meta:
         model = REGISTRO_RESIDUOS
         fields = ['dependencia', 'area', 'laboratorio','nombre_residuo', 'cantidad', 'unidades', 'numero_envases', 'clasificado', 'estado', 'observaciones' ]
@@ -90,3 +93,6 @@ class RegistroResiduosForm(forms.ModelForm):
             cleaned_data['observaciones'] = estandarizar_nombre(observaciones)
 
         return cleaned_data
+    
+ 
+

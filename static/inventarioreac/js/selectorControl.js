@@ -62,14 +62,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Obtener el valor seleccionado en el selector de unidades (en minúsculas)
         var unidadesSeleccionadas = unidadesSelector.options[unidadesSelector.selectedIndex].text.toLowerCase();
-        
+
 
         // Verificar las unidades seleccionadas y ajustar el estado en consecuencia
         if (unidadesSeleccionadas === 'g' || unidadesSeleccionadas === 'mg' || unidadesSeleccionadas === 'kg') {
             // estadoSelector.disabled = true; // Deshabilitar el selector
             // Si las unidades son g, mg o Kg, establecer el estado en SOLIDO
             seleccionarOpcionPorNombre(estadoSelector, 'SOLIDO'); // Valor para SOLIDO
-        } else if (unidadesSeleccionadas === 'l' || unidadesSeleccionadas === 'ml' || unidadesSeleccionadas === 'cc'|| unidadesSeleccionadas === 'gal') {
+        } else if (unidadesSeleccionadas === 'l' || unidadesSeleccionadas === 'ml' || unidadesSeleccionadas === 'cc' || unidadesSeleccionadas === 'gal') {
             //estadoSelector.disabled = true; // Deshabilitar el selector
             // Si las unidades son l, ml o cc, establecer el estado en LIQUIDO
             seleccionarOpcionPorNombre(estadoSelector, 'LIQUIDO'); // Valor para LIQUIDO
@@ -92,7 +92,7 @@ document.addEventListener("DOMContentLoaded", function () {
     ajustarEstado();
 
 
-    
+
 
 
 });
@@ -108,4 +108,49 @@ function openPopup(url) {
     // Abrir la ventana emergente
     window.open(url, '_blank', 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=yes, resizable=yes, copyhistory=no, width=' + width + ', height=' + height + ', top=' + top + ', left=' + left);
     return false;
+}
+
+
+// Funcionalidades para el control de archivos adjuntos
+
+var fileInputCounter = 0; // Contador para generar ID único
+
+function addFileInput() {
+    var fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.name = 'ficha_seguridad';
+    fileInput.id = 'ficha_seguridad_' + fileInputCounter; // Generar ID único
+    fileInput.style.display = 'none';
+    // Abrir automáticamente la ventana de selección de archivo
+    fileInput.click();
+    fileInputCounter++; // Incrementar el contador para el próximo ID único
+
+    fileInput.addEventListener('change', function () {
+        var fileName = this.value.split('\\').pop();
+        var fileList = document.getElementById('file-list');
+        var fileURL = URL.createObjectURL(this.files[0]);
+        var listItem = document.createElement('li');
+        listItem.innerHTML = '<span><a href="' + fileURL + '" download>' + fileName + '</a></span><button type="button" class="btn btn-danger remove-button" onclick="removeFileInput(this.parentElement, \'' + fileInput.id + '\')">x</button>';
+        fileList.appendChild(listItem);
+
+        // Ocultar la entrada de archivo
+        this.style.display = 'none';
+    });
+
+    document.getElementById('id_ficha_seguridad').parentNode.insertBefore(fileInput, document.getElementById('id_ficha_seguridad').nextSibling);
+}
+
+function removeFileInput(listItem, idInput) {
+
+    var fileName = listItem.querySelector('span').textContent;
+    var fileList = listItem.parentNode;
+    fileList.removeChild(listItem); // Remove the <li> element
+
+    // Encontrar y eliminar la entrada de archivo correspondiente por ID
+
+    var fileInput = document.getElementById(idInput);
+    if (fileInput) {
+        fileInput.remove();
+
+    }
 }

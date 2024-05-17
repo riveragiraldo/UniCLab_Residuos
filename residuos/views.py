@@ -476,6 +476,13 @@ class CreateRegisterWaste(LoginRequiredMixin, View):
                 # Asignar el usuario actual a los campos created_by y last_updated_by
                 form.instance.created_by = request.user
                 form.instance.last_updated_by = request.user
+
+                # Verificar el tamaño total de los archivos adjuntos
+                total_file_size = sum(f.size for f in request.FILES.getlist('ficha_seguridad'))
+                if total_file_size > 5 * 1024 * 1024:  # 5 MB en bytes
+                    size_error ='El tamaño de las fichas de seguridad debe ser inferior a 5 MB'
+                    return JsonResponse({'success': False, 'errors': size_error})
+
                 # Guardar el registro si el formulario es válido
                 registro_residuo = form.save()
                 registro_residuo.total_residuo=registro_residuo.cantidad*registro_residuo.numero_envases
@@ -495,7 +502,9 @@ class CreateRegisterWaste(LoginRequiredMixin, View):
                 mensaje = 'Residuo agregado correctamente.'
                 return JsonResponse({'success': True, 'message': mensaje})
             else:
+                print(form.errors)
                 return JsonResponse({'success': False, 'errors': form.errors})
+                
         except Exception as e:
             print(e)
             mensaje = f'Error: {e}'
@@ -1347,7 +1356,7 @@ class Temporal_Wastes_Record(LoginRequiredMixin,ListView):
 # --------------------------------------- #
 # Enviar Solicitud de residuo de Residuos #
 
-class SendWateRecord(LoginRequiredMixin, View):
+class SendWasteRecord(LoginRequiredMixin, View):
     def enviar_correo_asincrono(self, recipient_list, subject, message, attach_path):
         try:
             enviar_correo(recipient_list, subject, message, attach_path)
@@ -1505,6 +1514,45 @@ class DeleteWaste(LoginRequiredMixin, View):
            
             # Devolver una respuesta JSON de éxito
             return JsonResponse({'success': True, 'message': f'Residuo eliminado de la lista.'})
+        except Exception as e:
+            print(e)
+            return JsonResponse({'success': False, 'message': 'Error interno del servidor'})
+
+
+# --------------------------------------- #
+# Cancelar Solicitud de residuo de Residuos #
+
+class CancelWasteRecord(LoginRequiredMixin, View):
+   
+    
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL', 'COORDINADOR', 'TECNICO'])
+    def post(self, request, *args, **kwargs):
+        try:
+            registros = REGISTRO_RESIDUOS.objects.filter(
+            created_by__lab=self.request.user.lab,
+            residuo_enviado=False
+            )
+            if registros:
+                for registro in registros:
+                    # Eliminar archivos adjuntos asociados al registro
+                    archivos_adjuntos = registro.archivos_adjuntos_residuos.all()
+                    for adjunto in archivos_adjuntos:
+                        adjunto.file.delete()  # Eliminar el archivo físico
+                        adjunto.delete()  # Eliminar el objeto adjunto
+                    registro.delete()
+
+                
+                # Registrar evento
+                tipo_evento = 'CANCELAR ENVIO REGISTRO DE RESIDUOS'
+                usuario_evento = request.user
+                crear_evento(tipo_evento, usuario_evento)
+                
+
+                # Devolver una respuesta JSON de éxito
+                return JsonResponse({'success': True, 'message': f'Se ha cancelado la solicitud'})
+            else:
+                return JsonResponse({'success': False, 'message': f'No tiene registros para cancelar envío.'})
+
         except Exception as e:
             print(e)
             return JsonResponse({'success': False, 'message': 'Error interno del servidor'})
