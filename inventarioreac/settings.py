@@ -17,8 +17,12 @@ from pathlib import Path
 # import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+# BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# settings.py
 
+# Establecer X_FRAME_OPTIONS en SAMEORIGIN para permitir la inserción en iframes desde el mismo origen
+X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/

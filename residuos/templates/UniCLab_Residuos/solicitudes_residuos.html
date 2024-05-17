@@ -1,0 +1,93 @@
+{% load has_group %}
+{% load custom_filters_1 %}
+{% load custom_filters_2_1 %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Solicitud de Residuos {{ solicitud.pk }}</title>
+    <style>
+        body {
+            font-family: Ancizar sans;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table,
+        th,
+        td {
+            border: 0.5px solid black;
+        }
+
+        th,
+        td {
+            padding: 2px;
+            text-align: left;
+        }
+
+        .nota {
+            font-size: medium;
+            font-style: italic;
+            text-align: center;
+            vertical-align: middle; /* Alineación vertical al centro */
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Registro de Residuos #{{ solicitud.pk }}</h1>
+    <p><strong>Fecha: </strong>{{ solicitud.date_create|date:"d/m/Y" }} {{ solicitud.date_create|time:"H:i" }}</p>
+    <p><strong>Solicitante:</strong> {{ solicitud.created_by.first_name }} {{ solicitud.created_by.last_name }}</p>
+    <p><strong>Dependencia que registra:</strong> {{ solicitud.created_by.lab.name }}</p>
+
+    <h2>Residuos registrados</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Dependencia</th>
+                <th>Residuo</th>
+                <th>Cantidad</th>
+                <th>Envases</th>
+                <th>Total</th>
+                <th>Clasificado Y - A</th>
+                <th>Estado</th>
+                <th>Observaciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for registro in registros %}
+            <tr>
+                <td>{% if registro.laboratorio and registro.area %}{{ registro.laboratorio.name }} {{ registro.area }}{% elif registro.laboratorio %}{{ registro.laboratorio.name }}{% elif registro.area %}{{ registro.area }}{% endif %}</td>
+                <td>{{ registro.nombre_residuo }}</td>
+                <td>{{ registro.cantidad|floatformat:0 }} {{ registro.unidades.name }}</td>
+                <td>{{ registro.numero_envases }}</td>
+                <td>{{ registro.total_residuo|floatformat:0 }} {{ registro.unidades.name }}</td>
+                <td>{% if registro.clasificado.all %}
+                    {{ registro.clasificado.all|join:', ' }}
+                    {% endif %}
+                </td>
+                <td>{{ registro.estado.name }}</td>
+                <td>
+                {% if registro.observaciones %}
+                    {{ registro.observaciones }}
+                {% endif %}
+                    </td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td colspan="8" class="nota">
+                    <b>Nota:</b> Este reporte incluye datos primarios del registro, para ver en detalle vaya a la vista "Listado de Registros"
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+
+</html>
+

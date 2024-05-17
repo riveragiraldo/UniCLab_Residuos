@@ -1677,6 +1677,26 @@ footer .logos a img {
 	width: 100%;
 }
 
+.container-detalle {
+	background-color: #ffffff6f;
+	/* Fondo blanco */
+	border: 1px solid #131313a7;
+	/* Borde gris claro */
+	border-radius: 3px;
+	/* Esquinas redondeadas */
+	/* position: relative; */
+	/* Para posicionar la marca de agua */
+	height: 100%;
+	width: 1200px;
+	padding: 30px;
+}
+
+.container-detalle a {
+	color: #1b6b21;
+	font-weight: bold;
+}
+
+
 .container-list a {
 	color: #1b6b21;
 	font-weight: bold;
@@ -1961,6 +1981,7 @@ footer .logos a img {
 	white-space: nowrap;
 
 }
+
 
 /* clase para columna Nombre residuoi */
 .table-row .residuo-column {

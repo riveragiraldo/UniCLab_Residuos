@@ -1156,6 +1156,19 @@ function cancelInfoWasteRecord() {
     });
 }
 
+// ---------------------------------------------------- //
+// Abre vista de detalle de Solicitud de residuos //
+
+function openDetailRecordWaste(itemId) {
+    // Construye la URL del formulario de edición con el ID del elemento
+    var editUrl = '/UniCLab_Residuos/Registro_Residuos/Solicitudes/Ver/' + itemId + '/';
+
+    // Abre una nueva ventana emergente con el formulario de edición
+    window.open(editUrl, '_blank', 'width=1200, height=800');
+}
+
+
+
 // ------------------------------------------------- //
 // Función para obtener el token CSRF de las cookies //
 function getCookie(name) {

@@ -29,11 +29,11 @@ from .forms import *
 import base64
 import pytz
 from django.db.models import F, ExpressionWrapper, DecimalField
+from django.template.loader import get_template
+from .utils import *
 
 
-
-
-# ---------------------------------------------------------- #
+# ---------------------------------------------------------- 
 # Función para validar usuarios con acceso
 def check_group_permission(groups_required):
     def decorator(view_func):
@@ -1375,7 +1375,7 @@ class SendWasteRecord(LoginRequiredMixin, View):
                 prebody = []
                 configuracion=ConfiguracionSistema.objects.first()
                 url=configuracion.url
-                print(url)
+            
 
                 # Actualizar los registros y obtener los datos necesarios para el correo
                 for registro in registros:
@@ -1556,3 +1556,71 @@ class CancelWasteRecord(LoginRequiredMixin, View):
         except Exception as e:
             print(e)
             return JsonResponse({'success': False, 'message': 'Error interno del servidor'})
+        
+# ------------------------------- #
+# Ver detalle del registro #
+
+class SolicitudHTMLView(View):
+    def get(self, request, pk):
+        # Obtener la solicitud por su id (pk)
+        solicitud = get_object_or_404(SOLICITUD_RESIDUO, pk=pk)
+        
+        # Obtener los registros de residuos asociados a la solicitud
+        registros = REGISTRO_RESIDUOS.objects.filter(registro_solicitud=solicitud)
+
+        # Construir el contexto para la plantilla
+        context = {
+            'solicitud': solicitud,
+            'registros': registros,
+            'configuracion': ConfiguracionSistema.objects.first(),
+        }
+
+        # Renderizar la plantilla a HTML
+        template = get_template('UniCLab_Residuos/solicitudes_residuos.html')
+        html = template.render(context)
+
+        # Crear la respuesta HTTP con el HTML renderizado
+        return HttpResponse(html)
+
+class SolicitudPDFView(View):
+
+    def get(self, request, pk):
+        # Obtener la solicitud por su id (pk)
+        solicitud = get_object_or_404(SOLICITUD_RESIDUO, pk=pk)
+        
+        # Obtener los registros de residuos asociados a la solicitud
+        registros = REGISTRO_RESIDUOS.objects.filter(registro_solicitud=solicitud)
+
+        # Construir el contexto para la plantilla
+        context = {
+            'solicitud': solicitud,
+            'registros': registros,
+            'configuracion': ConfiguracionSistema.objects.first(),
+        }
+        pdf = render_to_pdf('UniCLab_Residuos/solicitudes_residuos.html', context)
+        return HttpResponse(pdf, content_type='application/pdf')
+    
+
+
+class SolicitudPDFEmbView(View):
+    def get(self, request, pk):
+        # Obtener la solicitud por su id (pk)
+        solicitud = get_object_or_404(SOLICITUD_RESIDUO, pk=pk)
+        
+        # Obtener los registros de residuos asociados a la solicitud
+        registros = REGISTRO_RESIDUOS.objects.filter(registro_solicitud=solicitud)
+
+        # Construir el contexto para la plantilla
+        context = {
+            'solicitud': solicitud,
+            'registros': registros,
+            'configuracion': ConfiguracionSistema.objects.first(),
+        }
+
+        # Generar el PDF y obtener el nombre del archivo
+        pdf_filename = render_to_pdf_file('UniCLab_Residuos/solicitudes_residuos.html', context)
+        pdf_url = settings.MEDIA_URL + pdf_filename
+
+        # Renderizar la plantilla HTML con el PDF embebido
+        return render(request, 'UniCLab_Residuos/detalle_solicitud_residuos.html', {'pdf_url': pdf_url})
+
