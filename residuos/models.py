@@ -32,6 +32,7 @@ class CLASIFICACION_RESIDUOS(models.Model):
 # Modelo solicitud Residuo #
 class SOLICITUD_RESIDUO(models.Model):
     name = models.CharField(max_length=14, default='Sol')
+    leido = models.BooleanField(verbose_name='Activo', help_text='Activo', default=False,)
     is_active = models.BooleanField(verbose_name='Activo', help_text='Activo', default=True,)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Creado por', related_name='createby_solicitud_residuo',)
     date_create = models.DateTimeField(auto_now_add=True,verbose_name='Fecha Creación', null=True, blank=True,)

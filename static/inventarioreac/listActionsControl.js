@@ -1156,6 +1156,75 @@ function cancelInfoWasteRecord() {
     });
 }
 
+
+
+// ------------------------------------------------------------- //
+// Función para cancelar toda la soolicitud registro de residuos //
+function DeleteWasteRecord(itemId,itemName, itemSol) {
+    // Muestra una Sweet Alert de confirmación
+    Swal.fire({
+        title: 'Eliminar Registro de la solicitud '+itemSol,
+        text: '¿Está seguro que desea eliminar el registro de residuo '+itemName+'?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí',
+        cancelButtonText: 'No',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Por favor espere...',
+                html: 'Enviando datos al servidor',
+                timerProgressBar: true,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Si el usuario hace clic en "Sí", realiza una solicitud AJAX 
+            var deactivateUrl = '/UniCLab_Residuos/Registro_Residuos/Eliminar_Registro/'+itemId+'/';  // Ruta de la vista de acción
+
+            fetch(deactivateUrl, {
+                method: 'POST', // Método HTTP POST
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'), // Incluir el token CSRF si se utiliza Django
+                },
+            })
+            .then(response => {
+                // Verificar el estado de la respuesta y capturar el mensaje
+                if (response.ok) {
+                    return response.json();  // Leer los datos JSON de la respuesta
+                } else {
+                    throw new Error('Error al ejecutar la acción');
+                }
+            })
+            .then(data => {
+                // Ocultar el loader
+                Swal.hideLoading();
+
+                // Mostrar el mensaje de éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Mensaje del servidor',
+                    text: data.message,
+                }).then(() => {
+                    // Recargar la página o realizar otras acciones si es necesario
+                    location.reload(); // Recarga la página después de desactivar la clasificación
+                });
+            })
+            .catch(error => {
+                // Ocultar el loader
+                Swal.hideLoading();
+
+                // Manejar errores de la solicitud AJAX
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message,
+                });
+            });
+        }
+    });
+}
 // ---------------------------------------------------- //
 // Abre vista de detalle de Solicitud de residuos //
 
@@ -1164,7 +1233,7 @@ function openDetailRecordWaste(itemId) {
     var editUrl = '/UniCLab_Residuos/Registro_Residuos/Solicitudes/Ver/' + itemId + '/';
 
     // Abre una nueva ventana emergente con el formulario de edición
-    window.open(editUrl, '_blank', 'width=1200, height=800');
+    window.open(editUrl, '_blank', 'width=1280, height=800');
 }
 
 

@@ -3,6 +3,7 @@ from .models import *
 from reactivos.forms import estandarizar_nombre
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.db.models import Max, Min
 # ------------------------------------------- #
 # Formulario para clasificaciones de residuos #
 class ClasificacionResiduosForm(forms.ModelForm):
@@ -47,7 +48,7 @@ class RegistroResiduosForm(forms.ModelForm):
         super(RegistroResiduosForm, self).__init__(*args, **kwargs)
         self.fields['ficha_seguridad'] = forms.FileField(
             label='Ficha de seguridad (Máx. 5MB)',  # Agregar el texto deseado a la etiqueta del campo
-            widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'id': 'id_ficha_seguridad', 'style': 'display: none;'}),
+            widget=forms.ClearableFileInput(attrs={'id': 'id_ficha_seguridad', 'style': 'display: none;'}),
             required=False
         )    
     class Meta:
@@ -96,3 +97,81 @@ class RegistroResiduosForm(forms.ModelForm):
     
  
 
+# ------------------------------------ #
+# Formulario para registro de residuos #
+class EditResiduosForm(forms.ModelForm):
+    # ficha_seguridad = forms.FileField(widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'multiple': ''}), required=False)
+    
+    def __init__(self, *args, **kwargs):
+        # Extraer el valor máximo de solicitud del kwargs
+        max_solicitud = kwargs.pop('max_solicitud', None)
+        max_solicitud = REGISTRO_RESIDUOS.objects.filter(residuo_enviado=True).aggregate(Max('registro_solicitud'))['registro_solicitud__max']
+        min_solicitud = REGISTRO_RESIDUOS.objects.filter(residuo_enviado=True).aggregate(Min('registro_solicitud'))['registro_solicitud__min']
+
+        print(f'Solicitud: {min_solicitud}')
+        super(EditResiduosForm, self).__init__(*args, **kwargs)
+        
+        # Configurar el atributo max del campo registro_solicitud
+        if max_solicitud is not None:
+            self.fields['registro_solicitud'].widget.attrs.update({
+                'min': min_solicitud,
+                'step': '1',
+                'max': max_solicitud
+            })
+        else:
+            self.fields['registro_solicitud'].widget.attrs.update({
+                'min': '1',
+                'step': '1'
+            })
+
+    class Meta:
+        model = REGISTRO_RESIDUOS
+        fields = ['dependencia', 'area', 'laboratorio','nombre_residuo', 'cantidad', 'unidades', 'numero_envases', 'clasificado', 'estado', 'observaciones',  'registro_solicitud']
+        labels = {
+            
+            'dependencia': 'Tipo de Dependencia',
+            'area': 'Área',
+            'laboratorio': 'Laboratorio',
+            'nombre_residuo': 'Nombre del Residuo',
+            'cantidad': 'Cantidad',
+            'unidades': 'Unidades',
+            'numero_envases': 'Número de Envases',
+            'clasificado': 'Clasificado',
+            'estado': 'Estado',
+            'observaciones':'Observaciones',
+            'registro_solicitud': 'Número de Solicitud'
+        }
+        widgets = {
+            
+            'dependencia': forms.Select(attrs={'class': 'form-control'}),
+            'area': forms.TextInput(attrs={'class': 'form-control'}),
+            'laboratorio': forms.Select (attrs={'class': 'form-control'}),
+            'nombre_residuo': forms.TextInput(attrs={'class': 'form-control'}),
+            'cantidad': forms.NumberInput(attrs={'class': 'form-control', 'min':0}),
+            'unidades': forms.Select(attrs={'class': 'form-control'}),
+            'numero_envases': forms.NumberInput(attrs={'class': 'form-control'}),
+            'clasificado': forms.SelectMultiple(attrs={'class': 'form-control'}),
+            'estado': forms.Select(attrs={'class': 'form-control'}),
+            'observaciones': forms.TextInput(attrs={'class': 'form-control'}),
+            'registro_solicitud': forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'step': '1'})
+            
+        }
+        # Obtener el máximo valor de registro_solicitud donde residuo_enviado=True en REGISTRO_RESIDUOS
+        max_solicitud = REGISTRO_RESIDUOS.objects.filter(residuo_enviado=True).aggregate(Max('registro_solicitud'))['registro_solicitud__max']
+        print(max_solicitud) 
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        area = cleaned_data.get('area')
+        nombre_residuo = cleaned_data.get('nombre_residuo')
+        observaciones = cleaned_data.get('observaciones')
+
+        if area is not None:
+            cleaned_data['area'] = estandarizar_nombre(area)
+        if nombre_residuo is not None:
+            cleaned_data['nombre_residuo'] = estandarizar_nombre(nombre_residuo)
+        if observaciones is not None:
+            cleaned_data['observaciones'] = estandarizar_nombre(observaciones)
+
+        return cleaned_data
+    

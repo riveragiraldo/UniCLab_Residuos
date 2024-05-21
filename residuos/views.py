@@ -31,6 +31,7 @@ import pytz
 from django.db.models import F, ExpressionWrapper, DecimalField
 from django.template.loader import get_template
 from .utils import *
+from django.db.models import Max, Min
 
 
 # ---------------------------------------------------------- 
@@ -422,6 +423,47 @@ class DisableWasteSorting(View):
         except Exception as e:
             print(e)
             return JsonResponse({'success': False, 'message': 'Error interno del servidor'})
+
+# ------------------------------------------------- #        
+# Eliminar Registro de residuos de la base de datos #
+class DeleteWasteRecordView(LoginRequiredMixin, View):
+
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
+    def post(self, request, *args, **kwargs):
+        try:
+            # Obtener el ID codificado dos veces desde los parámetros de la solicitud
+            record_key = kwargs.get('pk')
+            record_id_encoded = base64.urlsafe_b64decode(record_key).decode('utf-8')
+            record_id = base64.urlsafe_b64decode(record_id_encoded).decode('utf-8')
+            
+            # Obtener la instancia del registro de residuos
+            registro_residuo = get_object_or_404(REGISTRO_RESIDUOS, id=record_id)
+            
+            # Obtener los archivos adjuntos asociados al registro
+            archivos_adjuntos = FICHAS_SEGURIDAD.objects.filter(registro_residuo=registro_residuo)
+            
+            # Eliminar los archivos físicos asociados
+            for archivo in archivos_adjuntos:
+                if archivo.file and os.path.isfile(archivo.file.path):
+                    os.remove(archivo.file.path)
+            
+            # Eliminar los archivos adjuntos de la base de datos
+            archivos_adjuntos.delete()
+            
+            # Eliminar el registro de residuos
+            registro_residuo.delete()
+            
+            # Registrar evento
+            tipo_evento = 'ELIMINAR REGISTRO DE RESIDUOS'
+            usuario_evento = request.user
+            crear_evento(tipo_evento, usuario_evento)
+            
+            # Devolver una respuesta JSON de éxito
+            return JsonResponse({'success': True, 'message': f'Registro de residuos "{registro_residuo.nombre_residuo}" eliminado correctamente.'})
+        except Exception as e:
+            print(e)
+            return JsonResponse({'success': False, 'message': 'Error interno del servidor'})
+
         
 # --------------------------------- #
 # Activar Clasificación de Residuos #
@@ -535,12 +577,14 @@ class Wastes_Record_List(LoginRequiredMixin,ListView):
         # Obtener las fechas de inicio y fin de la solicitud GET
         id_laboratorio = self.request.GET.get('id_laboratorio')
         name = self.request.GET.get('name')
+        sol = self.request.GET.get('sol')
         start_date = self.request.GET.get('start_date')   
         end_date = self.request.GET.get('end_date')   
         # Guardar los valores de filtrado en la sesión
         
         request.session['filtered_id_laboratorio'] = id_laboratorio
         request.session['filtered_name'] = name
+        request.session['filtered_sol'] = sol
         request.session['filtered_start_date'] = start_date
         request.session['filtered_end_date'] = end_date
         
@@ -559,6 +603,13 @@ class Wastes_Record_List(LoginRequiredMixin,ListView):
         # Pasar la fecha de hoy al contexto
         context['today'] = today
 
+        # Obtener el máximo valor de registro_solicitud donde residuo_enviado=True en REGISTRO_RESIDUOS
+        max_solicitud = REGISTRO_RESIDUOS.objects.filter(residuo_enviado=True).aggregate(Max('registro_solicitud'))['registro_solicitud__max']
+        min_solicitud = REGISTRO_RESIDUOS.objects.filter(residuo_enviado=True).aggregate(Min('registro_solicitud'))['registro_solicitud__min']
+        # Pasar el máximo valor de registro_solicitud al contexto
+        context['max_solicitud'] = max_solicitud
+        context['min_solicitud'] = min_solicitud
+
         return context
     
     def get_queryset(self):
@@ -567,6 +618,7 @@ class Wastes_Record_List(LoginRequiredMixin,ListView):
         id_laboratorio = self.request.GET.get('id_laboratorio')
 
         name = self.request.GET.get('name')
+        sol = self.request.GET.get('sol')
         
         # Obtener las fechas de inicio y fin de la solicitud GET
         start_date = self.request.GET.get('start_date')
@@ -585,22 +637,29 @@ class Wastes_Record_List(LoginRequiredMixin,ListView):
         
         # Realiza la filtración de acuerdo a las fechas
         if start_date:
-            queryset = queryset.filter(date_create__gte=start_date)
+            queryset = queryset.filter(date_create__gte=start_date, residuo_enviado=True)
         if end_date:
-            queryset = queryset.filter(date_create__lte=end_date)
+            queryset = queryset.filter(date_create__lte=end_date, residuo_enviado=True)
         elif start_date and end_date:
-            queryset = queryset.filter(date_create__gte=start_date,date_create__lte=end_date)
+            queryset = queryset.filter(date_create__gte=start_date, date_create__lte=end_date, residuo_enviado=True)
 
 
         # Filtrar por  campos que contengan la palabra clave en su nombre
         if name:
-            queryset = queryset.filter(Q(nombre_residuo__icontains=name) | Q(area__icontains=name) | Q(laboratorio__name__icontains=name) | Q(clasificado__name__icontains=name))
+            queryset = queryset.filter((Q(nombre_residuo__icontains=name) | Q(area__icontains=name) | Q(laboratorio__name__icontains=name) | Q(clasificado__name__icontains=name)), residuo_enviado=True)
         
-
-        if id_laboratorio:
-            queryset = queryset.filter(laboratorio=id_laboratorio)
-
-        queryset = queryset.order_by('id')
+        if sol:
+            queryset=queryset.filter(registro_solicitud=sol,  residuo_enviado=True)
+        
+        if self.request.user.rol.name == 'ADMINISTRADOR' or self.request.user.rol.name == 'ADMINISTRADOR AMBIENTAL':
+            
+            if id_laboratorio:
+                queryset = queryset.filter((Q(created_by__lab=id_laboratorio) | Q(laboratorio=id_laboratorio)), residuo_enviado=True)
+        else:
+            
+            queryset = queryset.filter((Q(created_by__lab=self.request.user.lab) | Q(laboratorio=self.request.user.lab)), residuo_enviado=True)
+        
+        queryset = queryset.order_by('registro_solicitud')
         return queryset
     
 # --------------------------------------------- #
@@ -614,6 +673,7 @@ class Wastes_Record_Pagination(LoginRequiredMixin,View):
         # Redirigir a la página de inventario con los parámetros de filtrado actuales
         filtered_id_laboratorio = request.session.get('filtered_id_laboratorio')
         filtered_name = request.session.get('filtered_name')
+        filtered_sol = request.session.get('filtered_sol')
         filtered_start_date = request.session.get('filtered_start_date')
         filtered_end_date = request.session.get('filtered_end_date')
         
@@ -624,6 +684,8 @@ class Wastes_Record_Pagination(LoginRequiredMixin,View):
             params['id_laboratorio'] = filtered_id_laboratorio
         if filtered_name:
             params['name'] = filtered_name
+        if filtered_sol:
+            params['sol'] = filtered_sol
         if filtered_start_date:
             params['start_date'] = filtered_start_date
         if filtered_end_date:
@@ -673,6 +735,7 @@ class Export2ExcelWastes(LoginRequiredMixin, View):
         # Obtener datos filtrados de la sesión
         id_laboratorio = request.session.get('filtered_id_laboratorio')
         name = request.session.get('filtered_name')
+        sol = request.session.get('filtered_sol')
         start_date = request.session.get('filtered_start_date')
         end_date = request.session.get('filtered_end_date')
         
@@ -689,22 +752,29 @@ class Export2ExcelWastes(LoginRequiredMixin, View):
         
         # Realiza la filtración de acuerdo a las fechas
         if start_date:
-            queryset = queryset.filter(date_create__gte=start_date)
+            queryset = queryset.filter(date_create__gte=start_date, residuo_enviado=True)
         if end_date:
-            queryset = queryset.filter(date_create__lte=end_date)
+            queryset = queryset.filter(date_create__lte=end_date, residuo_enviado=True)
         elif start_date and end_date:
-            queryset = queryset.filter(date_create__gte=start_date,date_create__lte=end_date)
+            queryset = queryset.filter(date_create__gte=start_date, date_create__lte=end_date, residuo_enviado=True)
 
 
         # Filtrar por  campos que contengan la palabra clave en su nombre
         if name:
-            queryset = queryset.filter(Q(nombre_residuo__icontains=name) | Q(area__icontains=name) | Q(laboratorio__name__icontains=name) | Q(clasificado__name__icontains=name))
+            queryset = queryset.filter((Q(nombre_residuo__icontains=name) | Q(area__icontains=name) | Q(laboratorio__name__icontains=name) | Q(clasificado__name__icontains=name)), residuo_enviado=True)
         
-
-        if id_laboratorio:
-            queryset = queryset.filter(laboratorio=id_laboratorio)
-
-        queryset = queryset.order_by('id')
+        if sol:
+            queryset=queryset.filter(registro_solicitud=sol,  residuo_enviado=True)
+        
+        if self.request.user.rol.name == 'ADMINISTRADOR' or self.request.user.rol.name == 'ADMINISTRADOR AMBIENTAL':
+            
+            if id_laboratorio:
+                queryset = queryset.filter((Q(created_by__lab=id_laboratorio) | Q(laboratorio=id_laboratorio)), residuo_enviado=True)
+        else:
+            
+            queryset = queryset.filter((Q(created_by__lab=self.request.user.lab) | Q(laboratorio=self.request.user.lab)), residuo_enviado=True)
+        
+        queryset = queryset.order_by('registro_solicitud')
 
         workbook = openpyxl.Workbook()
         sheet = workbook.active
@@ -718,7 +788,7 @@ class Export2ExcelWastes(LoginRequiredMixin, View):
         
         sheet['C1'] = 'Listado de registro de residuos'
         sheet['C2'] = 'Fecha de Creación: '+fecha_creacion
-        sheet['A4'] = 'Consecutivo'
+        sheet['A4'] = 'ID Solicitud'
         sheet['B4'] = 'Dependencia'
         sheet['C4'] = 'Nombre del residuo'
         sheet['D4'] = 'Cantidad'
@@ -729,7 +799,7 @@ class Export2ExcelWastes(LoginRequiredMixin, View):
         sheet['I4'] = 'Estado'
         sheet['J4'] = 'Dependencia que realiza registro'
         sheet['K4'] = 'Usuario que registra'
-        sheet['L4'] = 'Registro Activo?'
+        
 
         sheet.row_dimensions[1].height = 30
         sheet.row_dimensions[2].height = 30
@@ -785,12 +855,8 @@ class Export2ExcelWastes(LoginRequiredMixin, View):
             # Organizar las clasificaciones
             clasificaciones = ', '.join(item.clasificado.values_list('name', flat=True)) if item.clasificado.exists() else 'NO DEFINIDA'
 
-            # Definir el estado de activación
-            if item.is_active:
-                estado="SÍ"
-            else:
-                estado="NO"
-            sheet.cell(row=row, column=1).value = (item.id)
+            
+            sheet.cell(row=row, column=1).value = (item.registro_solicitud.id)
             sheet.cell(row=row, column=2).value = (dependencia)
             sheet.cell(row=row, column=3).value = item.nombre_residuo
             sheet.cell(row=row, column=4).value = item.cantidad
@@ -801,7 +867,7 @@ class Export2ExcelWastes(LoginRequiredMixin, View):
             sheet.cell(row=row, column=9).value = item.estado.name
             sheet.cell(row=row, column=10).value =item.created_by.lab.name
             sheet.cell(row=row, column=11).value = f'{item.created_by.first_name} {item.created_by.last_name}'
-            sheet.cell(row=row, column=12).value = estado       
+              
             
             for col in range(1, 13):
                 sheet.cell(row=row, column=col).border = thin_border
@@ -854,12 +920,11 @@ class EditarRegistroResiduos(LoginRequiredMixin, View):
             # Decodificar el ID en base64 dos veces
             registro_key = kwargs.get('pk')
             registro_id = base64.urlsafe_b64decode(base64.urlsafe_b64decode(registro_key)).decode('utf-8')
-            
             # Obtener el registro de residuos que se va a editar
             registro_residuo = get_object_or_404(REGISTRO_RESIDUOS, id=registro_id)
             
             # Crear el formulario con los datos del registro
-            form = RegistroResiduosForm(instance=registro_residuo)
+            form = EditResiduosForm(instance=registro_residuo)
             laboratorios = Laboratorios.objects.all()
             lab_id = request.user.lab.id
 
@@ -875,10 +940,11 @@ class EditarRegistroResiduos(LoginRequiredMixin, View):
             registro_key = kwargs.get('pk')
             registro_id = base64.urlsafe_b64decode(base64.urlsafe_b64decode(registro_key)).decode('utf-8')
             
+            
             # Obtener el registro de residuos que se va a editar
             registro_residuo = get_object_or_404(REGISTRO_RESIDUOS, id=registro_id)
             
-            form = RegistroResiduosForm(request.POST, request.FILES, instance=registro_residuo)
+            form = EditResiduosForm(request.POST, request.FILES, instance=registro_residuo)
             if form.is_valid():
                 # Asignar el usuario actual a last_updated_by
                 form.instance.last_updated_by = request.user
@@ -1557,70 +1623,59 @@ class CancelWasteRecord(LoginRequiredMixin, View):
             print(e)
             return JsonResponse({'success': False, 'message': 'Error interno del servidor'})
         
-# ------------------------------- #
-# Ver detalle del registro #
 
-class SolicitudHTMLView(View):
+# ---------------------------------- #
+# Ver detalle de la solicitud en PDF #
+class SolicitudPDFEmbView(LoginRequiredMixin, View):
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL', 'COORDINADOR', 'TECNICO'])
     def get(self, request, pk):
         # Obtener la solicitud por su id (pk)
-        solicitud = get_object_or_404(SOLICITUD_RESIDUO, pk=pk)
+        # Obtener el ID codificado dos veces desde los parámetros de la solicitud
+        request_key = pk
+        item_id_encoded = base64.urlsafe_b64decode(request_key).decode('utf-8')
+        request_id = base64.urlsafe_b64decode(item_id_encoded).decode('utf-8')
+        solicitud = get_object_or_404(SOLICITUD_RESIDUO, pk=request_id)
         
         # Obtener los registros de residuos asociados a la solicitud
         registros = REGISTRO_RESIDUOS.objects.filter(registro_solicitud=solicitud)
-
-        # Construir el contexto para la plantilla
-        context = {
-            'solicitud': solicitud,
-            'registros': registros,
-            'configuracion': ConfiguracionSistema.objects.first(),
-        }
-
-        # Renderizar la plantilla a HTML
-        template = get_template('UniCLab_Residuos/solicitudes_residuos.html')
-        html = template.render(context)
-
-        # Crear la respuesta HTTP con el HTML renderizado
-        return HttpResponse(html)
-
-class SolicitudPDFView(View):
-
-    def get(self, request, pk):
-        # Obtener la solicitud por su id (pk)
-        solicitud = get_object_or_404(SOLICITUD_RESIDUO, pk=pk)
-        
-        # Obtener los registros de residuos asociados a la solicitud
-        registros = REGISTRO_RESIDUOS.objects.filter(registro_solicitud=solicitud)
-
-        # Construir el contexto para la plantilla
-        context = {
-            'solicitud': solicitud,
-            'registros': registros,
-            'configuracion': ConfiguracionSistema.objects.first(),
-        }
-        pdf = render_to_pdf('UniCLab_Residuos/solicitudes_residuos.html', context)
-        return HttpResponse(pdf, content_type='application/pdf')
-    
-
-
-class SolicitudPDFEmbView(View):
-    def get(self, request, pk):
-        # Obtener la solicitud por su id (pk)
-        solicitud = get_object_or_404(SOLICITUD_RESIDUO, pk=pk)
-        
-        # Obtener los registros de residuos asociados a la solicitud
-        registros = REGISTRO_RESIDUOS.objects.filter(registro_solicitud=solicitud)
-
-        # Construir el contexto para la plantilla
-        context = {
-            'solicitud': solicitud,
-            'registros': registros,
-            'configuracion': ConfiguracionSistema.objects.first(),
-        }
-
         # Generar el PDF y obtener el nombre del archivo
+        
+        
+
+        # Construir el contexto para la plantilla
+        context = {
+            'solicitud': solicitud,
+            'registros': registros,
+            'configuracion': ConfiguracionSistema.objects.first(),
+            
+        }
+        
         pdf_filename = render_to_pdf_file('UniCLab_Residuos/solicitudes_residuos.html', context)
+
         pdf_url = settings.MEDIA_URL + pdf_filename
-
+        
         # Renderizar la plantilla HTML con el PDF embebido
-        return render(request, 'UniCLab_Residuos/detalle_solicitud_residuos.html', {'pdf_url': pdf_url})
+        return render(request, 'UniCLab_Residuos/detalle_solicitud_residuos.html', {'pdf_url': pdf_url,'pdf_filename': pdf_filename,'solicitud': solicitud.id})
 
+# ---------------------------------------------------- #
+# Borrar Solicitud en PDF y marca solicitud como leída #
+
+class DeletePDFView(LoginRequiredMixin, View):
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL', 'COORDINADOR', 'TECNICO'])
+    def get(self, request, *args, **kwargs):
+        pdf_filename = request.GET.get('pdf_filename')
+        solicitud_id = request.GET.get('solicitud')
+        solicitud_registro = get_object_or_404(SOLICITUD_RESIDUO, id=solicitud_id)
+        
+        # Marcar la solicitud como leída
+        solicitud_registro.leido = True
+        solicitud_registro.save()
+        
+        # Eliminar el archivo PDF si existe
+        if pdf_filename:
+            pdf_path = os.path.join(settings.MEDIA_ROOT, pdf_filename)
+            if os.path.exists(pdf_path):
+                os.remove(pdf_path)
+                return JsonResponse({'status': 'success'})
+        
+        return JsonResponse({'status': 'error'})

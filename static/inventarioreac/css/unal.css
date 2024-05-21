@@ -1677,6 +1677,8 @@ footer .logos a img {
 	width: 100%;
 }
 
+
+/* Detalle de solicitud */
 .container-detalle {
 	background-color: #ffffff6f;
 	/* Fondo blanco */
@@ -1687,13 +1689,25 @@ footer .logos a img {
 	/* position: relative; */
 	/* Para posicionar la marca de agua */
 	height: 100%;
-	width: 1200px;
-	padding: 30px;
+	width: 100%;
+	padding: 20px;
+	
 }
 
 .container-detalle a {
 	color: #1b6b21;
 	font-weight: bold;
+}
+
+
+#pdf-viewer {
+	width: 100%;
+	height: 80vh;
+}
+@media (max-width: 767px) { 
+    #pdf-viewer {
+        height: 35vh; 
+    }
 }
 
 

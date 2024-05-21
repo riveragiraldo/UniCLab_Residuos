@@ -121,6 +121,10 @@ tr.table-row:hover {
     color: #FF0000; /* Cambia el color del texto */
 }
 
+.row-read-request {
+    background-color: #d8e1d7aa;
+    font-size: smaller;
+}
 
 
 .add-button {
@@ -172,7 +176,7 @@ tr.table-row:hover {
 }
 
 /* Estilos para el span de tooltip */
-.delete-residue-tooltip {
+.delete-residuo-tooltip {
     position: absolute;
     background-color: rgba(0, 0, 0, 0.7); /* Fondo negro con transparencia */
     color: white; /* Texto blanco */
@@ -190,7 +194,31 @@ tr.table-row:hover {
 }
 
 /* Estilos para mostrar el tooltip cuando se pasa el cursor sobre la imagen */
-.acciones-column:hover .delete-residue-tooltip {
+.acciones-column:hover .delete-residuo-tooltip {
+    opacity: 1.5; /* Hacer visible el tooltip gradualmente al pasar el cursor sobre la imagen */
+    
+}
+
+/* Estilos para el span de tooltip */
+.detalle-solicitud-tooltip {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.7); /* Fondo negro con transparencia */
+    color: white; /* Texto blanco */
+    font-family: "Ancizar sans";
+    font-size: 14px;
+    font-weight: 200;
+    letter-spacing: 2px;
+    line-height: 1;
+    padding: 5px; /* Espacio alrededor del texto */
+    border-radius: 5px; /* Bordes redondeados */
+    opacity: 0; /* Inicialmente transparente */
+    transition: opacity 0.3s ease; /* Transiciones suavizadas para opacidad y transformación */
+    transform: translateX(5px) translateY(-15px); /* Mover el tooltip hacia la derecha */
+
+}
+
+/* Estilos para mostrar el tooltip cuando se pasa el cursor sobre la imagen */
+.id-solicitud:hover .detalle-solicitud-tooltip {
     opacity: 1.5; /* Hacer visible el tooltip gradualmente al pasar el cursor sobre la imagen */
     
 }

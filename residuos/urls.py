@@ -25,10 +25,9 @@ urlpatterns = [
     path('UniCLab_Residuos/Registro_Residuos/Cancelar_Solicitud/', CancelWasteRecord.as_view(), name='cancel_request_register'),# Cancelar solicitud
     path('UniCLab_Residuos/Registro_Residuos/Eliminar/<str:pk>/', DeleteWaste.as_view(), name='delete_record_waste'), # Eliminar residuo de la lista "Temporal"
     path('UniCLab_Residuos/Registro_Residuos/Listado/', Wastes_Record_List.as_view(), name='record_waste_list'),# Listado Registro de residuos
-    path('UniCLab_Residuos/Registro_Residuos/Solicitudes/Ver_html/<int:pk>/', SolicitudHTMLView.as_view(), name='view_request_waste_html'),# Ver solicitud en html
-    path('UniCLab_Residuos/Registro_Residuos/Solicitudes/Ver_pdf/<int:pk>/', SolicitudPDFView.as_view(), name='view_request_waste_pdf'),# Ver solicitud en PDF
-    path('UniCLab_Residuos/Registro_Residuos/Solicitudes/Ver/<int:pk>/', SolicitudPDFEmbView.as_view(), name='view_request_waste_html_emb'),# Ver solicitud en html
-    
+    path('UniCLab_Residuos/Registro_Residuos/Solicitudes/Ver/<str:pk>/', SolicitudPDFEmbView.as_view(), name='view_request_waste_html_emb'),# Ver solicitud en html
+    path('UniCLab_Residuos/Registro_Residuos/Solicitudes/Borrar/', DeletePDFView.as_view(), name='delete_pdf'),# Borrar solicitud en html
+    path('UniCLab_Residuos/Registro_Residuos/Eliminar_Registro/<str:pk>/', DeleteWasteRecordView.as_view(), name='delete_waste'), # Eliminar residuo de la lista principal
     
     
     path('UniCLab_Residuos/Registro_Residuos/Listado/Pag/<int:per_page>/', Wastes_Record_Pagination.as_view(), name='Wastes_Record_Pagination'),# Maneja paginación de listado de residuos

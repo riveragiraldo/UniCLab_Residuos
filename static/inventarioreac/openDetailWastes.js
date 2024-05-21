@@ -10,19 +10,20 @@ document.querySelectorAll('.detalle-residuo').forEach(element => {
         const registroTotal = this.getAttribute('registro-total');
         const registroClasificacion = this.getAttribute('registro-clasificacion');
         const registroEstado = this.getAttribute('registro-estado');
+        const registroAdjuntos = this.getAttribute('registro-adjuntos');
         const registroFechaRegistro = this.getAttribute('registro-fecha-registro');
         const registroCreador = this.getAttribute('registro-creador');
         const registroCreadorEmail = this.getAttribute('registro-creador-email');
         const registroFechaActualizacion = this.getAttribute('registro-fecha-actualizacion');
         const registroActualizador = this.getAttribute('registro-actualizador');
 
-        const registro = obtenerInformacionRegistro(registroId, registroFechaCreacion, registroDependencia, registroNombre, registroCantidad, registroEnvase, registroTotal, registroClasificacion, registroEstado, registroFechaRegistro, registroCreador, registroCreadorEmail, registroFechaActualizacion, registroActualizador);
+        const registro = obtenerInformacionRegistro(registroId, registroFechaCreacion, registroDependencia, registroNombre, registroCantidad, registroEnvase, registroTotal, registroClasificacion, registroEstado, registroFechaRegistro, registroCreador, registroCreadorEmail, registroFechaActualizacion, registroActualizador,registroAdjuntos);
         mostrarSweetAlert(registro);
     });
 });
 
 // Función para obtener la información del usuario basado en su ID (puedes hacer la solicitud al servidor)
-function obtenerInformacionRegistro(id, fechacreacion, dependencia, nombre, cantidad, envase, total, clasificacion, estado, fecharegistro, creador, emailcreador, fechaactualizacion, actualizador) {
+function obtenerInformacionRegistro(id, fechacreacion, dependencia, nombre, cantidad, envase, total, clasificacion, estado, fecharegistro, creador, emailcreador, fechaactualizacion, actualizador, adjuntos) {
 
     const registro = {
         id: id,
@@ -39,6 +40,7 @@ function obtenerInformacionRegistro(id, fechacreacion, dependencia, nombre, cant
         emailcreador:emailcreador,
         fechaactualizacion:fechaactualizacion,
         actualizador:actualizador,
+        adjuntos:adjuntos,
     };
     return registro;
 }
@@ -64,6 +66,7 @@ function mostrarSweetAlert(registro) {
                         <li><strong>Total Residuo:</strong> ${registro.total}</li>
                         <li><strong>Clasificación Y - A:</strong> ${registro.clasificacion}</li>
                         <li><strong>Estado:</strong> ${registro.estado}</li>
+                        <li><strong>Adjuntos:</strong> ${registro.adjuntos}</li>
                     </ul>
                     <br>
                     <h5>Información adicional:</h5>
