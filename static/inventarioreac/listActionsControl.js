@@ -1233,7 +1233,9 @@ function openDetailRecordWaste(itemId) {
     var editUrl = '/UniCLab_Residuos/Registro_Residuos/Solicitudes/Ver/' + itemId + '/';
 
     // Abre una nueva ventana emergente con el formulario de edición
-    window.open(editUrl, '_blank', 'width=1280, height=800');
+    window.open(editUrl, 'popupWindow', 'width=1280, height=800,menubar=no,toolbar=no,location=no,status=no,resizable=no');
+    
+
 }
 
 

@@ -8,30 +8,20 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Detalle de solicitud{% endblock %}</title>
+    <title>{% block title %}Detalle de registro de residuos{% endblock %}</title>
     {% block head %}
-    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous"> -->
-    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"
-        defer></script> -->
-
-    <!-- Elimina los archivos del servidor una vez se cierra la ventana -->
-    {% if request.user|has_group:"ADMINISTRADOR" or request.user.is_superuser or request.user|has_group:"ADMINISTRADOR AMBIENTAL" %}
-    <script>
-        window.addEventListener('beforeunload', function () {
-            // Enviar mensaje a la ventana padre para recargar después de 2 segundos
-            if (window.opener && !window.opener.closed) {
-                window.opener.postMessage('close_and_refresh', '*');
-            }
-    
-            // Hacer una solicitud para eliminar el archivo PDF
-            fetch("{% url 'residuos:delete_pdf' %}?pdf_filename={{ pdf_filename }}&solicitud={{ solicitud }}", {
-                method: 'GET'
-            });
-        });
+     
+        <script>
+        url = "{% url 'residuos:delete_pdf' %}"
+        pdf_filename = "{{ pdf_filename }}"
+        solicitud = "{{ solicitud }}"
+        console.log(solicitud)
     </script>
-    {% endif %}
+    <!-- Llama Script  que cierra ventana envía notificación y borra PDF -->
+    <script src="{% static 'inventarioreac/js/ClearPDF.js' %}" defer></script>
+
+    
+
     {% endblock %}
 </head>
 
@@ -39,15 +29,30 @@
     {% block content %}
     <div class="col-lg-12 col-md-12 container-detalle">
         <h3 style="text-align: center;">Detalle de solicitud #{{ solicitud }}</h3>
+
         <br>
-        <a href="{{ pdf_url }}">Descargar</a>
-        <br>
+        {% if request.user|has_group:"ADMINISTRADOR" or request.user.is_superuser or request.user|has_group:"ADMINISTRADOR AMBIENTAL" %}
+        <div class="text-md-left">
+            
+            {% if registro.respondido %}
+    <p style="color: #555; font-size: 14px; margin-bottom: 10px;">Ya se ha dado respuesta a este registro de residuos</p>
+    {% else %}
+    <button type="button" class="btn btn-default" style="margin-bottom: 10px;" onclick="cerrarVentana()">Cerrar Ventana</button>
+{% endif %}
+
+                        
+        
+        </div>
+        {% endif %}
         <br>
         <div class="text-center" style="width: 100%; color: transparent;">
-            <embed src="{{ pdf_url }}" type="application/pdf"  id="pdf-viewer">
-                ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            <embed src="{{ pdf_url }}" type="application/pdf" id="pdf-viewer">
+            ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         </div>
     </div>
+
+
+
     {% endblock %}
 
 

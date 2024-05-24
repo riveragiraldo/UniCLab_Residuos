@@ -32,7 +32,8 @@ class CLASIFICACION_RESIDUOS(models.Model):
 # Modelo solicitud Residuo #
 class SOLICITUD_RESIDUO(models.Model):
     name = models.CharField(max_length=14, default='Sol')
-    leido = models.BooleanField(verbose_name='Activo', help_text='Activo', default=False,)
+    leido = models.BooleanField(verbose_name='Leído', help_text='Leído', default=False,)
+    respondido = models.BooleanField(verbose_name='Respondido', help_text='Respondido', default=False,)
     is_active = models.BooleanField(verbose_name='Activo', help_text='Activo', default=True,)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Creado por', related_name='createby_solicitud_residuo',)
     date_create = models.DateTimeField(auto_now_add=True,verbose_name='Fecha Creación', null=True, blank=True,)
@@ -87,11 +88,5 @@ class REGISTRO_RESIDUOS(models.Model):
         verbose_name = 'Registro de Residuos'
         verbose_name_plural = 'Registros de Residuos'
 
-# --------------------------------------------------------------------------- #
-# Campo para almacenar una o más fichas de seguridad por registro de residuos #
-class FICHAS_SEGURIDAD(models.Model):
-    registro_residuo = models.ForeignKey(REGISTRO_RESIDUOS, related_name='archivos_adjuntos_residuos', on_delete=models.CASCADE)
-    file = models.FileField(upload_to='archivos/', blank=True, null=True, verbose_name='Ficha de seguiridad')
-    date_create = models.DateTimeField(auto_now_add=True, verbose_name='Fecha Creación', null=True, blank=True)
 
 

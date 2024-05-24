@@ -43,7 +43,10 @@
 <body>
     <h1>Registro de Residuos #{{ solicitud.pk }}</h1>
     <p><strong>Fecha: </strong>{{ solicitud.date_create|date:"d/m/Y" }} {{ solicitud.date_create|time:"H:i" }}</p>
-    <p><strong>Solicitante:</strong> {{ solicitud.created_by.first_name }} {{ solicitud.created_by.last_name }}</p>
+    <p><strong>Responsable del registro y entrega del residuo:</strong> {{ solicitud.created_by.first_name }} {{ solicitud.created_by.last_name }}</p>
+    <p><strong>Correo Electrónico:</strong> 
+        <i><a href="mailto:{{ solicitud.created_by.email }}" class="email-link">{{ solicitud.created_by.email }}</a></i>
+    </p>
     <p><strong>Dependencia que registra:</strong> {{ solicitud.created_by.lab.name }}</p>
 
     <h2>Residuos registrados</h2>

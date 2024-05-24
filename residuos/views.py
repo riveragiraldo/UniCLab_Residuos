@@ -32,6 +32,7 @@ from django.db.models import F, ExpressionWrapper, DecimalField
 from django.template.loader import get_template
 from .utils import *
 from django.db.models import Max, Min
+import glob
 
 
 # ---------------------------------------------------------- 
@@ -439,17 +440,7 @@ class DeleteWasteRecordView(LoginRequiredMixin, View):
             # Obtener la instancia del registro de residuos
             registro_residuo = get_object_or_404(REGISTRO_RESIDUOS, id=record_id)
             
-            # Obtener los archivos adjuntos asociados al registro
-            archivos_adjuntos = FICHAS_SEGURIDAD.objects.filter(registro_residuo=registro_residuo)
-            
-            # Eliminar los archivos físicos asociados
-            for archivo in archivos_adjuntos:
-                if archivo.file and os.path.isfile(archivo.file.path):
-                    os.remove(archivo.file.path)
-            
-            # Eliminar los archivos adjuntos de la base de datos
-            archivos_adjuntos.delete()
-            
+                        
             # Eliminar el registro de residuos
             registro_residuo.delete()
             
@@ -519,23 +510,13 @@ class CreateRegisterWaste(LoginRequiredMixin, View):
                 form.instance.created_by = request.user
                 form.instance.last_updated_by = request.user
 
-                # Verificar el tamaño total de los archivos adjuntos
-                total_file_size = sum(f.size for f in request.FILES.getlist('ficha_seguridad'))
-                if total_file_size > 5 * 1024 * 1024:  # 5 MB en bytes
-                    size_error ='El tamaño de las fichas de seguridad debe ser inferior a 5 MB'
-                    return JsonResponse({'success': False, 'errors': size_error})
-
+                
                 # Guardar el registro si el formulario es válido
                 registro_residuo = form.save()
                 registro_residuo.total_residuo=registro_residuo.cantidad*registro_residuo.numero_envases
                 registro_residuo.save()
 
-                # Guardar archivos adjuntos en el modelo FICHAS_SEGURIDAD
-                fichas_seguridad = request.FILES.getlist('ficha_seguridad')
-                for ficha_seguridad_file in fichas_seguridad:
-                    ficha = FICHAS_SEGURIDAD(registro_residuo=registro_residuo, file=ficha_seguridad_file)
-                    ficha.save()
-                
+                                
                 # Registrar evento
                 tipo_evento = 'CREAR REGISTRO DE RESIDUOS'
                 usuario_evento = request.user
@@ -1313,14 +1294,7 @@ class RegistrarSolicitudResiduos(LoginRequiredMixin, CreateView):
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST, request.FILES)
 
-        # Validar el tamaño del archivo adjunto
-        archivos_adjuntos = request.FILES.get('archivos_adjuntos')
-        if archivos_adjuntos and archivos_adjuntos.size > 5 * 1024 * 1024:  # 2 MB en bytes
-            nombre=archivos_adjuntos.name
-            peso=archivos_adjuntos.size / (1024 * 1024)
-            mensaje = f'No se ha podido registrar la solicitud porque el tamaño del archivo adjunto con nombre {nombre}, con tamaño de {peso:.2f} MB es superior al máximo permitido (5 MB).'
-            messages.error(request, mensaje)  # Agregar mensaje de error
-            return redirect('residuos:internal_requests_form')
+        
         
         if form.is_valid():
             solicitud = form.save(commit=False)  # No guardar aún, solo crear una instancia
@@ -1461,17 +1435,8 @@ class SendWasteRecord(LoginRequiredMixin, View):
                         dependencia=f'{registro.area}'
 
 
-                    # Verificar si el registro tiene archivos adjuntos
-                    archivos_adjuntos = registro.archivos_adjuntos_residuos.all()
-                    if archivos_adjuntos:
-                        fichas = f'<b>Fichas: </b>'
-                        for index, ficha in enumerate(archivos_adjuntos):
-                            link=f'{url}{ficha.file.url}'
-                            nombre_archivo = ficha.file.name.split('/')[-1]  # Obtener el nombre del archivo de la URL
-                            fichas=fichas+(f"<i><a href='{link}'>{nombre_archivo}</a></i>, ")
-                            fichas=fichas+f'<br>'
-                    else:
-                        fichas=''
+                    
+                    
 
                     # Construir el contenido dinámico para cada registro
                     prebody.append(f"<b>Dependencia:</b> {dependencia}<br>"
@@ -1482,7 +1447,7 @@ class SendWasteRecord(LoginRequiredMixin, View):
                                    f"<b>Clasificación:</b> {', '.join(str(clasif) for clasif in registro.clasificado.all())}<br>"
                                    f"<b>Estado:</b> {registro.estado}<br>"
                                    f"{observaciones}"
-                                   f"{fichas}"
+                                   
                                    
                                    )
                     
@@ -1569,11 +1534,7 @@ class DeleteWaste(LoginRequiredMixin, View):
             # Obtener la instancia de la clasificación de residuos
             residuo = get_object_or_404(REGISTRO_RESIDUOS, id=waste_id)
             
-            # Eliminar archivos adjuntos asociados al registro
-            archivos_adjuntos = residuo.archivos_adjuntos_residuos.all()
-            for adjunto in archivos_adjuntos:
-                adjunto.file.delete()  # Eliminar el archivo físico
-                adjunto.delete()  # Eliminar el objeto adjunto
+            
             
             # Eliminar el registro de residuos
             residuo.delete()
@@ -1599,13 +1560,7 @@ class CancelWasteRecord(LoginRequiredMixin, View):
             residuo_enviado=False
             )
             if registros:
-                for registro in registros:
-                    # Eliminar archivos adjuntos asociados al registro
-                    archivos_adjuntos = registro.archivos_adjuntos_residuos.all()
-                    for adjunto in archivos_adjuntos:
-                        adjunto.file.delete()  # Eliminar el archivo físico
-                        adjunto.delete()  # Eliminar el objeto adjunto
-                    registro.delete()
+                
 
                 
                 # Registrar evento
@@ -1623,12 +1578,15 @@ class CancelWasteRecord(LoginRequiredMixin, View):
             print(e)
             return JsonResponse({'success': False, 'message': 'Error interno del servidor'})
         
+    
+
 
 # ---------------------------------- #
 # Ver detalle de la solicitud en PDF #
 class SolicitudPDFEmbView(LoginRequiredMixin, View):
     @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL', 'COORDINADOR', 'TECNICO'])
     def get(self, request, pk):
+        
         # Obtener la solicitud por su id (pk)
         # Obtener el ID codificado dos veces desde los parámetros de la solicitud
         request_key = pk
@@ -1655,27 +1613,96 @@ class SolicitudPDFEmbView(LoginRequiredMixin, View):
         pdf_url = settings.MEDIA_URL + pdf_filename
         
         # Renderizar la plantilla HTML con el PDF embebido
-        return render(request, 'UniCLab_Residuos/detalle_solicitud_residuos.html', {'pdf_url': pdf_url,'pdf_filename': pdf_filename,'solicitud': solicitud.id})
+        return render(request, 'UniCLab_Residuos/detalle_solicitud_residuos.html', {'pdf_url': pdf_url,'pdf_filename': pdf_filename,'solicitud': solicitud.id ,'registro': solicitud})
 
+    
 # ---------------------------------------------------- #
 # Borrar Solicitud en PDF y marca solicitud como leída #
 
 class DeletePDFView(LoginRequiredMixin, View):
+    def enviar_correo_asincrono(self, recipient_list, subject, message, attach_path):
+        try:
+            enviar_correo(recipient_list, subject, message, attach_path)
+            # Eliminar el archivo PDF después de enviar el correo electrónico
+            if attach_path and os.path.exists(attach_path):
+                os.remove(attach_path)
+        except Exception as e:
+            print(f'Error al enviar correo: {e}')
+
     @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL', 'COORDINADOR', 'TECNICO'])
     def get(self, request, *args, **kwargs):
         pdf_filename = request.GET.get('pdf_filename')
         solicitud_id = request.GET.get('solicitud')
+        notification = request.GET.get('notification')
+        days = request.GET.get('days')
+        
         solicitud_registro = get_object_or_404(SOLICITUD_RESIDUO, id=solicitud_id)
+        # Marcar la solicitud como leída si el usuario es administrador o administrador ambiental
+        if request.user.rol.name=="ADMINISTRADOR" or request.user.rol.name=="ADMINISTRADOR AMBIENTAL":
+            solicitud_registro.leido = True
+            solicitud_registro.save()
+        # Registrar evento
+        tipo_evento = 'LECTURA DE SOLICITUD DE RESIDUOS'
+        usuario_evento = request.user
+        crear_evento(tipo_evento, usuario_evento)
+
         
-        # Marcar la solicitud como leída
-        solicitud_registro.leido = True
-        solicitud_registro.save()
-        
-        # Eliminar el archivo PDF si existe
-        if pdf_filename:
-            pdf_path = os.path.join(settings.MEDIA_ROOT, pdf_filename)
-            if os.path.exists(pdf_path):
-                os.remove(pdf_path)
+        if notification == 'True':
+            if request.user.rol.name=="ADMINISTRADOR" or request.user.rol.name=="ADMINISTRADOR AMBIENTAL":
+                # Marcar la solicitud como respondida
+                solicitud_registro.respondido = True
+                solicitud_registro.save()
+                # Registrar evento
+                tipo_evento = 'RESPUESTA A SOLICITUD DE RESIDUOS'
+                usuario_evento = request.user
+                crear_evento(tipo_evento, usuario_evento)
+                # Datos para correo electrónico
+
+                # Usuarios que recepcionan
+                # Obtener el correo del usuario que realiza el registro
+                correo_usuario = request.user.email
+
+                # Obtener los correos de todos los usuarios activos con rol 'ADMINISTRADOR AMBIENTAL'
+                usuario_solicitud = solicitud_registro.created_by.email
+
+                # Crear una lista de destinatarios
+                recipient_list = [correo_usuario,usuario_solicitud]
+
+                # Asunto
+                subject= f'Respuesta a registro de residuos en UniCLab Residuos - Consecutivo: {solicitud_registro.pk}'
+
+                # Mensaje
+
+                # Formatear fecha    
+                # Obtener el huso horario deseado (GMT-5)
+                tz = pytz.timezone('America/Bogota')
+
+                # Convertir la fecha al huso horario deseado y formatearla
+                fecha_registro = solicitud_registro.date_create.astimezone(tz).strftime('%d/%m/%Y')
+                hora_registro = solicitud_registro.date_create.astimezone(tz).strftime('%H:%M:%S')
+                usuario_registro= f'{solicitud_registro.created_by.first_name} {solicitud_registro.created_by.last_name}'
+                dependencia=f'{solicitud_registro.created_by.lab}'
+                header=f'<p>Señor(a):<br><b><i>{usuario_registro}</i></b><br>{dependencia}<br><br>¡Cordial Saludo!</p>'
+                body = f'<p>El presente mensaje tiene como finalidad informar que hemos revisado el registro realizado por usted el pasado {fecha_registro} a las {hora_registro}, con consecutivo # <b>{solicitud_registro.pk}</b>.<br><br>A partir de los próximos {days} días hábiles, tendrá respuesta a su registro.</p>'
+                footer=f'<p>Este correo es informativo, para más detalle dirígete a la web principal de UniCLab Residuos.</p>'
+                message=header+body+footer
+
+                # Adjuntos
+                attach_path = os.path.join(settings.MEDIA_ROOT, pdf_filename)
+
+                # Crear un hilo y ejecutar enviar_correo en segundo plano
+                correo_thread = threading.Thread(
+                    target=self.enviar_correo_asincrono,
+                    args=(recipient_list, subject, message, attach_path),
+                )
+                correo_thread.start()
                 return JsonResponse({'status': 'success'})
+        else:
+            # Eliminar el archivo PDF si existe
+            if pdf_filename:
+                pdf_path = os.path.join(settings.MEDIA_ROOT, pdf_filename)
+                if os.path.exists(pdf_path):
+                    os.remove(pdf_path)
+                    return JsonResponse({'status': 'success'})
         
-        return JsonResponse({'status': 'error'})
+        return JsonResponse({'status': 'success'})

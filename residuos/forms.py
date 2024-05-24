@@ -42,15 +42,7 @@ class ClasificacionResiduosForm(forms.ModelForm):
 # ------------------------------------ #
 # Formulario para registro de residuos #
 class RegistroResiduosForm(forms.ModelForm):
-    # ficha_seguridad = forms.FileField(widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'multiple': ''}), required=False)
-    
-    def __init__(self, *args, **kwargs):
-        super(RegistroResiduosForm, self).__init__(*args, **kwargs)
-        self.fields['ficha_seguridad'] = forms.FileField(
-            label='Ficha de seguridad (Máx. 5MB)',  # Agregar el texto deseado a la etiqueta del campo
-            widget=forms.ClearableFileInput(attrs={'id': 'id_ficha_seguridad', 'style': 'display: none;'}),
-            required=False
-        )    
+       
     class Meta:
         model = REGISTRO_RESIDUOS
         fields = ['dependencia', 'area', 'laboratorio','nombre_residuo', 'cantidad', 'unidades', 'numero_envases', 'clasificado', 'estado', 'observaciones' ]
@@ -108,7 +100,7 @@ class EditResiduosForm(forms.ModelForm):
         max_solicitud = REGISTRO_RESIDUOS.objects.filter(residuo_enviado=True).aggregate(Max('registro_solicitud'))['registro_solicitud__max']
         min_solicitud = REGISTRO_RESIDUOS.objects.filter(residuo_enviado=True).aggregate(Min('registro_solicitud'))['registro_solicitud__min']
 
-        print(f'Solicitud: {min_solicitud}')
+        
         super(EditResiduosForm, self).__init__(*args, **kwargs)
         
         # Configurar el atributo max del campo registro_solicitud
@@ -158,7 +150,7 @@ class EditResiduosForm(forms.ModelForm):
         }
         # Obtener el máximo valor de registro_solicitud donde residuo_enviado=True en REGISTRO_RESIDUOS
         max_solicitud = REGISTRO_RESIDUOS.objects.filter(residuo_enviado=True).aggregate(Max('registro_solicitud'))['registro_solicitud__max']
-        print(max_solicitud) 
+        
     
     def clean(self):
         cleaned_data = super().clean()
