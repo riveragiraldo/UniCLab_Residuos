@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from reactivos.views import *
 from .models import *
+from reactivos.models import SolicitudesExternas
 from reactivos.models import *
 from django.views.generic import ListView, View, CreateView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -890,7 +891,7 @@ class Export2ExcelWastes(LoginRequiredMixin, View):
 
         return response
     
-# ----------------------------------------- #
+# --------------------------- #
 # Editar Registro de Residuos #
 class EditarRegistroResiduos(LoginRequiredMixin, View):
     template_name = 'UniCLab_Residuos/editar_registro_residuos.html'
@@ -908,8 +909,9 @@ class EditarRegistroResiduos(LoginRequiredMixin, View):
             form = EditResiduosForm(instance=registro_residuo)
             laboratorios = Laboratorios.objects.all()
             lab_id = request.user.lab.id
+            unidades = Unidades.objects.all()
 
-            return render(request, self.template_name, {'form': form, 'laboratorios': laboratorios, 'lab_id': lab_id,'residuo': registro_residuo,})
+            return render(request, self.template_name, {'form': form, 'laboratorios': laboratorios, 'lab_id': lab_id,'residuo': registro_residuo,'unidades':unidades,})
         except Exception as e:
             print(e)
             return HttpResponseBadRequest('Error interno del servidor')
@@ -1706,3 +1708,305 @@ class DeletePDFView(LoginRequiredMixin, View):
                     return JsonResponse({'status': 'success'})
         
         return JsonResponse({'status': 'success'})
+
+# ------------------------------------------ #
+# Marcar Registro de  Residuos como no leido #
+
+class markAsUnread(LoginRequiredMixin, View):
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
+    def post(self, request, *args, **kwargs):
+        try:
+            # Obtener el ID codificado dos veces desde los parámetros de la solicitud
+            waste_key = kwargs.get('pk')
+            item_id_encoded = base64.urlsafe_b64decode(waste_key).decode('utf-8')
+            waste_record_id = base64.urlsafe_b64decode(item_id_encoded).decode('utf-8')
+            
+            # Obtener la instancia de la clasificación de residuos
+            wate_record = get_object_or_404(SOLICITUD_RESIDUO, id=waste_record_id)
+            # incluir el usuario que realiza el cambio
+            wate_record.last_updated_by= request.user
+            # Desactivar la clasificación de residuos
+            wate_record.leido = False
+            wate_record.save()
+            
+            # Registrar evento
+            tipo_evento = 'MARCAR REGISTRO COMO NO LEIDO'
+            usuario_evento = request.user
+            crear_evento(tipo_evento, usuario_evento)
+
+            # Devolver una respuesta JSON de éxito
+            return JsonResponse({'success': True, 'message': f'Registro de residuo"{wate_record.id}" Se ha marcado como no leída.'})
+        except Exception as e:
+            print(e)
+            return JsonResponse({'success': False, 'message': 'Error interno del servidor'})
+
+
+# -------------------------------------------------- #
+# Enviar notificación de lectura a solicitud externa #
+
+# Enviar notificación de lectura a solicitud externa
+class SendReadNotificationRequest(LoginRequiredMixin, View):
+    def enviar_correo_asincrono(self, recipient_list, subject, message, attach_path):
+        try:
+            enviar_correo(recipient_list, subject, message, attach_path)
+            # Eliminar el archivo PDF después de enviar el correo electrónico
+            if attach_path and os.path.exists(attach_path):
+                os.remove(attach_path)
+        except Exception as e:
+            print(f'Error al enviar correo: {e}')
+
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
+    def get(self, request, *args, **kwargs):
+        dias = request.GET.get('dias')
+        id_solicitud = request.GET.get('encoded_id')
+
+        # Decodificar 2 veces el id de la solicitud
+        request_id = base64.urlsafe_b64decode(id_solicitud).decode('utf-8')
+        # Obtener la instancia de la solicitud externa
+        solicitud = get_object_or_404(SolicitudesExternas, id=request_id)
+
+        # Respuesta solo si es administrador o administrador ambiental
+        if request.user.rol.name == "ADMINISTRADOR" or request.user.rol.name == "ADMINISTRADOR AMBIENTAL":
+            # Marcar solicitud como respondida
+            solicitud.has_answered = True
+            solicitud.save()
+
+            # Crear evento
+            tipo_evento = 'RESPUESTA A SOLICITUD EXTERNA'
+            usuario_evento = request.user
+            crear_evento(tipo_evento, usuario_evento)
+
+            # Datos para correo electrónico
+            # Usuarios que recepcionan
+            # Obtener el correo del usuario que responde
+            correo_usuario = request.user.email
+
+            # Obtener los correos del usuario que realiza la solicitud
+            usuario_solicitud = solicitud.email
+            # Crear una lista de destinatarios
+            recipient_list = [correo_usuario, usuario_solicitud]
+            # Asunto
+            subject = f'Notificación de lectura a solicitud externa - {solicitud.subject}'
+            # Mensaje
+            # Formatear fecha
+            # Obtener el huso horario deseado (GMT-5)
+            tz = pytz.timezone('America/Bogota')
+            # Convertir la fecha al huso horario deseado y formatearla
+            fecha_registro = solicitud.registration_date.astimezone(tz).strftime('%d/%m/%Y')
+            hora_registro = solicitud.registration_date.astimezone(tz).strftime('%H:%M:%S')
+            usuario_registro = f'{solicitud.name}'
+            dependencia = f'{solicitud.department}'
+            header = f'<p>Señor(a):<br><b><i>{usuario_registro}</i></b><br>{dependencia}<br><br>¡Cordial Saludo!</p>'
+            body = f'<p>El presente mensaje tiene como finalidad informar que hemos revisado el registro realizado por usted el pasado {fecha_registro} a las {hora_registro}, con consecutivo # <b>{solicitud.pk}</b>.<br><br>A partir de los próximos {dias} días hábiles, tendrá respuesta a la solicitud realizada.</p>'
+            footer = f'<p>Este correo es informativo, para más detalle dirígete a la web principal de UniCLab Residuos.</p>'
+            message = header + body + footer
+            # Adjuntos
+            attach_path = None
+            # Crear un hilo y ejecutar enviar_correo en segundo plano
+            correo_thread = threading.Thread(
+                target=self.enviar_correo_asincrono,
+                args=(recipient_list, subject, message, attach_path),
+            )
+            correo_thread.start()
+            return JsonResponse({'status': 'success'})
+        return JsonResponse({'status': 'error', 'message': 'Unauthorized'})
+
+# ------------------------- #
+# Crear Fichas de Seguridad #
+
+class CreateSecuritySheet(LoginRequiredMixin, View):
+    template_name = 'UniCLab_Residuos/crear_ficha_seguridad.html'
+
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
+    def get(self, request, *args, **kwargs):
+        form = FichaSeguridadForm()
+        
+
+        return render(request, self.template_name, {'form': form,})
+
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
+    def post(self, request, *args, **kwargs):
+        form = FichaSeguridadForm(request.POST, request.FILES)
+        try:
+            if form.is_valid():
+                # Asignar el usuario actual a los campos created_by y last_updated_by
+                form.instance.created_by = request.user
+                form.instance.last_updated_by = request.user
+
+                
+                # Guardar el registro si el formulario es válido
+                registro_ficha = form.save()
+                                                
+                # Registrar evento
+                tipo_evento = 'CREAR FICHA DE SEGURIDAD'
+                usuario_evento = request.user
+                crear_evento(tipo_evento, usuario_evento)
+
+                mensaje = f'Ficha de seguiridad {registro_ficha.name} creada correctamente.'
+                return JsonResponse({'success': True, 'message': mensaje})
+            else:
+                print(form.errors)
+                return JsonResponse({'success': False, 'errors': form.errors})
+                
+        except Exception as e:
+            print(e)
+            mensaje = f'Error: {e}'
+            return HttpResponseBadRequest(f'Error interno del servidor: {mensaje}')
+
+# ------------------------------------ #
+# Visualización de Fichas de Seguridad #
+class Security_Sheet_List(LoginRequiredMixin,ListView):
+    model = FichaSeguridad
+    template_name = "UniCLab_Residuos/listado_fichas_seguridad.html"
+    paginate_by = 10
+    
+    
+    @check_group_permission(groups_required=['ADMINISTRADOR','ADMINISTRADOR AMBIENTAL','COORDINADOR','TECNICO'])
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        # Obtener el número de registros por página de la sesión del usuario
+        per_page = request.session.get('per_page')
+        if per_page:
+            self.paginate_by = int(per_page)
+        else:
+            self.paginate_by = 100  # Valor predeterminado si no hay variable de sesión
+
+        
+        
+        return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        
+        # Otros datos que quieras pasar al contexto
+        context['usuarios'] = User.objects.all()
+        context['laboratorios'] = Laboratorios.objects.all()
+        
+
+        return context
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        
+        queryset = queryset.order_by('id')
+        return queryset
+
+
+# -------------------------- #
+# Editar Fichas de Seguirdad #
+class EditarSecuritySheet(LoginRequiredMixin, View):
+    template_name = 'UniCLab_Residuos/editar_ficha_seguridad.html'
+
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
+    def get(self, request, *args, **kwargs):
+        try:
+            # Decodificar el ID en base64 dos veces
+            ficha_key = kwargs.get('pk')
+            ficha_id = base64.urlsafe_b64decode(base64.urlsafe_b64decode(ficha_key)).decode('utf-8')
+            # Obtener el registro de residuos que se va a editar
+            ficha_seguridad = get_object_or_404(FichaSeguridad, id=ficha_id)
+            
+            # Crear el formulario con los datos del registro
+            form = FichaSeguridadForm(instance=ficha_seguridad)
+            
+
+            return render(request, self.template_name, {'form': form,})
+        except Exception as e:
+            print(e)
+            return HttpResponseBadRequest('Error interno del servidor')
+
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
+    def post(self, request, *args, **kwargs):
+        try:
+            # Decodificar el ID en base64 dos veces
+            ficha_key = kwargs.get('pk')
+            ficha_id = base64.urlsafe_b64decode(base64.urlsafe_b64decode(ficha_key)).decode('utf-8')
+            
+            
+            # Obtener el registro de residuos que se va a editar
+            ficha_seguridad = get_object_or_404(FichaSeguridad, id=ficha_id)
+            
+            form = FichaSeguridadForm(request.POST, request.FILES, instance=ficha_seguridad)
+            if form.is_valid():
+                # Asignar el usuario actual a last_updated_by
+                form.instance.last_updated_by = request.user
+                
+                ficha_seguridad = form.save()
+
+                # Registrar evento
+                tipo_evento = 'EDICION FICHA DE SEGUIRDAD'
+                usuario_evento = request.user
+                crear_evento(tipo_evento, usuario_evento)
+
+                mensaje = 'Ficha de seguirdad actualizado correctamente.'
+                return JsonResponse({'success': True, 'message': mensaje})
+            else:
+                return JsonResponse({'success': False, 'errors': form.errors})
+        except Exception as e:
+            print(e)
+            mensaje = f'Error: {e}'
+            return HttpResponseBadRequest(f'Error interno del servidor:{mensaje}')
+
+# ----------------------------- #
+# Desactivar Ficha de seguridad #
+class DisableSecuritySheet(LoginRequiredMixin, View):
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
+    def post(self, request, *args, **kwargs):
+        try:
+            # Obtener el ID codificado dos veces desde los parámetros de la solicitud
+            ficha_key = kwargs.get('pk')
+            item_id_encoded = base64.urlsafe_b64decode(ficha_key).decode('utf-8')
+            ficha_seguridad_id = base64.urlsafe_b64decode(item_id_encoded).decode('utf-8')
+            
+            # Obtener la instancia del registro
+            ficha_seguridad = get_object_or_404(FichaSeguridad, id=ficha_seguridad_id)
+            # incluir el usuario que realiza el cambio
+            ficha_seguridad.last_updated_by= request.user
+            # Desactivar el registro
+            ficha_seguridad.is_active = False
+            ficha_seguridad.save()
+            
+            # Registrar evento
+            tipo_evento = 'DESACTIVAR FICHA DE SEGURIDAD'
+            usuario_evento = request.user
+            crear_evento(tipo_evento, usuario_evento)
+
+            # Devolver una respuesta JSON de éxito
+            return JsonResponse({'success': True, 'message': f'Ficha de seguridad {ficha_seguridad.name} deshabilitada correctamente.'})
+        except Exception as e:
+            print(e)
+            return JsonResponse({'success': False, 'message': 'Error interno del servidor'})
+        
+# -------------------------- #
+# Activar Ficha de seguridad #
+class EnableSecuritySheet(LoginRequiredMixin, View):
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
+    def post(self, request, *args, **kwargs):
+        try:
+            # Obtener el ID codificado dos veces desde los parámetros de la solicitud
+            ficha_key = kwargs.get('pk')
+            item_id_encoded = base64.urlsafe_b64decode(ficha_key).decode('utf-8')
+            ficha_seguridad_id = base64.urlsafe_b64decode(item_id_encoded).decode('utf-8')
+            
+            # Obtener la instancia del registro
+            ficha_seguridad = get_object_or_404(FichaSeguridad, id=ficha_seguridad_id)
+            # incluir el usuario que realiza el cambio
+            ficha_seguridad.last_updated_by= request.user
+            # Desactivar el registro
+            ficha_seguridad.is_active = True
+            ficha_seguridad.save()
+            
+            # Registrar evento
+            tipo_evento = 'ACTIVAR FICHA DE SEGURIDAD'
+            usuario_evento = request.user
+            crear_evento(tipo_evento, usuario_evento)
+
+            # Devolver una respuesta JSON de éxito
+            return JsonResponse({'success': True, 'message': f'Ficha de seguridad {ficha_seguridad.name} habilitada correctamente.'})
+        except Exception as e:
+            print(e)
+            return JsonResponse({'success': False, 'message': 'Error interno del servidor'})

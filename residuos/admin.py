@@ -21,7 +21,7 @@ class ClasificacionResources(resources.ModelResource):
 # --------------------------------------------------------- #
 # Inclusión del modelo clasificación de residuos en el Admin #
 @admin.register(CLASIFICACION_RESIDUOS)
-class Reactivosadmin(ImportExportModelAdmin, admin.ModelAdmin):
+class Clasificacionesadmin(ImportExportModelAdmin, admin.ModelAdmin):
     list_display=('name','description', 'id','created_by','date_create','last_update','last_updated_by',)
     list_filter=('name','description',)
     search_fields=('name','description',)
@@ -44,3 +44,13 @@ class RegistroAdmin(admin.ModelAdmin):
         return ', '.join([str(clasificacion) for clasificacion in obj.clasificado.all()])
     
     clasificado_list.short_description = 'Clasificado'
+
+# --------------------------------------------------------- #
+# Inclusión del modelo clasificación de residuos en el Admin #
+@admin.register(FichaSeguridad)
+class FichasAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+    list_display=('name','url', 'id',)
+    list_filter=('name','url',)
+    search_fields=('name','url',)
+    list_per_page=10
+    ordering=('id',)

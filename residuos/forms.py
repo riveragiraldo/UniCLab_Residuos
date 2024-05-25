@@ -166,4 +166,19 @@ class EditResiduosForm(forms.ModelForm):
             cleaned_data['observaciones'] = estandarizar_nombre(observaciones)
 
         return cleaned_data
-    
+
+# ----------------------------------- #    
+# Formulario para fichas de seguridad #
+
+class FichaSeguridadForm(forms.ModelForm):
+    class Meta:
+        model = FichaSeguridad
+        fields = ['name', 'url']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'url': forms.URLInput(attrs={'class': 'form-control'}),
+        }
+
+    def clean_url(self):
+        url = self.cleaned_data.get('url')
+        return url

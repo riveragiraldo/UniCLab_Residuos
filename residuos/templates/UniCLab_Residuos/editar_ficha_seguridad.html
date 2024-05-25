@@ -1,0 +1,115 @@
+{% extends "webtemplate_residuos.html" %}
+{% load has_group %}
+{% load custom_filters_1 %}
+{% load static %}
+
+<head><!-- Permite invocar archivos estáticos -->
+    {% block head %}
+ 
+
+
+    <!-- Jquery -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+    <!-- Incluir SweetAlert2 desde CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.min.css">
+    <!-- Llama Script  que envía la información al servidor -->
+    <script src="{% static 'inventarioreac/js/sendInfoFichas.js' %}" defer></script>
+    <!-- Llama Script  que coloca función al botón cancelar -->
+    <script src="{% static 'inventarioreac/cancelButtonFunction.js' %}" defer></script>
+    
+
+
+
+    {% endblock %}
+
+
+    <title>{% block title %}Creación de fichas de seguridad{% endblock %}</title>
+</head>
+
+<body>
+
+    {% block content %}
+
+
+
+
+    <div class="col-lg-10 container container-list">
+        <div class="row">
+            <!-- Primera columna con el formulario -->
+            <div class="col-lg-5 col-md-5">
+
+                <div class="row justify-content-center">
+                    <div class="col-lg-12 col-md-12" style="margin-left: 3%;">
+                        <div class="form-group col-lg-12 col-md-12">
+                            <div id="loading-message" style="display: none;">Por favor espere...</div>
+
+                            <h1 class="text-center" style="margin-top: 20px;">Edición de Fichas de Seguridad</h1>
+                            <br>
+                            <h4 class="text-left">¡Bienvenido!</h4>
+                            <p style="text-align: justify;">Modifique los campos de fichas de seguridad
+                            </p>
+                        </div>
+
+                        <form method="post" enctype="multipart/form-data" class="needs-validation"
+                            style="margin-top: 20px;" id="ficha_form">
+                            {% csrf_token %}
+
+                            <div class="form-group col-lg-12 col-md-12">
+                                <div style="margin-bottom: 5px;">
+                                    {{ form.name.label_tag }}
+                                </div>
+                                {{ form.name }}
+                                <div style="color: red; margin-top: 5px; font-weight: bold; margin-left: -10px;">
+                                    {{ form.name.errors }}
+                                </div>
+                            </div>
+
+                            
+                            <div class="form-group col-lg-12 col-md-12">
+                                <div style="margin-bottom: 5px;">
+                                    {{ form.url.label_tag }}
+                                </div>
+                                {{ form.url }}
+                                <div style="color: red; margin-top: 5px; font-weight: bold; margin-left: -10px;">
+                                    {{ form.url.errors }}
+                                </div>
+                            </div>
+
+                            <div class="form-group col-lg-12 col-md-12 text-center">
+                                <button type="button" class="btn btn-success"
+                                    onclick="limpiarCampos('ficha_form')">Cancelar</button>
+                                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+
+            </div>
+
+        
+            <!-- Segunda columna con la imagen representativa -->
+            <div class="col-lg-4 col-md-4"
+                style="padding: 2%; margin: 12%; margin-left: 12%; display: flex; justify-content: center; align-items: center;">
+                <img src="{% static 'inventarioreac/Images/security-sheet-chemical-waste.png' %}"
+                    alt="Clasificación de residuos" class="img-responsive"
+                    style="border-radius: 50%; border: 1px solid #ffffff; box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);">
+            </div>
+
+        </div>
+    </div>
+
+
+    
+
+
+    {% endblock %}
+
+
+
+
+</body>
+
+</html>

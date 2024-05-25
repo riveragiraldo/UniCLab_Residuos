@@ -88,5 +88,26 @@ class REGISTRO_RESIDUOS(models.Model):
         verbose_name = 'Registro de Residuos'
         verbose_name_plural = 'Registros de Residuos'
 
+# Modelo fichas de seguirdad
+class FichaSeguridad(models.Model):
+    name = models.CharField(max_length=200, unique=True, verbose_name='Nombre de Ficha o Proveedor')
+    url = models.URLField(max_length=500, verbose_name='URL', unique=True)
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        verbose_name='Creado por', related_name='createby_fichaseguiridad'
+    )
+    date_create = models.DateTimeField(auto_now_add=True, verbose_name='Fecha Creación', null=True, blank=True)
+    last_update = models.DateTimeField(auto_now=True, verbose_name='Fecha Actualización', null=True, blank=True)
+    last_updated_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        verbose_name='Actualizado por', related_name='updateby_fichaseguiridad'
+    )
+    is_active = models.BooleanField(verbose_name='Activo', help_text='Activo', default=True)
+    
 
+    class Meta:
+        verbose_name = 'Ficha de Seguridad'
+        verbose_name_plural = 'Fichas de Seguridad'
 
+    def __str__(self):
+        return self.name

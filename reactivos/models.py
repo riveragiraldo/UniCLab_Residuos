@@ -537,6 +537,7 @@ class SolicitudesExternas(models.Model):
     department = models.CharField(max_length=100, verbose_name='Departamento',)
     accept_politics = models.BooleanField(verbose_name='PTDP', blank=False, null=False)
     is_view= models.BooleanField(verbose_name='Visto', default=False,)
+    has_answered= models.BooleanField(verbose_name='Respondido', default=False,)
 
     class Meta:
         verbose_name_plural = "Solicitudes Externas"

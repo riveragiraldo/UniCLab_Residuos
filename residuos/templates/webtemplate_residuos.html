@@ -220,14 +220,18 @@
 					<img src="{% static '/inventarioreac/images//assets/list_record_waste_icon.png' %}" />
 					<span>Listado de registros</span>
 				  </button>
-			  <button type="button" onclick="redirect('{% url 'residuos:clasificacion_residuos' %}')">
-				<img src="{% static '/inventarioreac/images//assets/classification_wastes.png' %}" />
-				<span>Clasificación de residuos</span>
-			  </button>
+			  
 			  
 			  
 			  
 			</nav>
+			<nav>
+			  
+				<button type="button" onclick="redirect('{% url 'residuos:security_sheet_view' %}')">
+				  <img src="{% static '/inventarioreac/images/assets/security-sheet-chemical-waste.png' %}" alt="Fichas_seguridad"/>
+				  <span>Fichas de seguridad</span>
+				</button>
+			  </nav>
 			{% if request.user|has_group:"ADMINISTRADOR" or request.user.is_superuser or request.user|has_group:"COORDINADOR" or request.user.is_superuser or request.user|has_group:"TECNICO" %}
 				
 			<nav>
@@ -250,9 +254,7 @@
 					<span>Registrar Solicitud</span>
 				  
 
-				  <button type="button" onclick="redirect('{% url 'reactivos:descargar_manual'%}')">
-					<img src="{% static '/inventarioreac/images/assets/manual_icon.png' %}" alt="Reactivos"/>
-					<span>Manual de usuarios</span>
+				  
 				  </nav>
 				{% endif %}
 			<nav>

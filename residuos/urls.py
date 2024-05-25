@@ -26,9 +26,9 @@ urlpatterns = [
     path('UniCLab_Residuos/Registro_Residuos/Eliminar/<str:pk>/', DeleteWaste.as_view(), name='delete_record_waste'), # Eliminar residuo de la lista "Temporal"
     path('UniCLab_Residuos/Registro_Residuos/Listado/', Wastes_Record_List.as_view(), name='record_waste_list'),# Listado Registro de residuos
     path('UniCLab_Residuos/Registro_Residuos/Solicitudes/Ver/<str:pk>/', SolicitudPDFEmbView.as_view(), name='view_request_waste_html_emb'),# Ver solicitud en html
-    path('UniCLab_Residuos/Registro_Residuos/Solicitudes/Borrar/', DeletePDFView.as_view(), name='delete_pdf'),# Borrar solicitud en html
+    path('UniCLab_Residuos/Registro_Residuos/Solicitudes/Borrar/', DeletePDFView.as_view(), name='delete_pdf'),# Borrar solicitud en pdf
     path('UniCLab_Residuos/Registro_Residuos/Eliminar_Registro/<str:pk>/', DeleteWasteRecordView.as_view(), name='delete_waste'), # Eliminar residuo de la lista principal
-    
+    path('UniCLab_Residuos/Registro_Residuos/No_leido/<str:pk>/', markAsUnread.as_view(), name='markasunread_record_waste'), # Marcar como no leída solicitud de residuo
     
     path('UniCLab_Residuos/Registro_Residuos/Listado/Pag/<int:per_page>/', Wastes_Record_Pagination.as_view(), name='Wastes_Record_Pagination'),# Maneja paginación de listado de residuos
     path('UniCLab_Residuos/Autocompletar_Residuos/', AutocompleteWaste.as_view(), name='autocomplete_waste'), # Autocompletar Residuos
@@ -40,7 +40,13 @@ urlpatterns = [
     path('UniCLab_Residuos/Cerrar_Sesion/', LogoutView.as_view(), name='logout'), # Cerrar Sesión
     path('UniCLab_Residuos/Solicitudes_Externas/Listado/', SolicitudesExtListView.as_view(), name='external_requests'), # Listado de solicitudes Externas
     path('UniCLab_Residuos/Solicitudes_Externas/Listado/Pag/<int:per_page>/', GuardarPerPageViewExternalRequests.as_view(), name='External_Request_Pagination'),# Maneja paginación de listado de solicitudes externas
+    path('UniCLab_Residuos/Solicitudes_Externas/Enviar_Notificacion/', SendReadNotificationRequest.as_view(), name='send_read_notificacion_waste'),# Envía notificación de lectura a solicitud externa
     path('UniCLab_Residuos/Solicitudes/Registrar/', RegistrarSolicitudResiduos.as_view(), name='internal_requests_form'), # Listado de solicitudes Externas
+    path('UniCLab_Residuos/Fichas_Seguridad/Crear/', CreateSecuritySheet.as_view(), name='security_sheet_create'), # Crear Fichas de seguirdad
+    path('UniCLab_Residuos/Fichas_Seguridad/Ver/', Security_Sheet_List.as_view(), name='security_sheet_view'), # ver Fichas de seguirdad
+    path('UniCLab_Residuos/Fichas_Seguridad/Editar/<str:pk>/', EditarSecuritySheet.as_view(), name='security_sheet_edit'), # editar Fichas de seguirdad
+    path('UniCLab_Residuos/Fichas_Seguridad/Desactivar/<str:pk>/', DisableSecuritySheet.as_view(), name='security_sheet_disable'), # desactivar Fichas de seguirdad
+    path('UniCLab_Residuos/Fichas_Seguridad/Activar/<str:pk>/', EnableSecuritySheet.as_view(), name='security_sheet_enable'), # activar Fichas de seguirdad
     
     ]
 

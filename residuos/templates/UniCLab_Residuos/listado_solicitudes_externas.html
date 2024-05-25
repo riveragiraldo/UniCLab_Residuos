@@ -58,7 +58,7 @@
     <script>var inventarioUrl = "{% url 'reactivos:inventario' %}";</script>
     <script src="{% static 'inventarioreac/sortByControl.js' %}"></script>
     <!-- Llama Script que envía datos de ordenamiento de registros -->
-    <script src="{% static 'inventarioreac/openDetailSolicitudExterna.js' %}" defer></script>
+    <script src="{% static 'inventarioreac/openDetailSolicitudExternaResiduos.js' %}" defer></script>
 
     <!-- Llama Script que resalta los controles de paginación -->
     <script src="{% static 'inventarioreac/updateUrl.js' %}"></script>
@@ -199,7 +199,8 @@
                                 data-solicitud-area="{{ item.department }}"
                                 data-solicitud-telefono="{{ item.mobile_number }}"
                                 data-solicitud-email="{{ item.email }}"
-                                data-solicitud-encoded-id='{{ item.id|base64_encode }}'>{{ item.id }} </td>
+                                data-solicitud-encoded-id='{{ item.id|base64_encode }}'
+                                data-solicitud-respondido='{% if item.has_answered %}Respondida{% else %}Pendiente por responder{% endif %}'>{{ item.id }} </td>
 
                             <td class="sender-column solicitud-externa" title="Remitente de la solicitud"
                                 data-sol-id="{{ item.id }}" data-solicitud-date="{{ item.registration_date|date:" d/m/Y h:m:s" }}" data-solicitud-tipo="{{ item.subject }}"
@@ -208,7 +209,8 @@
                                 data-solicitud-area="{{ item.department }}"
                                 data-solicitud-telefono="{{ item.mobile_number }}"
                                 data-solicitud-email="{{ item.email }}"
-                                data-solicitud-encoded-id='{{ item.id|base64_encode }}'>{{ item.name }}</td>
+                                data-solicitud-encoded-id='{{ item.id|base64_encode }}'
+                                data-solicitud-respondido='{% if item.has_answered %}Respondida{% else %}Pendiente por responder{% endif %}'>{{ item.name }}</td>
 
                             <td class="subject-column solicitud-externa" title="Asunto de la solicitud"
                                 data-sol-id="{{ item.id }}" data-solicitud-date="{{ item.registration_date|date:" d/m/Y h:m:s" }}" data-solicitud-tipo="{{ item.subject }}"
@@ -217,7 +219,8 @@
                                 data-solicitud-area="{{ item.department }}"
                                 data-solicitud-telefono="{{ item.mobile_number }}"
                                 data-solicitud-email="{{ item.email }}"
-                                data-solicitud-encoded-id='{{ item.id|base64_encode }}'>
+                                data-solicitud-encoded-id='{{ item.id|base64_encode }}'
+                                data-solicitud-respondido='{% if item.has_answered %}Respondida{% else %}Pendiente por responder{% endif %}'>
                                 {{ item.subject }}
                                 {% if item.attach %}
                                 <br>
@@ -279,7 +282,8 @@
                                 data-solicitud-area="{{ item.department }}"
                                 data-solicitud-telefono="{{ item.mobile_number }}"
                                 data-solicitud-email="{{ item.email }}"
-                                data-solicitud-encoded-id='{{ item.id|base64_encode }}'>{{ item.registration_date|date:"d/m/Y" }}</td>
+                                data-solicitud-encoded-id='{{ item.id|base64_encode }}'
+                                data-solicitud-respondido='{% if item.has_answered %}Respondida{% else %}Pendiente por responder{% endif %}'>{{ item.registration_date|date:"d/m/Y" }}</td>
 
                             <td class="lab-column solicitud-externa hidden-xs" title="Remitente de la solicitud"
                                 data-sol-id="{{ item.id }}" data-solicitud-date="{{ item.registration_date|date:" d/m/Y h:m:s" }}" data-solicitud-tipo="{{ item.subject }}"
@@ -288,7 +292,8 @@
                                 data-solicitud-area="{{ item.department }}"
                                 data-solicitud-telefono="{{ item.mobile_number }}"
                                 data-solicitud-email="{{ item.email }}"
-                                data-solicitud-encoded-id='{{ item.id|base64_encode }}'>{{ item.lab }}</td>
+                                data-solicitud-encoded-id='{{ item.id|base64_encode }}'
+                                data-solicitud-respondido='{% if item.has_answered %}Respondida{% else %}Pendiente por responder{% endif %}'>{{ item.lab }}</td>
                             <td>
 
                                 <a href="javascript:void(0);"
