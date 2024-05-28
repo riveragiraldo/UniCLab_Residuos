@@ -4,6 +4,7 @@ from reactivos.forms import estandarizar_nombre
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db.models import Max, Min
+from datetime import date
 # ------------------------------------------- #
 # Formulario para clasificaciones de residuos #
 class ClasificacionResiduosForm(forms.ModelForm):
@@ -182,3 +183,49 @@ class FichaSeguridadForm(forms.ModelForm):
     def clean_url(self):
         url = self.cleaned_data.get('url')
         return url
+
+# ------------------------------------------------- #
+# Formulario para certificados de disposición final #
+
+
+class CertificadoDisposicionForm(forms.ModelForm):
+    class Meta:
+        model = CERTIFICADO_DISPOSICION
+        fields = ['name', 'date', 'attach']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control', 'max': date.today().isoformat()}),
+        }
+        help_texts = {
+            'name': 'Máximo 120 caracteres.',
+            'date': 'Debe ser hoy o antes.',
+            'attach': 'Máximo 2 MB. Se permiten archivos de imagen y PDF.',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(CertificadoDisposicionForm, self).__init__(*args, **kwargs)
+        self.fields['name'].widget.attrs.update({'class': 'form-control'})
+        self.fields['attach'].widget.attrs.update({'class': 'form-control'})
+        # El widget de 'date' ya está configurado en Meta
+        # No agregamos ninguna clase a 'attach'
+
+    def clean_date(self):
+        input_date = self.cleaned_data['date']
+        if input_date > date.today():
+            raise ValidationError("La fecha no puede ser posterior a hoy.")
+        return input_date
+
+    def clean_attach(self):
+        attach = self.cleaned_data.get('attach')
+        if attach and attach.size > 2 * 1024 * 1024:  # 2MB
+            raise ValidationError("El tamaño máximo del archivo es 2MB")
+        return attach
+
+class InformacionInteresForm(forms.ModelForm):
+    class Meta:
+        model = InformacionInteres
+        fields = ['name', 'tipo', 'url']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'tipo': forms.Select(attrs={'class': 'form-control'}),
+            'url': forms.URLInput(attrs={'class': 'form-control'}),
+        }

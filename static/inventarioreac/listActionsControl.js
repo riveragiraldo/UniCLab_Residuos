@@ -1290,7 +1290,7 @@ function MarkAsUnreadWasteRecord(itemId) {
 }
 
 // ---------------------------------------------------- //
-// Abre vista de detalle de Solicitud de residuos //
+// Abre vista de Edición de ficha de seguridad de residuos //
 
 function openEditSecuritySheet(itemId) {
     // Construye la URL del formulario de edición con el ID del elemento
@@ -1375,6 +1375,135 @@ function enableSecuritySheet(itemId, itemName) {
         if (result.isConfirmed) {
             // Si el usuario hace clic en "Sí", realiza una solicitud AJAX 
             var deactivateUrl = '/UniCLab_Residuos/Fichas_Seguridad/Activar/' + itemId + '/';  // Ruta de la vista de acción
+
+            fetch(deactivateUrl, {
+                method: 'POST', // Método HTTP POST
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'), // Incluir el token CSRF si se utiliza Django
+                },
+            })
+            .then(response => {
+                // Verificar el estado de la respuesta y capturar el mensaje
+                if (response.ok) {
+                    return response.json();  // Leer los datos JSON de la respuesta
+                } else {
+                    throw new Error('Error al ejecutar la acción');
+                }
+            })
+            .then(data => {
+                // Mostrar el mensaje de éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Mensaje del servidor',
+                    text: data.message,
+                }).then(() => {
+                    // Recargar la página o realizar otras acciones si es necesario
+                    location.reload(); // Recarga la página después de desactivar la clasificación
+                });
+            })
+            .catch(error => {
+                // Manejar errores de la solicitud AJAX
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message,
+                });
+            });
+        } else {
+            // Si el usuario hace clic en "No", cierra la Sweet Alert
+            Swal.close();
+        }
+    });
+}
+
+
+// ---------------------------------------------------- //
+// Abre vista de Edición de Certificado de disposición de residuos //
+
+function openEditFinalCertificate(itemId) {
+    // Construye la URL del formulario de edición con el ID del elemento
+    var editUrl = '/UniCLab_Residuos/Certificados_Disposicion/Editar/' + itemId + '/';
+
+    // Abre una nueva ventana emergente con el formulario de edición
+    window.open(editUrl, 'popupWindow', 'width=1280, height=800,menubar=no,toolbar=no,location=no,status=no,resizable=no');
+    
+
+}
+
+// ----------------------------------------------------- //
+// Función para deshabilitar certificados de disposición //
+
+function disableFinalCertificateDisposition(itemId, itemName) {
+    // Muestra una Sweet Alert de confirmación
+    Swal.fire({
+        title: 'Dehabilitar Registro',
+        text: '¿Realmente desea deshabilitar el certificado de disposición final?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí',
+        cancelButtonText: 'No',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Si el usuario hace clic en "Sí", realiza una solicitud AJAX 
+            var deactivateUrl = '/UniCLab_Residuos/Certificados_Disposicion/Deshabilitar/' + itemId + '/';  // Ruta de la vista de acción
+
+            fetch(deactivateUrl, {
+                method: 'POST', // Método HTTP POST
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'), // Incluir el token CSRF si se utiliza Django
+                },
+            })
+            .then(response => {
+                // Verificar el estado de la respuesta y capturar el mensaje
+                if (response.ok) {
+                    return response.json();  // Leer los datos JSON de la respuesta
+                } else {
+                    throw new Error('Error al ejecutar la acción');
+                }
+            })
+            .then(data => {
+                // Mostrar el mensaje de éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Mensaje del servidor',
+                    text: data.message,
+                }).then(() => {
+                    // Recargar la página o realizar otras acciones si es necesario
+                    location.reload(); // Recarga la página después de desactivar la clasificación
+                });
+            })
+            .catch(error => {
+                // Manejar errores de la solicitud AJAX
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message,
+                });
+            });
+        } else {
+            // Si el usuario hace clic en "No", cierra la Sweet Alert
+            Swal.close();
+        }
+    });
+}
+
+
+// ----------------------------------------------------- //
+// Función para deshabilitar certificados de disposición //
+
+function enableFinalCertificateDisposition(itemId, itemName) {
+    // Muestra una Sweet Alert de confirmación
+    Swal.fire({
+        title: 'Habilitar Registro',
+        text: '¿Realmente desea habilitar el certificado de disposición final?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí',
+        cancelButtonText: 'No',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Si el usuario hace clic en "Sí", realiza una solicitud AJAX 
+            var deactivateUrl = '/UniCLab_Residuos/Certificados_Disposicion/Habilitar/' + itemId + '/';  // Ruta de la vista de acción
 
             fetch(deactivateUrl, {
                 method: 'POST', // Método HTTP POST

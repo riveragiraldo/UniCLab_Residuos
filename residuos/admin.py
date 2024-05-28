@@ -45,8 +45,8 @@ class RegistroAdmin(admin.ModelAdmin):
     
     clasificado_list.short_description = 'Clasificado'
 
-# --------------------------------------------------------- #
-# Inclusión del modelo clasificación de residuos en el Admin #
+# ---------------------------------------------------- #
+# Inclusión del modelo fichas de seguridad en el Admin #
 @admin.register(FichaSeguridad)
 class FichasAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     list_display=('name','url', 'id',)
@@ -54,3 +54,19 @@ class FichasAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     search_fields=('name','url',)
     list_per_page=10
     ordering=('id',)
+
+
+# ----------------------------------------------------------- #
+# Inclusión del modelo Certificado de disposición en el Admin #
+@admin.register(CERTIFICADO_DISPOSICION)
+class CertificadosAdmin(admin.ModelAdmin):
+    list_display = ('formatted_date', 'name', 'attach',)
+    list_filter = ('name', 'date',)
+    search_fields = ('name', 'date',)
+    list_per_page = 10
+    ordering = ('id',)
+
+    def formatted_date(self, obj):
+        return obj.date.strftime('%d/%m/%Y')
+    formatted_date.admin_order_field = 'date'  # Permite ordenar por fecha
+    formatted_date.short_description = 'Fecha'

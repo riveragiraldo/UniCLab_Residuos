@@ -231,6 +231,11 @@
 				  <img src="{% static '/inventarioreac/images/assets/security-sheet-chemical-waste.png' %}" alt="Fichas_seguridad"/>
 				  <span>Fichas de seguridad</span>
 				</button>
+
+				<button type="button" onclick="redirect('{% url 'residuos:final_certificate_view' %}')">
+					<img src="{% static '/inventarioreac/images/assets/final-disposal-certificate-for-chemical-waste-icon.png' %}" alt="Fichas_seguridad"/>
+					<span>Certificados de disposición final</span>
+				  </button>
 			  </nav>
 			{% if request.user|has_group:"ADMINISTRADOR" or request.user.is_superuser or request.user|has_group:"COORDINADOR" or request.user.is_superuser or request.user|has_group:"TECNICO" %}
 				

@@ -96,6 +96,17 @@ if (currentUrl.endsWith('/UniCLab_Residuos/Solicitudes_Externas/Listado/')) {
     // Modificar la URL agregando los parámetros de búsqueda deseados
     const newUrl = currentUrl + '?lab='+labDefault+'&start_date=&end_date=&keyword=';
 
+
+    // Redirigir a la nueva URL
+    window.location.href = newUrl;
+}
+
+// Verificar si la URL no tiene parámetros de búsqueda para inventario
+if (currentUrl.endsWith('/UniCLab_Residuos/Certificados_Disposicion/Ver/')) {
+    // Modificar la URL agregando los parámetros de búsqueda deseados
+    const newUrl = currentUrl + '?name=';
+
+
     // Redirigir a la nueva URL
     window.location.href = newUrl;
 }

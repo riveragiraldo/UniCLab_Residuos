@@ -47,7 +47,17 @@ urlpatterns = [
     path('UniCLab_Residuos/Fichas_Seguridad/Editar/<str:pk>/', EditarSecuritySheet.as_view(), name='security_sheet_edit'), # editar Fichas de seguirdad
     path('UniCLab_Residuos/Fichas_Seguridad/Desactivar/<str:pk>/', DisableSecuritySheet.as_view(), name='security_sheet_disable'), # desactivar Fichas de seguirdad
     path('UniCLab_Residuos/Fichas_Seguridad/Activar/<str:pk>/', EnableSecuritySheet.as_view(), name='security_sheet_enable'), # activar Fichas de seguirdad
+    path('UniCLab_Residuos/Certificados_Disposicion/Crear/', FinalCertificate.as_view(), name='final_certificate_create'), # Crear Certificado de disposición
+    path('UniCLab_Residuos/Certificados_Disposicion/Ver/', FinalCertificateList.as_view(), name='final_certificate_view'), # Ver Certificado de disposición
+    path('UniCLab_Residuos/Certificados_Disposicion/Ver/Pag/<int:per_page>/', FinalCertificateList_Pagination.as_view(), name='final_certificate_view_pagination'),# Maneja paginación de listado de certificaión
+    path('UniCLab_Residuos/Certificados_Disposicion/Editar/<str:pk>/', EditFinalCertificate.as_view(), name='final_certificate_edit'),# Editar certificado de diposición final
+    path('UniCLab_Residuos/Certificados_Disposicion/Deshabilitar/<str:pk>/', DisableFinalDispositionCertificate.as_view(), name='final_certificate_disable'),# Deshabilitar certificado de diposición final
+    path('UniCLab_Residuos/Certificados_Disposicion/Habilitar/<str:pk>/', EnableFinalDispositionCertificate.as_view(), name='final_certificate_enable'),# Habilitar certificado de diposición final
+    path('UniCLab_Residuos/Enlaces_Interes/Crear/', CreateImportantLinks.as_view(), name='important_link_create'),# Crear material de interés
     
+    
+    path('UniCLab_Residuos/Video/', ShowVideoView.as_view(), name='video'),# Habilitar certificado de diposición final
+
     ]
 
 if settings.DEBUG:

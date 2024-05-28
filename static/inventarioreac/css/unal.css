@@ -2050,10 +2050,34 @@ footer .logos a img {
 
 	}
 
+	/* clase para columna Certificado en movil */
+.table-row .certificado-column {
+    max-width: 190px;
+    word-wrap: break-word; /* Ajusta las palabras en la próxima línea si son demasiado largas */
+    white-space: normal; /* Permite que el texto ocupe múltiples líneas */
+}
+
+/* clase para columna Descripción de la clasificación */
+.adjuntos-certificado {
+	max-width: 300
+	px;
+	word-wrap: break-word; /* Ajusta las palabras en la próxima línea si son demasiado largas */
+    
+	white-space: normal;
+
+
+}
 	
 	
 }
 
+
+/* Estilos para el nombre del archivo */
+.adjuntos-certificado {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 .visual_adjuntos {
 	margin-top: 5px;
 	border: 1px solid #ccc;

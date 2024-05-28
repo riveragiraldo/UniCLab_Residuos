@@ -2010,3 +2010,296 @@ class EnableSecuritySheet(LoginRequiredMixin, View):
         except Exception as e:
             print(e)
             return JsonResponse({'success': False, 'message': 'Error interno del servidor'})
+        
+
+# ------------------------------------- #
+# Crear Certificado de Disposción Final #
+
+class FinalCertificate(LoginRequiredMixin, View):
+    template_name = 'UniCLab_Residuos/crear_certificado_disposicion.html'
+
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
+    def get(self, request, *args, **kwargs):
+        form = CertificadoDisposicionForm()
+        
+
+        return render(request, self.template_name, {'form': form,})
+
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
+    def post(self, request, *args, **kwargs):
+        form = CertificadoDisposicionForm(request.POST, request.FILES)
+        try:
+            if form.is_valid():
+                # Asignar el usuario actual a los campos created_by y last_updated_by
+                form.instance.created_by = request.user
+                form.instance.last_updated_by = request.user
+
+                
+                # Guardar el registro si el formulario es válido
+                registro_ficha = form.save()
+                                                
+                # Registrar evento
+                tipo_evento = 'CREAR CERTIFICADO DE DISPOSICION'
+                usuario_evento = request.user
+                crear_evento(tipo_evento, usuario_evento)
+
+                mensaje = f'Certificado de disposición creado correctamente.'
+                return JsonResponse({'success': True, 'message': mensaje})
+            else:
+                print(form.errors)
+                return JsonResponse({'success': False, 'errors': form.errors})
+                
+        except Exception as e:
+            print(e)
+            mensaje = f'Error: {e}'
+            return HttpResponseBadRequest(f'Error interno del servidor: {mensaje}')
+        
+# ------------------------------------ #
+# Visualización de Certificados de Disposición final #
+class FinalCertificateList(LoginRequiredMixin,ListView):
+
+    model = CERTIFICADO_DISPOSICION
+    template_name = "UniCLab_Residuos/listado_certificados_disposicion.html"
+    paginate_by = 10
+    
+    
+    @check_group_permission(groups_required=['ADMINISTRADOR','COORDINADOR','TECNICO', 'ADMINISTRADOR AMBIENTAL'])
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        # Obtener el número de registros por página de la sesión del usuario
+        per_page = request.session.get('per_page')
+        if per_page:
+            self.paginate_by = int(per_page)
+        else:
+            self.paginate_by = 10  # Valor predeterminado si no hay variable de sesión
+
+        # Obtener los parámetros de filtrado
+        name = self.request.GET.get('name')
+        # Guardar los valores de filtrado en la sesión
+        request.session['filtered_name'] = name
+        return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['usuarios'] = User.objects.all()
+        
+       
+        return context
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        name = self.request.GET.get('name')
+        
+        
+
+       
+        
+        # Filtrar por  campos que contengan la palabra clave en su nombre
+        if name:
+            queryset = queryset.filter(Q(name__icontains=name))
+        
+
+        
+        queryset = queryset.order_by('id')
+        return queryset
+    
+# ------------------------------------------------ #
+# Paginación de certificados de disposiicón #
+class FinalCertificateList_Pagination(LoginRequiredMixin,View):
+    @check_group_permission(groups_required=['ADMINISTRADOR','COORDINADOR','TECNICO', 'ADMINISTRADOR AMBIENTAL'])
+    def get(self, request, *args, **kwargs):
+        per_page = kwargs.get('per_page')
+        request.session['per_page'] = per_page
+
+        # Redirigir a la página de inventario con los parámetros de filtrado actuales
+        
+        filtered_name = request.session.get('filtered_name')
+        
+        
+        url = reverse('residuos:final_certificate_view')
+        params = {}
+        
+        if filtered_name:
+            params['name'] = filtered_name
+ 
+                
+        
+        if params:
+            url += '?' + urlencode(params)
+
+        return redirect(url)
+    
+# --------------------------------------- #
+# Editar Certificado de Disposición Final #
+class EditFinalCertificate(LoginRequiredMixin, View):
+    template_name = 'UniCLab_Residuos/editar_certificado_disposicion.html'
+
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
+    def get(self, request, *args, **kwargs):
+        try:
+            # Decodificar el ID en base64 dos veces
+            certificado_key = kwargs.get('pk')
+            certificado_id = base64.urlsafe_b64decode(base64.urlsafe_b64decode(certificado_key)).decode('utf-8')
+            # Obtener el registro de residuos que se va a editar
+            certificado = get_object_or_404(CERTIFICADO_DISPOSICION, id=certificado_id)
+            # Crear el formulario con los datos del registro
+            form = CertificadoDisposicionForm(instance=certificado)
+            today=date.today().isoformat()
+            date_cert=certificado.date
+            date_cert = certificado.date.strftime('%Y-%m-%d')  # Formatear la fecha correctamente
+            
+           
+            return render(request, self.template_name, {'form': form, 'today':today, 'date_cert':date_cert,})
+        except Exception as e:
+            print(e)
+            return HttpResponseBadRequest('Error interno del servidor')
+
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
+    def post(self, request, *args, **kwargs):
+        try:
+            # Decodificar el ID en base64 dos veces
+            certificado_key = kwargs.get('pk')
+            certificado_id = base64.urlsafe_b64decode(base64.urlsafe_b64decode(certificado_key)).decode('utf-8')
+            # Obtener el registro de residuos que se va a editar
+            certificado = get_object_or_404(CERTIFICADO_DISPOSICION, id=certificado_id)
+            
+            # Crear el formulario con los datos del registro
+            form = CertificadoDisposicionForm(request.POST, request.FILES, instance=certificado)
+            
+            
+            if form.is_valid():
+                # Asignar el usuario actual a last_updated_by
+                form.instance.last_updated_by = request.user
+                
+                certificado = form.save()
+
+                # Registrar evento
+                tipo_evento = 'EDICION CERTIFICADO DE DISPOSICION FINAL'
+                usuario_evento = request.user
+                crear_evento(tipo_evento, usuario_evento)
+
+                mensaje = 'Cambios actualizados correctamente.'
+                return JsonResponse({'success': True, 'message': mensaje})
+            else:
+                return JsonResponse({'success': False, 'errors': form.errors})
+        except Exception as e:
+            print(e)
+            mensaje = f'Error: {e}'
+            return HttpResponseBadRequest(f'Error interno del servidor:{mensaje}')
+
+# ------------------------------------- #
+# Desactivar Certificado de Disposición #
+class DisableFinalDispositionCertificate(LoginRequiredMixin, View):
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
+    def post(self, request, *args, **kwargs):
+        try:
+            # Obtener el ID codificado dos veces desde los parámetros de la solicitud
+            certificado_key = kwargs.get('pk')
+            item_id_encoded = base64.urlsafe_b64decode(certificado_key).decode('utf-8')
+            certificado_id = base64.urlsafe_b64decode(item_id_encoded).decode('utf-8')
+            
+            # Obtener la instancia del registro
+            certificado = get_object_or_404(CERTIFICADO_DISPOSICION, id=certificado_id)
+            # incluir el usuario que realiza el cambio
+            certificado.last_updated_by= request.user
+            # Desactivar el registro
+            certificado.is_active = False
+            certificado.save()
+            
+            # Registrar evento
+            tipo_evento = 'DESHABILITAR CERTIFICADO DE DISPOSICION FINAL'
+            usuario_evento = request.user
+            crear_evento(tipo_evento, usuario_evento)
+
+            # Devolver una respuesta JSON de éxito
+            return JsonResponse({'success': True, 'message': f'Registro de certificado deshabilitado correctamente.'})
+        except Exception as e:
+            print(e)
+            return JsonResponse({'success': False, 'message': 'Error interno del servidor'})
+        
+# ------------------------------------- #
+# Desactivar Certificado de Disposición #
+class EnableFinalDispositionCertificate(LoginRequiredMixin, View):
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
+    def post(self, request, *args, **kwargs):
+        try:
+            # Obtener el ID codificado dos veces desde los parámetros de la solicitud
+            certificado_key = kwargs.get('pk')
+            item_id_encoded = base64.urlsafe_b64decode(certificado_key).decode('utf-8')
+            certificado_id = base64.urlsafe_b64decode(item_id_encoded).decode('utf-8')
+            
+            # Obtener la instancia del registro
+            certificado = get_object_or_404(CERTIFICADO_DISPOSICION, id=certificado_id)
+            # incluir el usuario que realiza el cambio
+            certificado.last_updated_by= request.user
+            # Desactivar el registro
+            certificado.is_active = True
+            certificado.save()
+            
+            # Registrar evento
+            tipo_evento = 'HABILITAR CERTIFICADO DE DISPOSICION FINAL'
+            usuario_evento = request.user
+            crear_evento(tipo_evento, usuario_evento)
+
+            # Devolver una respuesta JSON de éxito
+            return JsonResponse({'success': True, 'message': f'Registro de certificado habilitado correctamente.'})
+        except Exception as e:
+            print(e)
+            return JsonResponse({'success': False, 'message': 'Error interno del servidor'})
+        
+
+# --------------------------------------------- #
+# Crear Enlace de interes o material multimedia #
+
+class CreateImportantLinks(LoginRequiredMixin, View):
+    template_name = 'UniCLab_Residuos/crear_enlace_interes.html'
+
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
+    def get(self, request, *args, **kwargs):
+        form = InformacionInteresForm()
+        
+
+        return render(request, self.template_name, {'form': form,})
+
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
+    def post(self, request, *args, **kwargs):
+        form = InformacionInteresForm(request.POST, request.FILES)
+        try:
+            if form.is_valid():
+                # Asignar el usuario actual a los campos created_by y last_updated_by
+                form.instance.created_by = request.user
+                form.instance.last_updated_by = request.user
+
+                
+                # Guardar el registro si el formulario es válido
+                enlace_interes = form.save()
+                                                
+                # Registrar evento
+                tipo_evento = 'CREAR ENLACE DE INTERES'
+                usuario_evento = request.user
+                crear_evento(tipo_evento, usuario_evento)
+
+                mensaje = f'Material de interés creado correctamente.'
+                return JsonResponse({'success': True, 'message': mensaje})
+            else:
+                print(form.errors)
+                return JsonResponse({'success': False, 'errors': form.errors})
+                
+        except Exception as e:
+            print(e)
+            mensaje = f'Error: {e}'
+            return HttpResponseBadRequest(f'Error interno del servidor: {mensaje}')
+        
+
+
+class ShowVideoView(View):
+    template_name = 'UniCLab_Residuos/Video.html'
+
+    def get(self, request, *args, **kwargs):
+        youtube_url = "https://www.youtube.com/watch?v=fyisdafhcgE&list=TLPQMjcwNTIwMjQRyH7W9wOhIQ&index=11"
+        # Extraer el ID del video
+        youtube_id = youtube_url.split('v=')[1].split('&')[0]
+        return render(request, self.template_name, {'youtube_id': youtube_id})

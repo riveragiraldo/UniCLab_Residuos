@@ -33,8 +33,8 @@ SECRET_KEY = 'django-insecure-h3d7k6@k)1sk)y961&1yk=kjax7un8quf2480&z&ler$o!=e!l
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['782c-2800-484-a980-1700-78a0-4dde-d544-eee1.ngrok-free.app','127.0.0.1','1gz4p9p6-8000.use2.devtunnels.ms','localhost']
-CSRF_TRUSTED_ORIGINS = ['https://782c-2800-484-a980-1700-78a0-4dde-d544-eee1.ngrok-free.app/','https://1gz4p9p6-8000.use2.devtunnels.ms','http://127.0.0.1:8000','http://localhost']
+ALLOWED_HOSTS = ['782c-2800-484-a980-1700-78a0-4dde-d544-eee1.ngrok-free.app','127.0.0.1','1gz4p9p6-8000.use2.devtunnels.ms','localhost','www.youtube.com/']
+CSRF_TRUSTED_ORIGINS = ['https://782c-2800-484-a980-1700-78a0-4dde-d544-eee1.ngrok-free.app/','https://1gz4p9p6-8000.use2.devtunnels.ms','http://127.0.0.1:8000','http://localhost','https://www.youtube.com/']
 
 
 

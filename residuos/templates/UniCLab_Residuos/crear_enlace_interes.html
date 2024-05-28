@@ -1,0 +1,194 @@
+{% extends "webtemplate_residuos.html" %}
+{% load has_group %}
+{% load custom_filters_1 %}
+{% load static %}
+
+<head><!-- Permite invocar archivos estáticos -->
+    {% block head %}
+
+
+
+    <!-- Jquery -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+    <!-- Incluir SweetAlert2 desde CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.min.css">
+    <!-- Llama Script  que envía la información al servidor -->
+    <script src="{% static 'inventarioreac/js/sendInfoFichas.js' %}" defer></script>
+    <!-- Llama Script  que coloca función al botón cancelar -->
+    <script src="{% static 'inventarioreac/cancelButtonFunction.js' %}" defer></script>
+
+
+
+
+
+    {% endblock %}
+
+
+    <title>{% block title %}Creación de material de interés{% endblock %}</title>
+</head>
+
+<body>
+
+    {% block content %}
+
+
+
+
+    <div class="col-lg-10 container container-list">
+        <div class="row">
+            <!-- Primera columna con el formulario -->
+            <div class="col-lg-5 col-md-5">
+
+                <div class="row justify-content-center">
+                    <div class="col-lg-12 col-md-12" style="margin-left: 3%;">
+                        <div class="form-group col-lg-12 col-md-12">
+                            <div id="loading-message" style="display: none;">Por favor espere...</div>
+
+                            <h1 class="text-center" style="margin-top: 20px;">Crear Material de Interés</h1>
+                            <br>
+                            <h4 class="text-left">¡Bienvenido!</h4>
+                            <p style="text-align: justify;">Complete el siguiente formulario para crear sus enlace de
+                                interés
+                            </p>
+                        </div>
+
+                        <form method="post" enctype="multipart/form-data" class="needs-validation"
+                            style="margin-top: 20px;" id="ficha_form">
+                            {% csrf_token %}
+
+                            <div class="form-group col-lg-12 col-md-12">
+                                <div style="margin-bottom: 5px;">
+                                    {{ form.name.label_tag }}
+                                </div>
+                                {{ form.name }}
+                                <small class="form-text text-muted">{{ form.name.help_text }}</small>
+                                <div style="color: red; margin-top: 5px; font-weight: bold; margin-left: -10px;">
+                                    {{ form.name.errors }}
+                                </div>
+                            </div>
+
+                            <div class="form-group col-lg-12 col-md-12">
+                                <div style="margin-bottom: 5px;">
+                                    {{ form.tipo.label_tag }}
+                                </div>
+                                {{ form.tipo }}
+                                <small class="form-text text-muted">{{ form.tipo.help_text }}</small>
+                                <div style="color: red; margin-top: 5px; font-weight: bold; margin-left: -10px;">
+                                    {{ form.tipo.errors }}
+                                </div>
+                            </div>
+
+                            <div class="form-group col-lg-12 col-md-12" style="display: none;">
+                                <div style="margin-bottom: 5px;">
+                                    {{ form.url.label_tag }}
+                                </div>
+                                {{ form.url }}
+                                <small class="form-text text-muted">{{ form.url.help_text }}</small>
+
+                                <div style="color: red; margin-top: 5px; font-weight: bold; margin-left: -10px;">
+                                    {{ form.url.errors }}
+
+                                </div>
+
+                                <div id="url-error" class="alert alert-danger" style="display: none;"></div>
+                            </div>
+
+
+                            <div class="form-group col-lg-12 col-md-12 text-center">
+                                <button type="button" class="btn btn-success"
+                                    onclick="limpiarCampos('ficha_form')">Cancelar</button>
+                                <button type="submit" class="btn btn-primary">Crear Material de Interés</button>
+                            </div>
+                        </form>
+
+
+                    </div>
+                </div>
+
+            </div>
+
+
+            <!-- Segunda columna con la imagen representativa -->
+            <div class="col-lg-4 col-md-4"
+                style="padding: 2%; margin: 7%; margin-left: 12%; display: flex; justify-content: center; align-items: center;">
+                <img src="{% static 'inventarioreac/Images/training-for-chemical-waste-management.png' %}"
+                    alt="Certificado de residuos" class="img-responsive"
+                    style="border-radius: 50%; border: 1px solid #ffffff; box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);">
+            </div>
+
+        </div>
+    </div>
+
+    
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const tipoField = document.getElementById('id_tipo');
+            const urlField = document.getElementById('id_url');
+            const urlError = document.getElementById('url-error');
+
+            // Función para visibilizar URL
+            function toggleUrlField() {
+                if (tipoField.value === 'Video de Youtube') {
+                    urlField.placeholder = 'Ejemplo: https://www.youtube.com/watch?v=kuvJNJ9dGJk&list';
+                    urlField.value = '';
+                    urlField.parentElement.style.display = 'block';
+                    urlError.style.display = 'none'; // Ocultar el mensaje de error
+                } else if (tipoField.value === 'Enlace Externo') {
+                    urlField.placeholder = 'Ejemplo: https://www.manizales.unal.edu.co/';
+                    urlField.value = '';
+                    urlField.parentElement.style.display = 'block';
+                    urlError.style.display = 'none'; // Ocultar el mensaje de error
+                } else {
+                    urlField.value = '';
+                    urlField.parentElement.style.display = 'none';
+                    urlError.style.display = 'none'; // Ocultar el mensaje de error
+                }
+            }
+
+            // Función para prevalidar el campo de URL
+        function validateUrl() {
+            const urlValue = urlField.value.trim();
+            urlError.textContent = ''; // Limpiar cualquier mensaje de error previo
+            urlError.style.display = 'none'; // Ocultar el mensaje de error por defecto
+            if (urlValue !== '') {
+                if (tipoField.value === 'Video de Youtube') {
+                    const youtubePattern = /^(https?:\/\/)?(www\.youtube\.com|youtu\.be)\/.+$/;
+                    if (!youtubePattern.test(urlValue)) {
+                        urlError.textContent = 'El enlace no cumple con las especificaciones de un enlace de YouTube.';
+                        urlError.style.display = 'block'; // Mostrar el mensaje de error
+                    }
+                } else if (tipoField.value === 'Enlace Externo') {
+                    try {
+                        new URL(urlValue); // Valida si es una URL válida
+                    } catch (e) {
+                        urlError.textContent = 'El enlace no cumple con las especificaciones de una URL válida.';
+                        urlError.style.display = 'block'; // Mostrar el mensaje de error
+                    }
+                }
+            }
+        }
+
+            // Evento del campo tipo
+            tipoField.addEventListener('change', toggleUrlField);
+
+            // Event listener para prevalidar el campo de URL al perder el enfoque
+            urlField.addEventListener('blur', validateUrl);
+            // cargar la función al inicio
+            toggleUrlField();
+        });
+    </script>
+
+
+
+    {% endblock %}
+
+
+
+
+</body>
+
+</html>
