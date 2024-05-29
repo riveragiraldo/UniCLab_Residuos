@@ -36,6 +36,7 @@ from django.db.models import Max, Min
 import glob
 
 
+
 # ---------------------------------------------------------- 
 # Función para validar usuarios con acceso
 def check_group_permission(groups_required):
@@ -641,7 +642,7 @@ class Wastes_Record_List(LoginRequiredMixin,ListView):
             
             queryset = queryset.filter((Q(created_by__lab=self.request.user.lab) | Q(laboratorio=self.request.user.lab)), residuo_enviado=True)
         
-        queryset = queryset.order_by('registro_solicitud')
+        queryset = queryset.order_by('-registro_solicitud__id')
         return queryset
     
 # --------------------------------------------- #
@@ -1237,7 +1238,7 @@ class SolicitudesExtListView(LoginRequiredMixin,ListView):
         if lab:
             queryset = queryset.filter(lab=lab)
 
-        queryset = queryset.order_by('id')
+        queryset = queryset.order_by('-id')
         return queryset
     
 # ------------------------------------------- #
@@ -2251,18 +2252,13 @@ class EnableFinalDispositionCertificate(LoginRequiredMixin, View):
             return JsonResponse({'success': False, 'message': 'Error interno del servidor'})
         
 
-# --------------------------------------------- #
-# Crear Enlace de interes o material multimedia #
-
 class CreateImportantLinks(LoginRequiredMixin, View):
     template_name = 'UniCLab_Residuos/crear_enlace_interes.html'
 
     @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
     def get(self, request, *args, **kwargs):
         form = InformacionInteresForm()
-        
-
-        return render(request, self.template_name, {'form': form,})
+        return render(request, self.template_name, {'form': form})
 
     @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
     def post(self, request, *args, **kwargs):
@@ -2273,10 +2269,15 @@ class CreateImportantLinks(LoginRequiredMixin, View):
                 form.instance.created_by = request.user
                 form.instance.last_updated_by = request.user
 
-                
+                # Si el tipo es "Video de Youtube", extraer el ID del video
+                if form.cleaned_data['tipo'] == 'Video de Youtube':
+                    youtube_url = form.cleaned_data['url']
+                    youtube_id = self.extract_youtube_id(youtube_url)
+                    form.instance.id_youtube = youtube_id
+
                 # Guardar el registro si el formulario es válido
                 enlace_interes = form.save()
-                                                
+                
                 # Registrar evento
                 tipo_evento = 'CREAR ENLACE DE INTERES'
                 usuario_evento = request.user
@@ -2292,14 +2293,78 @@ class CreateImportantLinks(LoginRequiredMixin, View):
             print(e)
             mensaje = f'Error: {e}'
             return HttpResponseBadRequest(f'Error interno del servidor: {mensaje}')
+
+    def extract_youtube_id(self, url):
+        """
+        Extract the YouTube video ID from the given URL.
+        """
+        # Regular expression to extract the video ID from YouTube URL
+        pattern = r'(?:v=|\/)([0-9A-Za-z_-]{11}).*'
+        match = re.search(pattern, url)
+        if match:
+            return match.group(1)
+        return None
+
+
+
+# ------------------------------------ #
+# Visualización de Material de Interés #
+class ViewImportantLinks(LoginRequiredMixin,ListView):
+
+    model = InformacionInteres
+    template_name = "UniCLab_Residuos/listado_informacion_interes.html"
+    paginate_by = 10
+    
+    
+    @check_group_permission(groups_required=['ADMINISTRADOR','COORDINADOR','TECNICO', 'ADMINISTRADOR AMBIENTAL'])
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        # Obtener el número de registros por página de la sesión del usuario
+        per_page = request.session.get('per_page')
+        if per_page:
+            self.paginate_by = int(per_page)
+        else:
+            self.paginate_by = 10  # Valor predeterminado si no hay variable de sesión
+
+        # Obtener los parámetros de filtrado
+        name = self.request.GET.get('name')
+        # Guardar los valores de filtrado en la sesión
+        request.session['filtered_name'] = name
+        return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['usuarios'] = User.objects.all()
         
+       
+        return context
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        name = self.request.GET.get('name')
+        
+        
+
+       
+        
+        # Filtrar por  campos que contengan la palabra clave en su nombre
+        if name:
+            queryset = queryset.filter(Q(name__icontains=name))
+        
+
+        
+        queryset = queryset.order_by('id')
+        return queryset
 
 
 class ShowVideoView(View):
     template_name = 'UniCLab_Residuos/Video.html'
 
     def get(self, request, *args, **kwargs):
-        youtube_url = "https://www.youtube.com/watch?v=fyisdafhcgE&list=TLPQMjcwNTIwMjQRyH7W9wOhIQ&index=11"
+        youtube_url = "https://www.youtube.com/watch?v=WF4d_vsu-qQ&list=TLPQMjgwNTIwMjSVT_gLS4ZF3A&index=31"
         # Extraer el ID del video
         youtube_id = youtube_url.split('v=')[1].split('&')[0]
         return render(request, self.template_name, {'youtube_id': youtube_id})

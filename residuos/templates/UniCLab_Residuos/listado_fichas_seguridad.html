@@ -33,6 +33,8 @@
 
     <script src="{% static 'inventarioreac/listActionsControl.js' %}" defer></script>
     <!-- Llama Script que controla las acciones de la lista -->
+    <script src="{% static 'inventarioreac/AlertExternalLinks.js' %}" defer></script>
+    <!-- Llama Script que genera alerta antes de salir del aplicativo -->
 
 
 
@@ -101,7 +103,7 @@
                             <tr class='table-row'>
                                 <td title="Fecha: {{ item.date_create }}"
                                 style='text-align: left; vertical-align: middle; cursor: default; text-align: left; {% if not item.is_active %}background-color: rgba(127, 176, 255, 0.888);{% endif %}'>
-                                    <h4>{{ item.name }}</h4><br><a href="{{ item.url }}" target="_blank">{{ item.url }}</a>
+                                    <h4>{{ item.name }}</h4><br><a href="{{ item.url }}" target="_blank" class="external-link">{{ item.url }}</a>
                                 </td>
 
 
@@ -143,7 +145,7 @@
                             <tr class='table-row'>
                                 <td title="Fecha: {{ item.date_create }}"
                                     style="text-align: left; vertical-align: middle; cursor: default;">
-                                    <h4>{{ item.name }}</h4><br><a href="{{ item.url }}" target="_blank">{{ item.url }}</a>
+                                    <h4>{{ item.name }}</h4><br><a href="{{ item.url }}" target="_blank" class="external-link">{{ item.url }}</a>
                                 </td>
                             </tr>
                             {% endif %}
@@ -162,6 +164,7 @@
         </div>
     </div>
     </div>
+
     {% endblock %}
 
 </body>

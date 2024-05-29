@@ -2,7 +2,7 @@ document.getElementById('id_attach').addEventListener('change', function () {
     const fileInput = this;
     const file = fileInput.files[0];
     const maxSize = 2 * 1024 * 1024; // 2MB
-    const allowedExtensions = /(\.doc|\.docx|\.pdf|\.png|\.jpg|\.jpeg)$/i;
+    const allowedExtensions = /(\.pdf)$/i;
     const errorDiv = document.getElementById('file-error');
 
     if (file) {
@@ -17,7 +17,7 @@ document.getElementById('id_attach').addEventListener('change', function () {
         // Check file extension
         if (!allowedExtensions.exec(file.name)) {
             errorDiv.style.display = 'block';
-            errorDiv.textContent = 'Solo se permiten archivos con extensiones .doc, .docx, .pdf, .png, .jpg, .jpeg. No se adjunto ningún archivo';
+            errorDiv.textContent = 'Solo se permiten archivos con extensiones .pdf. No se adjunto ningún archivo';
             fileInput.value = ''; // Clear the input
             return;
         }

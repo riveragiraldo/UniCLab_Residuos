@@ -353,7 +353,7 @@ def programar_tareas():
         print(start_date)
         start_date=start_date+one_minutes
         print(start_date)
-        scheduler.add_job(depurar_eventos_antiguos, 'interval', days=1, start_date=start_date,)
+        
         print(scheduler.state)
         if  configuracion.programacion_activa:
             if scheduler.state==0:
@@ -367,66 +367,6 @@ def programar_tareas():
                 scheduler.pause()
         print(scheduler.state)
 # programar_tareas()
-
-# Vista para depuración de eventos
-def depurar_eventos_antiguos():
-    # Depurar eventos antiguos
-    # Obtén la configuración del sistema
-    configuracion = ConfiguracionSistema.objects.first()  # Suponiendo que solo hay una configuración en la base de datos.
-
-    if configuracion:
-        # Calcula la fecha límite para eventos antiguos
-        fecha_limite = timezone.now() - timedelta(days=configuracion.tiempo_eventos)
-
-        # Elimina eventos antiguos
-        Eventos.objects.filter(fecha_evento__lt=fecha_limite).delete()
-        print('Se han depurado los eventos')
-
-    # Depurar solicitudes Internas
-    # Obtener la configuración del sistema, suponiendo que existe un único registro.
-    configuracion_sistema = ConfiguracionSistema.objects.first()
-    # Comprobar si se obtuvo la configuración.
-    if configuracion_sistema:
-        # Usar el campo tiempo_solicitudes de la configuración como max_antiguedad.
-        max_antiguedad = timedelta(days=configuracion_sistema.tiempo_solicitudes)
-    else:
-        # Si no se pudo obtener la configuración, usar un valor predeterminado (30 días, por ejemplo).
-        max_antiguedad = timedelta(days=30)
-    fecha_limite = timezone.now() - max_antiguedad
-    # Obtén las solicitudes antiguas que cumplen con el criterio de antigüedad
-    solicitudes_antiguas = Solicitudes.objects.filter(tramitado=True, fecha_tramite__lt=fecha_limite)
-    # Eliminar los archivos adjuntos asociados a las solicitudes antiguas
-    for solicitud in solicitudes_antiguas:
-        if solicitud.archivos_adjuntos:
-            # Asegúrate de que el archivo realmente se elimine del disco.
-            solicitud.archivos_adjuntos.delete()
-    # Eliminar las solicitudes antiguas
-    solicitudes_antiguas.delete()
-    print('Se han depurado las solicitudes internas')
-
-    # Depurar solicitudes Externas
-    # Obtener la configuración del sistema, suponiendo que existe un único registro.
-    configuracion_sistema = ConfiguracionSistema.objects.first()
-    # Comprobar si se obtuvo la configuración.
-    if configuracion_sistema:
-        # Usar el campo tiempo_solicitudes de la configuración como max_antiguedad.
-        max_antiguedad = timedelta(days=configuracion_sistema.tiempo_solicitudes)
-    else:
-        # Si no se pudo obtener la configuración, usar un valor predeterminado (30 días, por ejemplo).
-        max_antiguedad = timedelta(days=30)
-    fecha_limite = timezone.now() - max_antiguedad
-    # Obtén las solicitudes antiguas que cumplen con el criterio de antigüedad
-    solicitudes_antiguas = SolicitudesExternas.objects.filter(is_view=True, registration_date__lt=fecha_limite)
-    # Eliminar los archivos adjuntos asociados a las solicitudes antiguas
-    for solicitud in solicitudes_antiguas:
-        if solicitud.attach:
-            # Asegúrate de que el archivo realmente se elimine del disco.
-            solicitud.attach.delete()
-    # Eliminar las solicitudes antiguas
-    solicitudes_antiguas.delete()
-    print('Se han depurado las solicitudes externas')
-
-from django.shortcuts import get_object_or_404
 
 def crear_evento(tipo_evento, usuario_evento):
     # Verifica si el tipo de evento existe
@@ -856,7 +796,7 @@ class SolicitudesExternasListView(LoginRequiredMixin,ListView):
         if lab:
             queryset = queryset.filter(lab=lab)
 
-        queryset = queryset.order_by('id')
+        queryset = queryset.order_by('-id')
         return queryset
 
 @login_required
@@ -1473,33 +1413,7 @@ def responder_solicitud(request, solicitud_code):
         target=enviar_correo_solicitud, args=(request, suffix, id, initial_message,shipping_email, email_type),)
         correo_thread.start()
 
-        # Realiza la depuración automática de registros
-        # Registros antiguos: fecha_tramite es más antigua que los días configurados en configuración del sistema.
-
-        # Obtener la configuración del sistema, suponiendo que existe un único registro.
-        configuracion_sistema = ConfiguracionSistema.objects.first()
-
-        # Comprobar si se obtuvo la configuración.
-        if configuracion_sistema:
-            # Usar el campo tiempo_solicitudes de la configuración como max_antiguedad.
-            max_antiguedad = timedelta(days=configuracion_sistema.tiempo_solicitudes)
-        else:
-            # Si no se pudo obtener la configuración, usar un valor predeterminado (30 días, por ejemplo).
-            max_antiguedad = timedelta(days=30)
-
-        fecha_limite = timezone.now() - max_antiguedad
-
-        # Obtén las solicitudes antiguas que cumplen con el criterio de antigüedad
-        solicitudes_antiguas = Solicitudes.objects.filter(tramitado=True, fecha_tramite__lt=fecha_limite)
-
-        # Eliminar los archivos adjuntos asociados a las solicitudes antiguas
-        for solicitud in solicitudes_antiguas:
-            if solicitud.archivos_adjuntos:
-                # Asegúrate de que el archivo realmente se elimine del disco.
-                solicitud.archivos_adjuntos.delete()
-
-        # Eliminar las solicitudes antiguas
-        solicitudes_antiguas.delete()
+        
         
         return HttpResponse(f'Se ha dado respuesta a la solicitud de manera correcta y se ha enviado la notificación al usuario.',200)
     
@@ -2200,6 +2114,9 @@ def crear_reactivo(request):
             except ValueError:
                 # Si el último número no es un entero, se usa un valor predeterminado
                 nuevo_codigo = '1-001-1'
+        else:
+            # Si el último número no es un entero, se usa un valor predeterminado
+            nuevo_codigo = '1-001-1'
 
         laboratorio = request.user.lab
         
@@ -4902,7 +4819,7 @@ class SolicitudesListView(LoginRequiredMixin,ListView):
         else:
             queryset = queryset.filter(is_active=True)
             
-        queryset = queryset.order_by('id')
+        queryset = queryset.order_by('-id')
         return queryset
 
 

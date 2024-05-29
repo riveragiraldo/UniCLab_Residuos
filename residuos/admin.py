@@ -70,3 +70,15 @@ class CertificadosAdmin(admin.ModelAdmin):
         return obj.date.strftime('%d/%m/%Y')
     formatted_date.admin_order_field = 'date'  # Permite ordenar por fecha
     formatted_date.short_description = 'Fecha'
+
+# ----------------------------------------------------------- #
+# Inclusión del modelo InformacionInteres en el Admin #
+@admin.register(InformacionInteres)
+class MaterialInteresAdmin(admin.ModelAdmin):
+    list_display = ('name', 'tipo', 'url','id_youtube')
+    list_filter = ('name', )
+    search_fields = ('name', )
+    list_per_page = 10
+    ordering = ('id',)
+
+    

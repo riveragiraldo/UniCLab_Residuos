@@ -311,10 +311,7 @@
                         data-solicitud-encoded-id='{{ item.id|base64_encode }}'>{{ item.lab }}</td>
                         <td >
                             
-                            <a href="javascript:void(0);" onclick="eliminarSolicitud('{{ item.id|base64_encode }}','{{ item.subject }}')">
-                                <img src="{% static 'inventarioreac/Images/delete_register.png' %}" alt="" width="18"
-                                    height="18" title="Eliminar solicitud número {{ item.id }}">
-                            </a>
+                            
                             
                             {% if item.is_view %}
                             <a href="javascript:void(0);" onclick="solicitudNoLeida('{{ item.id|base64_encode }}','{{ item.subject }}')">

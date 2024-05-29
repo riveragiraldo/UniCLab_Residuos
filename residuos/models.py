@@ -271,9 +271,9 @@ class CERTIFICADO_DISPOSICION(models.Model):
     date = models.DateField(verbose_name="Fecha de Certificación")
     attach = models.FileField(
         upload_to="certificados_finales/",
-        verbose_name="Adjunto",
+        verbose_name="Adjunto (Archivos PDF, máximo 2MB.)",
         validators=[
-            FileExtensionValidator(["pdf", "doc", "docx", "jpg", "jpeg", "png"]),
+            FileExtensionValidator(["pdf",]),
             validate_file_size,
         ],
     )
@@ -319,6 +319,7 @@ class InformacionInteres(models.Model):
     name = models.CharField(max_length=150, unique=True, verbose_name="Breve descripción o Título")
     tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, verbose_name="Tipo")
     url = models.URLField(unique=True, verbose_name="URL", max_length=500)
+    id_youtube = models.CharField(blank=True, null=True, verbose_name="Id Youtube", max_length=500)
 
     created_by = models.ForeignKey(
         User,

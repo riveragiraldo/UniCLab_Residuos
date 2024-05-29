@@ -228,22 +228,9 @@ class SolicitudForm(forms.ModelForm):
 # Formualrio para configuración del sistema
 
 class ConfiguracionSistemaForm(forms.ModelForm):
-    tiempo_solicitudes = forms.IntegerField(
-        widget=forms.NumberInput(attrs={'class': 'form-control',
-                                        'title':'Introduzca el número de días que durará los eventos en el sistema',
-                                        'placeholder':'Número de días de los eventos en el sistema',}),
-        required=True,
-        label="*Introduzca el tiempo para depuración de solicitudes",
-    )
+    
 
-    tiempo_eventos = forms.IntegerField(
-        widget=forms.NumberInput(attrs={'class': 'form-control',
-                                        'title':'Introduzca el número de días que durará las solicitudes tramitadas',
-                                        'placeholder':'Número de días de solicitudes tramitadas',}),
-        required=True,
-        label="*Introduzca el tiempo para depuración de eventos",
-        
-    )
+    
 
     correo_administrador = forms.EmailField(
         widget=forms.EmailInput(attrs={'class': 'form-control',
@@ -305,7 +292,7 @@ class ConfiguracionSistemaForm(forms.ModelForm):
 
     class Meta:
         model = ConfiguracionSistema
-        fields = ['tiempo_solicitudes', 'tiempo_eventos', 'correo_administrador','tiempo_vencimiento_reactivos','intervalo_tiempo','fecha_incio','programacion_activa','manual','logo_institucional']
+        fields = ['correo_administrador','tiempo_vencimiento_reactivos','intervalo_tiempo','fecha_incio','programacion_activa','manual','logo_institucional']
 
     def clean(self):
         cleaned_data = super().clean()

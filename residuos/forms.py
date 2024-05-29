@@ -198,7 +198,7 @@ class CertificadoDisposicionForm(forms.ModelForm):
         help_texts = {
             'name': 'Máximo 120 caracteres.',
             'date': 'Debe ser hoy o antes.',
-            'attach': 'Máximo 2 MB. Se permiten archivos de imagen y PDF.',
+            'attach': 'Máximo 2 MB. Se permiten archivos PDF.',
         }
 
     def __init__(self, *args, **kwargs):
@@ -228,4 +228,5 @@ class InformacionInteresForm(forms.ModelForm):
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'tipo': forms.Select(attrs={'class': 'form-control'}),
             'url': forms.URLInput(attrs={'class': 'form-control'}),
+            'id_youtube': forms.HiddenInput(),
         }
