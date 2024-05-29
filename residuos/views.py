@@ -2279,7 +2279,7 @@ class CreateImportantLinks(LoginRequiredMixin, View):
                 enlace_interes = form.save()
                 
                 # Registrar evento
-                tipo_evento = 'CREAR ENLACE DE INTERES'
+                tipo_evento = 'CREAR MATERIAL DE INTERES'
                 usuario_evento = request.user
                 crear_evento(tipo_evento, usuario_evento)
 
@@ -2346,25 +2346,155 @@ class ViewImportantLinks(LoginRequiredMixin,ListView):
         queryset = super().get_queryset()
         name = self.request.GET.get('name')
         
-        
-
-       
-        
         # Filtrar por  campos que contengan la palabra clave en su nombre
         if name:
             queryset = queryset.filter(Q(name__icontains=name))
         
 
         
-        queryset = queryset.order_by('id')
+        queryset = queryset.order_by('-id')
         return queryset
 
 
-class ShowVideoView(View):
-    template_name = 'UniCLab_Residuos/Video.html'
-
+# ------------------------------------------------ #
+# Paginación de material de interés #
+class ImportantLinks_Pagination(LoginRequiredMixin,View):
+    @check_group_permission(groups_required=['ADMINISTRADOR','COORDINADOR','TECNICO', 'ADMINISTRADOR AMBIENTAL'])
     def get(self, request, *args, **kwargs):
-        youtube_url = "https://www.youtube.com/watch?v=WF4d_vsu-qQ&list=TLPQMjgwNTIwMjSVT_gLS4ZF3A&index=31"
-        # Extraer el ID del video
-        youtube_id = youtube_url.split('v=')[1].split('&')[0]
-        return render(request, self.template_name, {'youtube_id': youtube_id})
+        per_page = kwargs.get('per_page')
+        request.session['per_page'] = per_page
+
+        # Redirigir a la página de inventario con los parámetros de filtrado actuales
+        
+        filtered_name = request.session.get('filtered_name')
+        
+        
+        url = reverse('residuos:important_link_view')
+        params = {}
+        
+        if filtered_name:
+            params['name'] = filtered_name
+ 
+                
+        
+        if params:
+            url += '?' + urlencode(params)
+
+        return redirect(url)
+    
+# --------------------------------------- #
+# Editar Certificado de Disposición Final #
+class EditImportantLink(LoginRequiredMixin, View):
+    template_name = 'UniCLab_Residuos/editar_enlace_interes.html'
+
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
+    def get(self, request, *args, **kwargs):
+        try:
+            # Decodificar el ID en base64 dos veces
+            link_key = kwargs.get('pk')
+            link_id = base64.urlsafe_b64decode(base64.urlsafe_b64decode(link_key)).decode('utf-8')
+            # Obtener el registro de residuos que se va a editar
+            link = get_object_or_404(InformacionInteres, id=link_id)
+            # Crear el formulario con los datos del registro
+            form = InformacionInteresForm(instance=link)
+            
+            
+           
+            return render(request, self.template_name, {'form': form, })
+        except Exception as e:
+            print(e)
+            return HttpResponseBadRequest('Error interno del servidor')
+
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
+    def post(self, request, *args, **kwargs):
+        try:
+            # Decodificar el ID en base64 dos veces
+            link_key = kwargs.get('pk')
+            link_id = base64.urlsafe_b64decode(base64.urlsafe_b64decode(link_key)).decode('utf-8')
+            # Obtener el registro de residuos que se va a editar
+            link = get_object_or_404(InformacionInteres, id=link_id)
+            
+            # Crear el formulario con los datos del registro
+            form = InformacionInteresForm(request.POST, request.FILES, instance=link)
+            
+            
+            if form.is_valid():
+                # Asignar el usuario actual a last_updated_by
+                form.instance.last_updated_by = request.user
+                
+                link = form.save()
+
+                # Registrar evento
+                tipo_evento = 'EDICION MATERIAL DE INTERES'
+                usuario_evento = request.user
+                crear_evento(tipo_evento, usuario_evento)
+
+                mensaje = 'Cambios actualizados correctamente.'
+                return JsonResponse({'success': True, 'message': mensaje})
+            else:
+                return JsonResponse({'success': False, 'errors': form.errors})
+        except Exception as e:
+            print(e)
+            mensaje = f'Error: {e}'
+            return HttpResponseBadRequest(f'Error interno del servidor:{mensaje}')
+
+# ------------------------------- #
+# Deshabilitar Enlaces de interés #
+class DisableImportantLink(LoginRequiredMixin, View):
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
+    def post(self, request, *args, **kwargs):
+        try:
+            # Obtener el ID codificado dos veces desde los parámetros de la solicitud
+            link_key = kwargs.get('pk')
+            item_id_encoded = base64.urlsafe_b64decode(link_key).decode('utf-8')
+            link_id = base64.urlsafe_b64decode(item_id_encoded).decode('utf-8')
+            
+            # Obtener la instancia del registro
+            link = get_object_or_404(InformacionInteres, id=link_id)
+            # incluir el usuario que realiza el cambio
+            link.last_updated_by= request.user
+            # Desactivar el registro
+            link.is_active = False
+            link.save()
+            
+            # Registrar evento
+            tipo_evento = 'DESHABILITAR MATERIAL DE INTERES'
+            usuario_evento = request.user
+            crear_evento(tipo_evento, usuario_evento)
+
+            # Devolver una respuesta JSON de éxito
+            return JsonResponse({'success': True, 'message': f'Registro de material de interés deshabilitado correctamente.'})
+        except Exception as e:
+            print(e)
+            return JsonResponse({'success': False, 'message': 'Error interno del servidor'})
+        
+# ------------------------------- #
+# Habilitar Enlaces de interés #
+class EnableImportantLink(LoginRequiredMixin, View):
+    @check_group_permission(groups_required=['ADMINISTRADOR', 'ADMINISTRADOR AMBIENTAL'])
+    def post(self, request, *args, **kwargs):
+        try:
+            # Obtener el ID codificado dos veces desde los parámetros de la solicitud
+            link_key = kwargs.get('pk')
+            item_id_encoded = base64.urlsafe_b64decode(link_key).decode('utf-8')
+            link_id = base64.urlsafe_b64decode(item_id_encoded).decode('utf-8')
+            
+            # Obtener la instancia del registro
+            link = get_object_or_404(InformacionInteres, id=link_id)
+            # incluir el usuario que realiza el cambio
+            link.last_updated_by= request.user
+            # Desactivar el registro
+            link.is_active = True
+            link.save()
+            
+            # Registrar evento
+            tipo_evento = 'HABILITAR MATERIAL DE INTERES'
+            usuario_evento = request.user
+            crear_evento(tipo_evento, usuario_evento)
+
+            # Devolver una respuesta JSON de éxito
+            return JsonResponse({'success': True, 'message': f'Registro de material de interés habilitado correctamente.'})
+        except Exception as e:
+            print(e)
+            return JsonResponse({'success': False, 'message': 'Error interno del servidor'})
+

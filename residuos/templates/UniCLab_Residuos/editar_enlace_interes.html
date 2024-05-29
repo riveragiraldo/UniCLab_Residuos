@@ -19,7 +19,7 @@
     <!-- Llama Script  que coloca función al botón cancelar -->
     <script src="{% static 'inventarioreac/cancelButtonFunction.js' %}" defer></script>
     <!-- Llama Script  que control la visualización del enlace externo -->
-    <script src="{% static 'inventarioreac/ExternalLinkControlCreate.js' %}" defer></script>
+    <script src="{% static 'inventarioreac/ExternalLinkControlEdit.js' %}" defer></script>
 
 
 
@@ -28,7 +28,7 @@
     {% endblock %}
 
 
-    <title>{% block title %}Creación de material de interés{% endblock %}</title>
+    <title>{% block title %}Edición de material de interés{% endblock %}</title>
 </head>
 
 <body>
@@ -48,11 +48,10 @@
                         <div class="form-group col-lg-12 col-md-12">
                             <div id="loading-message" style="display: none;">Por favor espere...</div>
 
-                            <h1 class="text-center" style="margin-top: 20px;">Crear Material de Interés</h1>
+                            <h1 class="text-center" style="margin-top: 20px;">Editar Material de Interés</h1>
                             <br>
                             <h4 class="text-left">¡Bienvenido!</h4><br>
-                            <p>
-                            <h4 style="text-align: justify;">Los contenidos agregados a continuación deben ser
+                            <h4 style="text-align: justify;">Los contenidos que se modificarán a continuación deben ser
                                 relevantes y contener aspectos clave para el manejo de residuos, de acuerdo con los
                                 criterios de la Oficina de Gestión Ambiental de la Universidad Nacional de Colombia,
                                 sede Manizales.</p><br>
@@ -112,7 +111,7 @@
                             <div class="form-group col-lg-12 col-md-12 text-center">
                                 <button type="button" class="btn btn-success"
                                     onclick="limpiarCampos('ficha_form')">Cancelar</button>
-                                <button type="submit" class="btn btn-primary">Crear Material de Interés</button>
+                                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
                             </div>
                         </form>
 
@@ -133,9 +132,6 @@
 
         </div>
     </div>
-
-
-
 
 
     {% endblock %}

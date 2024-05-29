@@ -1660,8 +1660,8 @@ footer .logos a img {
 	/* Esquinas redondeadas */
 	position: relative;
 	/* Para posicionar la marca de agua */
-	height: 450px;
-	width: 100%;
+	height: 540px;
+	width: 99.7%;
 }
 
 .container-list {
@@ -1691,7 +1691,7 @@ footer .logos a img {
 	height: 100%;
 	width: 100%;
 	padding: 20px;
-	
+
 }
 
 .container-detalle a {
@@ -1704,10 +1704,11 @@ footer .logos a img {
 	width: 100%;
 	height: 80vh;
 }
-@media (max-width: 767px) { 
-    #pdf-viewer {
-        height: 35vh; 
-    }
+
+@media (max-width: 767px) {
+	#pdf-viewer {
+		height: 35vh;
+	}
 }
 
 
@@ -1772,7 +1773,7 @@ footer .logos a img {
 		/* Esquinas redondeadas */
 		position: relative;
 		/* Para posicionar la marca de agua */
-		height: 100%;
+		height: 600px;
 		width: 100%;
 	}
 }
@@ -1790,8 +1791,8 @@ footer .logos a img {
 		/* Esquinas redondeadas */
 		position: relative;
 		/* Para posicionar la marca de agua */
-		height: 100%;
-		width: 100%;
+		height: 540px;
+		width: 99.7%;
 	}
 }
 
@@ -2051,33 +2052,36 @@ footer .logos a img {
 	}
 
 	/* clase para columna Certificado en movil */
-.table-row .certificado-column {
-    max-width: 190px;
-    word-wrap: break-word; /* Ajusta las palabras en la próxima línea si son demasiado largas */
-    white-space: normal; /* Permite que el texto ocupe múltiples líneas */
-}
+	.table-row .certificado-column {
+		max-width: 190px;
+		word-wrap: break-word;
+		/* Ajusta las palabras en la próxima línea si son demasiado largas */
+		white-space: normal;
+		/* Permite que el texto ocupe múltiples líneas */
+	}
 
-/* clase para columna Descripción de la clasificación */
-.adjuntos-certificado {
-	max-width: 300
-	px;
-	word-wrap: break-word; /* Ajusta las palabras en la próxima línea si son demasiado largas */
-    
-	white-space: normal;
+	/* clase para columna Descripción de la clasificación */
+	.adjuntos-certificado {
+		max-width: 300 px;
+		word-wrap: break-word;
+		/* Ajusta las palabras en la próxima línea si son demasiado largas */
+
+		white-space: normal;
 
 
-}
-	
-	
+	}
+
+
 }
 
 
 /* Estilos para el nombre del archivo */
 .adjuntos-certificado {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
+
 .visual_adjuntos {
 	margin-top: 5px;
 	border: 1px solid #ccc;
@@ -2095,22 +2099,106 @@ footer .logos a img {
 /* Estilos para archivos adjuntos en registro de residuos */
 
 #file-list {
-    list-style-type: none;
-    padding: 0;
+	list-style-type: none;
+	padding: 0;
 }
 
 #file-list li {
-    margin-bottom: 5px;
+	margin-bottom: 5px;
 }
 
 .remove-button {
-    width: 20px; /* Ajustar el ancho */
-    height: 20px; /* Ajustar la altura */
-    margin-left: 10px;
-    padding: 0; /* Eliminar el relleno */
-    display: inline-flex; /* Usar flexbox en línea */
-    justify-content: center; /* Centrar horizontalmente */
-    align-items: center; /* Centrar verticalmente */
-    
-    font-size: 16px; /* Ajustar el tamaño de la fuente */
+	width: 20px;
+	/* Ajustar el ancho */
+	height: 20px;
+	/* Ajustar la altura */
+	margin-left: 10px;
+	padding: 0;
+	/* Eliminar el relleno */
+	display: inline-flex;
+	/* Usar flexbox en línea */
+	justify-content: center;
+	/* Centrar horizontalmente */
+	align-items: center;
+	/* Centrar verticalmente */
+
+	font-size: 16px;
+	/* Ajustar el tamaño de la fuente */
+}
+
+
+/* Estilos para material de interés */
+.video-container-list {
+	position: relative;
+	/* Aspect ratio 16:9 */
+	height: 0;
+	overflow: hidden;
+	width: 560px;
+	height: 315px;
+	background: #000;
+	margin: 5px 0;
+	/* Ajusta el margen según sea necesario */
+	;
+}
+
+.video-container-list iframe {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+
+}
+
+@media (max-width: 767px) {
+
+	/* Estilos para hacer que el iframe sea responsivo */
+	.video-container-list {
+		position: relative;
+		padding-bottom: 56.25%;
+		/* Aspect ratio 16:9 */
+		height: 0;
+		overflow: hidden;
+		max-width: 100%;
+		background: #000;
+		margin: 5px 0;
+		/* Ajusta el margen según sea necesario */
+	}
+
+	.video-container-list iframe {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		border: 0;
+	}
+
+
+
+	.table-row .video-column {
+		max-width: 200px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+}
+
+/* Estilo para truncar texto con puntos suspensivos */
+.truncated-text {
+	display: block;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Estilo para generar un nuevo salto de línea cuando se sobrepasa el ancho máximo */
+.untruncated-text {
+	display: block;
+	max-width: 100%;
+	overflow: hidden;
+	white-space: normal;
+	word-wrap: break-word;
+	/* Asegura que las palabras largas también se dividan */
 }

@@ -55,10 +55,11 @@ urlpatterns = [
     path('UniCLab_Residuos/Certificados_Disposicion/Habilitar/<str:pk>/', EnableFinalDispositionCertificate.as_view(), name='final_certificate_enable'),# Habilitar certificado de diposición final
     path('UniCLab_Residuos/Enlaces_Interes/Crear/', CreateImportantLinks.as_view(), name='important_link_create'),# Crear material de interés
     path('UniCLab_Residuos/Enlaces_Interes/Ver/', ViewImportantLinks.as_view(), name='important_link_view'),# Ver material de interés
+    path('UniCLab_Residuos/Enlaces_Interes/Ver/Pag/<int:per_page>/', ImportantLinks_Pagination.as_view(), name='important_link_view_pagination'),# Maneja paginación de listado de material de interés
+    path('UniCLab_Residuos/Enlaces_Interes/Editar/<str:pk>/', EditImportantLink.as_view(), name='important_link_edit'),# Editar material de interés
+    path('UniCLab_Residuos/Enlaces_Interes/Deshabilitar/<str:pk>/', DisableImportantLink.as_view(), name='important_link_disable'),# Deshabilitar Material de interés
+    path('UniCLab_Residuos/Enlaces_Interes/Habilitar/<str:pk>/', EnableImportantLink.as_view(), name='important_link_enable'),# Habilitar Material de interés
     
-    
-    path('UniCLab_Residuos/Video/', ShowVideoView.as_view(), name='video'),# Habilitar certificado de diposición final
-
     ]
 
 if settings.DEBUG:

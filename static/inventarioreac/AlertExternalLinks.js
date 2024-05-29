@@ -9,7 +9,7 @@ document.querySelectorAll('.external-link').forEach(link => {
 
 // Función para mostrar una alerta normal de JavaScript
 function mostrarAlertaJavaScript(url) {
-    const mensaje = `\nSaliendo UniCLab Residuos...\n\nLa Dirección de Laboratorios de la Universidad Nacional de Colombia sede Manizales no se hace responsable por la calidad y pertiencia de los contenidos de webs ajenas a esta.\n\n¿Desea continuar?\n`;
+    const mensaje = `\nSaliendo UniCLab Residuos...\n\nLa Dirección de Laboratorios de la Universidad Nacional de Colombia sede Manizales como dependencia gestora del software UniClab, no se hace responsable por la calidad y pertinencia de los contenidos de webs ajenas a esta.\n\n¿Desea continuar?\n`;
     if (confirm(mensaje)) {
         window.open(url, '_blank');
     }
