@@ -1,3 +1,24 @@
+// Bloquear Enter
+// Agregar un controlador de eventos al formulario
+document.forms['form'].addEventListener('keypress', function (e) {
+    // Verificar si la tecla presionada es "Enter"
+    if (e.key === 'Enter') {
+        // Cancelar la acción predeterminada del formulario
+        e.preventDefault();
+    }
+});
+
+// Quitar autocompletado de los campos de texto
+var form = document.forms['form'];  // Obtener el formulario por nombre
+
+if (form) {
+    var textAndEmailInputs = form.querySelectorAll('input[type="text"], input[type="email"]');  // Obtener campos de texto y correo electrónico
+
+    textAndEmailInputs.forEach(function (input) {
+        input.setAttribute('autocomplete', 'off');  // Establecer el atributo autocomplete en "off"
+    });
+}
+
 
 // Opciones del Spinner
 const opts = {
@@ -66,6 +87,7 @@ function validarCampos() {
     var campos = document.querySelectorAll("form input[required], form select[required], form textarea[required]");
     for (var i = 0; i < campos.length; i++) {
         var campo = campos[i];
+        
         if (!campo.value) {
             var etiquetaAsociada = obtenerEtiquetaAsociada(campo);
             // Mostrar la notificación con SweetAlert2
@@ -206,6 +228,10 @@ function enviarInformacion(formData, csrfToken) {
                             setTimeout(() => {
                                 window.close();
                             }, 200);
+                        }else{
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 100);
                         }
                     }
                 });
@@ -232,6 +258,7 @@ function obtenerDatosFormulario() {
         var campo = campos[i];
         var etiquetaAsociada = obtenerEtiquetaAsociada(campo);
         var valorCampo = obtenerValorCampo(campo);
+        
 
 
 
@@ -290,14 +317,18 @@ function obtenerEtiquetaAsociada(campo) {
     return campo.name;
 }
 
-//Obtiene los valores de los select
+// Obtiene el valor o el archivo del campo
 function obtenerValorCampo(campo) {
     if (campo.tagName.toLowerCase() === "select") {
         var opcionSeleccionada = campo.options[campo.selectedIndex];
         return opcionSeleccionada.textContent;
+    } else if (campo.type === "file") {
+        // Manejar campos de archivo
+        return campo.files[0];
+    } else {
+        // Manejar otros tipos de campos (por ejemplo, campos de entrada de texto)
+        return campo.value;
     }
-
-    return campo.value;
 }
 
 //Obtiene el CSRFToken para ser enviado al servidor

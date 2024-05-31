@@ -8,8 +8,8 @@ document.querySelectorAll('.detalle-reactivo').forEach(element => {
         const reactivoSubNumber = this.getAttribute('data-reactivo-subnumber');
         const reactivoCode = this.getAttribute('data-reactivo-code');
         const reactivoCas = this.getAttribute('data-reactivo-cas');
-        const reactivoalmacenamiento_interno = this.getAttribute('data-reactivo-almacenamiento_interno');
-        const reactivoclase_almacenamiento = this.getAttribute('data-reactivo-clase_almacenamiento');
+        const reactivoAlmacenamientoInterno = this.getAttribute('data-reactivo-almacenamiento_interno');
+        const reactivoClaseAlmacenamiento = this.getAttribute('data-reactivo-clase_almacenamiento');
         const reactivoState = this.getAttribute('data-reactivo-state');
         const reactivoUnit = this.getAttribute('data-reactivo-unit');
         const reactivoIsActive = this.getAttribute('data-reactivo-active');
@@ -19,7 +19,7 @@ document.querySelectorAll('.detalle-reactivo').forEach(element => {
         const reactivoLastUpdateBy = this.getAttribute('data-reactivo-update_by');
         const reactivoLabsAndWeight = this.getAttribute('data-reactivo-labs_and_weight');
         
-        const reactivo = obtenerInformacionReactivo(reactivoId, reactivoName, reactivoColor, reactivoNumber, reactivoSubNumber, reactivoCode, reactivoCas, reactivoalmacenamiento_interno,reactivoclase_almacenamiento,reactivoState,reactivoUnit,reactivoIsActive,reactivoDateCreate,reactivoCreateBy,reactivoLastUpdate,reactivoLastUpdateBy,reactivoLabsAndWeight);
+        const reactivo = obtenerInformacionReactivo(reactivoId, reactivoName, reactivoColor, reactivoNumber, reactivoSubNumber, reactivoCode, reactivoCas, reactivoAlmacenamientoInterno,reactivoClaseAlmacenamiento,reactivoState,reactivoUnit,reactivoIsActive,reactivoDateCreate,reactivoCreateBy,reactivoLastUpdate,reactivoLastUpdateBy,reactivoLabsAndWeight);
         mostrarSweetAlert(reactivo);
     });
 });
@@ -64,8 +64,8 @@ function mostrarSweetAlert(reactivo) {
                         <li><strong>Nombre:</strong> ${reactivo.name}</li>
                         <li><strong>Código:</strong> ${reactivo.code}</li>
                         <li><strong>CAS:</strong> ${reactivo.cas}</li>
-                        <li><strong>Clasificación almacenamiento_interno:</strong> ${reactivo.almacenamiento_interno}</li>
-                        <li><strong>Codificación clase_almacenamiento:</strong> ${reactivo.clase_almacenamiento}</li>
+                        <li><strong>Almacenamiento Interno:</strong> ${reactivo.almacenamiento_interno}</li>
+                        <li><strong>Clase de almacenamiento:</strong> ${reactivo.clase_almacenamiento}</li>
                         <li><strong>Estado:</strong> ${reactivo.state}</li>
                         <li><strong>Unidades:</strong> ${reactivo.unit}</li>
                     </ul>
@@ -76,12 +76,7 @@ function mostrarSweetAlert(reactivo) {
                         <li><strong>Responsable del registro:</strong> ${reactivo.create_by}</li>
                         <li><strong>Última modificación:</strong> ${reactivo.last_update}</li>
                         <li><strong>Última actualización por:</strong> ${reactivo.update_by}</li></ul>
-                        <br>
-                    <h5>Existencia en Laboratorios:</h5>
-                    <ul class="list-unstyled">
-                        ${reactivo.labsandweight}
-                        <a href='/export2xlsxlab/'>Ver información de Laboratorios</a>
-                    </ul>
+                    
                 </div>
             </div>
         `,

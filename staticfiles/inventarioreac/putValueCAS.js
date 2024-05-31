@@ -1,39 +1,34 @@
 // Obtener el checkbox "Acepta Política"
 var aplicaCAS = document.getElementById("aplicaCAS");
+var casInput = document.getElementById("cas");
 aplicaCAS.addEventListener("change", function () {
+    var aplicaCAS = document.getElementById("aplicaCAS");
+    var casInput = document.getElementById("cas");
 
-  if (this.checked) {
-    aplicaCAS.value = 'Aplica';
-  } else {
-    aplicaCAS.value = 'No Aplica';
-  }
+    if (this.checked) {
+        aplicaCAS.value = 'Aplica';
+        casInput.value = ''
+        casInput.readOnly = false;
+    } else {
+        aplicaCAS.value = 'No Aplica';
+        casInput.value = 'NO APLICA'
+        casInput.readOnly = true;
+    }
 });
 
-
-
-// // Función para manejar cambios en el checkbox
-// function handleCheckboxChange() {
-//     var checkbox = document.getElementById("aplicaCAS");
-//     var casInput = document.getElementById("cas");
-//     console.log('Hola Mundo')
-
-//     if (checkbox.checked) {
-//         // Si el checkbox está marcado, establece el valor y desactiva el campo CAS
-//         console.log('Aplica Cas')
-//         checkbox.value = "Aplica";
-//         casInput.value = "";
-//     } else {
-//         // Si el checkbox no está marcado, establece el valor y habilita el campo CAS
-//         console.log('Aplica Cas')
-//         checkbox.value = "No aplica";
-//         casInput.value = "NO APLICA";
-//         casInput.readOnly = true;
-//     }
-// }
-
-// // Agrega un event listener al checkbox para manejar cambios
-// var checkbox = document.getElementById("aplicaCAS");
-// checkbox.addEventListener("change", handleCheckboxChange);
-
-// // Llama a la función para configurar el estado inicial
-// handleCheckboxChange();
+document.addEventListener("DOMContentLoaded", function() {
+    setTimeout(function() {
+        // Obtener el elemento del campo CAS
+        var casInput = document.getElementById("cas");
+        // Obtener el elemento del checkbox
+        var aplicaCASCheck = document.getElementById("aplicaCAS");
+    
+        // Verificar si el valor de CAS es "NO APLICA" después de 500 ms
+        if (casInput.value.trim() === "NO APLICA") {
+            // Establecer el campo CAS como de solo lectura
+            casInput.readOnly = true;
+            // Marcar el checkbox como unchecked
+            aplicaCASCheck.checked = false;
+        }
+    }, 250); // 250 ms de retraso
+});

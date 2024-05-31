@@ -107,3 +107,159 @@ tr.table-row:hover {
 .custom-swal-class {
     width: 550px; /* Cambia el ancho según tus necesidades */
 }
+
+
+/* Agrega un estilo para resaltar las celdas no tramitadas */
+.pendiente-tramite-cell {
+    background-color: #FFCCCC; /* Cambia el color de fondo */
+    color: #FF0000; /* Cambia el color del texto */
+    font-weight: bold; /* Hace que el texto sea más audaz */
+}
+
+.row-inactive {
+    background-color: #FFCCCC; /* Cambia el color según lo desees */
+    color: #FF0000; /* Cambia el color del texto */
+}
+
+.row-read-request {
+    background-color: #d8e1d7aa;
+    font-size: smaller;
+}
+
+
+.add-button {
+    position: relative; /* Establecer la posición relativa para el contenedor */
+    display: inline-block;
+    border-radius: 50%; /* Hacer el botón redondo */
+    background-color: rgba(255, 255, 255, 0.689); /* Fondo blanco */
+    box-shadow: 0 4px 8px rgba(0, 128, 0, 0.5); /* Sombra verde */
+    padding: 5px; /* Ajustar el espaciado interno */
+    
+}
+
+.add-button span {
+    position: absolute; /* Posicionar el span de forma absoluta */
+    top: 50%; /* Alinear verticalmente al centro */
+    left: 175%; /* Alinear horizontalmente al centro */
+    transform: translate(-50%, -50%); /* Centrar el span */
+    background-color: rgba(0, 0, 0, 0.6); /* Fondo negro con transparencia */
+    color: white; /* Color de texto blanco */
+    border-radius: 5px; /* Bordes redondeados */
+    padding: 4px 8px; /* Espaciado interno */
+    font-size: 14px; /* Tamaño del texto */
+    opacity: 0; /* Ocultar el span inicialmente */
+    transition: opacity 0.3s ease; /* Transición suavizada de la opacidad */
+    font-family: "Ancizar sans";
+    font-size: 14px;
+    font-weight: 200;
+    letter-spacing: 2px;
+    line-height: 1;
+}
+
+.add-button:hover span {
+    opacity: 2; /* Mostrar el span gradualmente al pasar el cursor sobre el botón */
+    font-family: "Ancizar sans";
+    font-size: 14px;
+    font-weight: 200;
+    letter-spacing: 2px;
+    line-height: 1;
+}
+
+.no-data-message {
+    text-align: center;
+    margin-top: 20px; /* Espacio adicional en la parte superior */
+    margin-bottom: 20px;
+    padding: 20px; /* Espaciado interno */
+    background-color: #f9f9f9ce; /* Color de fondo */
+    border: 1px solid #ddd; /* Borde */
+    border-radius: 5px; /* Borde redondeado */
+}
+
+/* Estilos para el span de tooltip */
+.delete-residuo-tooltip {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.7); /* Fondo negro con transparencia */
+    color: white; /* Texto blanco */
+    font-family: "Ancizar sans";
+    font-size: 14px;
+    font-weight: 200;
+    letter-spacing: 2px;
+    line-height: 1;
+    padding: 5px; /* Espacio alrededor del texto */
+    border-radius: 5px; /* Bordes redondeados */
+    opacity: 0; /* Inicialmente transparente */
+    transition: opacity 0.3s ease; /* Transiciones suavizadas para opacidad y transformación */
+    transform: translateX(5px) translateY(-10px); /* Mover el tooltip hacia la derecha */
+
+}
+
+/* Estilos para mostrar el tooltip cuando se pasa el cursor sobre la imagen */
+.acciones-column:hover .delete-residuo-tooltip {
+    opacity: 1.5; /* Hacer visible el tooltip gradualmente al pasar el cursor sobre la imagen */
+    
+}
+
+/* Estilos para el span de tooltip */
+.detalle-solicitud-tooltip {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.7); /* Fondo negro con transparencia */
+    color: white; /* Texto blanco */
+    font-family: "Ancizar sans";
+    font-size: 14px;
+    font-weight: 200;
+    letter-spacing: 2px;
+    line-height: 1;
+    padding: 5px; /* Espacio alrededor del texto */
+    border-radius: 5px; /* Bordes redondeados */
+    opacity: 0; /* Inicialmente transparente */
+    transition: opacity 0.3s ease; /* Transiciones suavizadas para opacidad y transformación */
+    transform: translateX(5px) translateY(-15px); /* Mover el tooltip hacia la derecha */
+
+}
+
+/* Estilos para mostrar el tooltip cuando se pasa el cursor sobre la imagen */
+.id-solicitud:hover .detalle-solicitud-tooltip {
+    opacity: 1.5; /* Hacer visible el tooltip gradualmente al pasar el cursor sobre la imagen */
+    
+}
+
+/*  movil */
+@media (max-width: 767px) {
+    .add-button {
+        position: relative; /* Establecer la posición relativa para el contenedor */
+        display: inline-block;
+        border-radius: 50%; /* Hacer el botón redondo */
+        background-color: rgba(255, 255, 255, 0.689); /* Fondo blanco */
+        box-shadow: 0 4px 8px rgba(0, 128, 0, 0.5); /* Sombra verde */
+        padding: 5px; /* Ajustar el espaciado interno */
+        
+    }
+    
+    .add-button span {
+        position: absolute; /* Posicionar el span de forma absoluta */
+        top: 50%; /* Alinear verticalmente al centro */
+        left: 175%; /* Alinear horizontalmente al centro */
+        transform: translate(-50%, -50%); /* Centrar el span */
+        background-color: rgba(0, 0, 0, 0.6); /* Fondo negro con transparencia */
+        color: white; /* Color de texto blanco */
+        border-radius: 5px; /* Bordes redondeados */
+        padding: 4px 8px; /* Espaciado interno */
+        font-size: 14px; /* Tamaño del texto */
+        opacity: 0; /* Ocultar el span inicialmente */
+        transition: opacity 0.3s ease; /* Transición suavizada de la opacidad */
+        font-family: "Ancizar sans";
+        font-size: 14px;
+        font-weight: 200;
+        letter-spacing: 2px;
+        line-height: 1;
+    }
+    
+    .add-button:hover span {
+        opacity: 2; /* Mostrar el span gradualmente al pasar el cursor sobre el botón */
+        font-family: "Ancizar sans";
+        font-size: 14px;
+        font-weight: 200;
+        letter-spacing: 2px;
+        line-height: 1;
+    }
+}
