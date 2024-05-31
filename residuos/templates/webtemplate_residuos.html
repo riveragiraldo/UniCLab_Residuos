@@ -14,7 +14,7 @@
 		-->
 
 	<!-- base href="http://subdominio.unal.edu.co/" -->
-	<link rel="shortcut icon" href="{% static 'inventarioreac/images/favicon.ico' %}" type="image/x-icon">
+	<link rel="shortcut icon" href="{% static 'inventarioreac/Images/favicon.ico' %}" type="image/x-icon">
 
 
 	<meta name="revisit-after" content="1 hour">
@@ -70,38 +70,38 @@
 		<ul class="dropdown-menu">
 			<li>
 				<a href="http://correo.unal.edu.co" target="_blank"><img
-						src="{% static 'inventarioreac/images/icnServEmail.png' %}" width="32" height="32"
+						src="{% static 'inventarioreac/Images/icnServEmail.png' %}" width="32" height="32"
 						alt="Correo Electrónico">Correo Electrónico</a>
 			</li>
 			<li>
 				<a href="https://dninfoa.unal.edu.co" target="_blank"><img
-						src="{% static 'inventarioreac/images/icnServSia.png' %}" width="32" height="32"
+						src="{% static 'inventarioreac/Images/icnServSia.png' %}" width="32" height="32"
 						alt="Dirección Nacional de Información Académica">DNINFOA - SIA</a>
 			</li>
 			<li>
 				<a href="http://bibliotecas.unal.edu.co" target="_blank"><img
-						src="{% static 'inventarioreac/images/icnServLibrary.png' %}" width="32" height="32"
+						src="{% static 'inventarioreac/Images/icnServLibrary.png' %}" width="32" height="32"
 						alt="Biblioteca">Bibliotecas</a>
 			</li>
 			<li>
 				<a href="{% url 'dir_lab:home_dir_lab' %}" target="_blank"><img
-						src="{% static 'inventarioreac/images/icnLrn.png' %}" width="32" height="32"
+						src="{% static 'inventarioreac/Images/icnLrn.png' %}" width="32" height="32"
 						alt="Direccion de Laboratorios">Direccion de Laboratorios Manizales </a>
 			</li>
 			<li>
 				<a href="https://d1xb30i372mnxf.cloudfront.net/" target="_blank"><img
-						src="{% static 'inventarioreac/images/icnLrn.png' %}" width="32" height="32"
+						src="{% static 'inventarioreac/Images/icnLrn.png' %}" width="32" height="32"
 						alt="Plataforma de Laboratorios Remotos">Plataforma de Laboratorios Remotos</a>
 
 			</li>
 			<li>
 				<a href="{% url 'reactivos:index'%}" title="Volver al UniCLab"><img
-						src="{% static 'inventarioreac/images/UniCLabReactivos_icon.png' %}" width="32" height="32">UniCLab Reactivos</a>
+						src="{% static 'inventarioreac/Images/UniCLabReactivos_icon.png' %}" width="32" height="32">UniCLab Reactivos</a>
 
 			</li>
 			<li>
 				<a href="{% url 'residuos:home_residuos'%}" title="Volver al Inicio"><img
-						src="{% static 'inventarioreac/images/home_icon.png' %}" width="32" height="32">Inicio</a>
+						src="{% static 'inventarioreac/Images/home_icon.png' %}" width="32" height="32">Inicio</a>
 
 			</li>
 			
@@ -113,18 +113,18 @@
 		<div class="logo">
 			<a href="http://unal.edu.co">
 				<svg width="93%" height="93%">
-					<image xlink:href="{% static 'inventarioreac/images/escudoUnal.svg' %}" width="100%" height="100%"
+					<image xlink:href="{% static 'inventarioreac/Images/escudoUnal.svg' %}" width="100%" height="100%"
 						class="hidden-print" />
 				</svg>
-				<img src="{% static 'inventarioreac/images/escudoUnal_black.png' %}" class="visible-print" />
+				<img src="{% static 'inventarioreac/Images/escudoUnal_black.png' %}" class="visible-print" />
 			</a>
 		</div>
 		<div class="seal">
 			<img class="hidden-print" alt="Escudo de la República de Colombia"
-				src="{% static 'inventarioreac/images/sealColombia.png' %}" width="66" height="66" />
+				src="{% static 'inventarioreac/Images/sealColombia.png' %}" width="66" height="66" />
 
 			<img class="visible-print" alt="Escudo de la República de Colombia"
-				src="{% static '/inventarioreac/images/sealColombia_black.png' %}" width="66" height="66" />
+				src="{% static 'inventarioreac/Images/sealColombia_black.png' %}" width="66" height="66" />
 		</div>
 		<div class="firstMenu">
 
@@ -200,7 +200,7 @@
 
 
 		<div class="flex-container">
-			<!-- <img class="logosidebar" src="{% static '/inventarioreac/images/assets/logo.svg' %}" /> -->
+			<!-- <img class="logosidebar" src="{% static 'inventarioreac/Images/assets/logo.svg' %}" /> -->
 		<!-- <button type="button" class="burger" onclick="toggleSidebar()"></button> -->
 		
 		<aside class="sidebar" style="margin-right: 5px;">
@@ -213,11 +213,11 @@
 			
 			<nav>
 				<button type="button" onclick="redirect('{% url 'residuos:request_register' %}')">
-					<img src="{% static '/inventarioreac/images//assets/register_waste_icon.png' %}" />
+					<img src="{% static 'inventarioreac/Images//assets/register_waste_icon.png' %}" />
 					<span>Registrar Residuos</span>
 				  </button>
 				  <button type="button" onclick="redirect('{% url 'residuos:record_waste_list' %}')">
-					<img src="{% static '/inventarioreac/images//assets/list_record_waste_icon.png' %}" />
+					<img src="{% static 'inventarioreac/Images//assets/list_record_waste_icon.png' %}" />
 					<span>Listado de registros</span>
 				  </button>
 			  
@@ -228,17 +228,17 @@
 			<nav>
 			  
 				<button type="button" onclick="redirect('{% url 'residuos:security_sheet_view' %}')">
-				  <img src="{% static '/inventarioreac/images/assets/security-sheet-chemical-waste.png' %}" alt="Fichas_seguridad"/>
+				  <img src="{% static 'inventarioreac/Images/assets/security-sheet-chemical-waste.png' %}" alt="Fichas_seguridad"/>
 				  <span>Fichas de seguridad</span>
 				</button>
 
 				<button type="button" onclick="redirect('{% url 'residuos:final_certificate_view' %}')">
-					<img src="{% static '/inventarioreac/images/assets/final-disposal-certificate-for-chemical-waste-icon.png' %}" alt="Fichas_seguridad"/>
+					<img src="{% static 'inventarioreac/Images/assets/final-disposal-certificate-for-chemical-waste-icon.png' %}" alt="Fichas_seguridad"/>
 					<span>Certificados de disposición final</span>
 				  </button>
 
 				  <button type="button" onclick="redirect('{% url 'residuos:important_link_view' %}')">
-					<img src="{% static '/inventarioreac/images/assets/important-ideas.png' %}" alt="Fichas_seguridad"/>
+					<img src="{% static 'inventarioreac/Images/assets/important-ideas.png' %}" alt="Fichas_seguridad"/>
 					<span>Material de Interés</span>
 				  </button>
 			  </nav>
@@ -247,7 +247,7 @@
 			<nav>
 			  
 			  <button type="button" onclick="redirect('{% url 'reactivos:index' %}')">
-				<img src="{% static '/inventarioreac/images/assets/UniCLabReactivos.png' %}" alt="Reactivos"/>
+				<img src="{% static 'inventarioreac/Images/assets/UniCLabReactivos.png' %}" alt="Reactivos"/>
 				<span>UniCLab Reactivos</span>
 			  </button>
 			</nav>
@@ -256,11 +256,11 @@
 				{% if request.user|has_group:"ADMINISTRADOR" or request.user.is_superuser or request.user|has_group:"ADMINISTRADOR AMBIENTAL" %}
 				<nav>
 				<button type="button" onclick="redirect('{% url 'residuos:external_requests' %}')">
-				  <img src="{% static '/inventarioreac/images/assets/email_icon.png' %}" alt="Reactivos"/>
+				  <img src="{% static 'inventarioreac/Images/assets/email_icon.png' %}" alt="Reactivos"/>
 				  <span>Solicitudes Externas</span>
 				
 				<button type="button" onclick="redirect('{% url 'residuos:internal_requests_form' %}')">
-					<img src="{% static '/inventarioreac/images/assets/help_icon.png' %}" alt="Reactivos"/>
+					<img src="{% static 'inventarioreac/Images/assets/help_icon.png' %}" alt="Reactivos"/>
 					<span>Registrar Solicitud</span>
 				  
 
@@ -270,12 +270,12 @@
 			<nav>
 				{% if request.user|has_group:"ADMINISTRADOR" or request.user.is_superuser or request.user|has_group:"ADMINISTRADOR AMBIENTAL" %}
 				<button type="button" onclick="redirect('{% url 'residuos:change_password'%}')" >
-				  <img src="{% static '/inventarioreac/images/assets/passwordchange_icon.png' %}" alt="Reactivos"/>
+				  <img src="{% static 'inventarioreac/Images/assets/passwordchange_icon.png' %}" alt="Reactivos"/>
 				  <span>Cambiar Contraseña</span>
 				{% endif %}
 				</button>
 				<button type="button" onclick="redirect('{% url 'residuos:logout' %}')">
-					<img src="{% static '/inventarioreac/images/assets/logout_icon.png' %}" alt="Reactivos"/>
+					<img src="{% static 'inventarioreac/Images/assets/logout_icon.png' %}" alt="Reactivos"/>
 					<span>Cerrar sesión</span>
 				  </button>
 			  </nav>
@@ -315,29 +315,29 @@
 			<div class="col-xs-6 col-sm-12 col-md-6 no-padding">
 				<a class="col-xs-6 col-sm-12" href="http://www.orgulloun.unal.edu.co" target="_blank">
 					<img class="hidden-print" alt="Orgullo UN"
-						src="{% static 'inventarioreac/images/log_orgullo.png' %}" width="78" height="21" />
+						src="{% static 'inventarioreac/Images/log_orgullo.png' %}" width="78" height="21" />
 					<img class="visible-print" alt="Orgullo UN"
-						src="{% static 'inventarioreac/images/log_orgullo_black.png' %}" width="94" height="37" />
+						src="{% static 'inventarioreac/Images/log_orgullo_black.png' %}" width="94" height="37" />
 				</a>
 
 				<a class="col-xs-6 col-sm-12 imgAgencia" href="http://www.agenciadenoticias.unal.edu.co/inicio.html"
 					target="_blank">
 					<img class="hidden-print" alt="Agencia de noticias"
-						src="{% static 'inventarioreac/images/log_agenc.png' %}" width="94" height="25" />
+						src="{% static 'inventarioreac/Images/log_agenc.png' %}" width="94" height="25" />
 					<img class="visible-print" alt="Agencia de noticias"
-						src="{% static 'inventarioreac/images/log_agenc_black.png' %}" width="94" height="37" />
+						src="{% static 'inventarioreac/Images/log_agenc_black.png' %}" width="94" height="37" />
 				</a>
 			</div>
 			<div class="col-xs-6 col-sm-12 col-md-6 no-padding">
 				<a class="col-xs-6 col-sm-12" href="https://www.sivirtual.gov.co/memoficha-entidad/-/entidad/T0356"
 					target="_blank">
-					<img alt="Trámites en línea" src="{% static 'inventarioreac/images/log_gobiern.png' %}" width="67"
+					<img alt="Trámites en línea" src="{% static 'inventarioreac/Images/log_gobiern.png' %}" width="67"
 						height="51" />
 				</a>
 
 				<a class="col-xs-6 col-sm-12" href="http://www.contaduria.gov.co/" target="_blank">
 					<img alt="Contaduría general de la republica"
-						src="{% static 'inventarioreac/images/log_contra.png' %}" width="67" height="51" />
+						src="{% static 'inventarioreac/Images/log_contra.png' %}" width="67" height="51" />
 				</a>
 			</div>
 
