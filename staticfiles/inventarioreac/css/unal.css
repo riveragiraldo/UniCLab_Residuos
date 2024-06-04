@@ -537,7 +537,7 @@ ul.dropdown-menu a:focus {
 }
 
 #unalTop .navigation {
-	background: url(../images/navigationBack.png);
+	background: url('{% static "Images/navigationBack.png" %}');
 	color: white;
 	padding: 0;
 }

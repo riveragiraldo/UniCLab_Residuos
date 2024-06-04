@@ -90,28 +90,28 @@ WSGI_APPLICATION = 'inventarioreac.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#        	'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': 'Dir_labor',
-#         'USER': 'postgres',
-#         'PASSWORD': 'Comput2011*',
-#         'HOST': 'localhost',
-#         'PORT': '5432',
-#         }
-# }
-
-
 DATABASES = {
     'default': {
        	'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'Reactivos',
+        'NAME': 'Dir_labor',
         'USER': 'postgres',
         'PASSWORD': 'Comput2011*',
         'HOST': 'localhost',
         'PORT': '5432',
         }
 }
+
+
+# DATABASES = {
+#     'default': {
+#        	'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'Reactivos',
+#         'USER': 'postgres',
+#         'PASSWORD': 'Comput2011*',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#         }
+# }
 
 # DATABASES['default'] = dj_database_url.config(
 #     default='postgres://dirlabor_man_unal:PpKGklM6fx9Vxq0y0xAcEmJZjuLt8BPj@dpg-coa15e0cmk4c73e7uo30-a.oregon-postgres.render.com/dejango_reactivos'

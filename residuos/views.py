@@ -499,7 +499,9 @@ class CreateRegisterWaste(LoginRequiredMixin, View):
         form = RegistroResiduosForm()
         laboratorios=Laboratorios.objects.all()
         unidades=Unidades.objects.all()
+        
         lab_id=request.user.lab.id
+        
 
         return render(request, self.template_name, {'form': form, 'laboratorios':laboratorios, 'lab_id':lab_id, 'unidades':unidades,})
 

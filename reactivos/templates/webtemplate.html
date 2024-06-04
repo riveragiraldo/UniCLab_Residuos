@@ -14,6 +14,60 @@
 		-->
 
 	<!-- base href="http://subdominio.unal.edu.co/" -->
+	<style>
+	
+		#unalTop .navigation {
+			background: url('{% static "inventarioreac/Images/navigationBack.png" %}');
+			color: white;
+			padding: 0;
+		}
+		
+		#unalTop .navigation .site-url {
+		background: no-repeat 0 0 url('{% static "inventarioreac/Images/locDot.png" %}');
+		clear: both;
+		float: left;
+		font-size: 1.72em;
+		height: 17px;
+		line-height: 18px;
+		margin: 12px 10px 10px 250px;
+		padding: 0 0 0 20px;
+	}
+	
+	
+	#unalTop .logo {
+		-webkit-transition: width .5s;
+		-moz-transition: width .5s;
+		-o-transition: width .5s;
+		transition: width .5s;
+		background: no-repeat url('{% static "inventarioreac/Images/sealBck.png" %}');
+		float: left;
+		height: 135px;
+		width: 234px;
+		margin-left: 10px;
+		position: absolute;
+		text-align: center;
+	}
+	
+		#services .indicator {
+		background-color: #94b43b;
+		background-image: url('{% static "inventarioreac/Images/backServices.png" %}');
+		background-position: 0 0;
+		cursor: pointer;
+		height: 126px;
+		left: -34px;
+		position: absolute;
+		top: 150px;
+		width: 34px;
+	}
+	
+	
+	
+	#unalTop .firstMenu ul.socialLinks li a.email:hover {
+		background: no-repeat 0 0 url('{% static "inventarioreac/Images/icnSocial.png" %}');
+	}
+		
+		</style>
+
 	<link rel="shortcut icon" href="{% static 'inventarioreac/Images/favicon.ico' %}" type="image/x-icon">
 
 
