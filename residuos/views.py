@@ -2730,6 +2730,7 @@ class Export2ExcelWastesRP1(LoginRequiredMixin, View):
             
             
             sheet.cell(row=row, column=1).value = f'{row-10}'
+            sheet.cell(row=row, column=1).font = Font(bold=True)
             sheet.cell(row=row, column=2).value = item.date_create.strftime("%d/%m/%Y")
             sheet.cell(row=row, column=3).value = item.nombre_residuo
             sheet.cell(row=row, column=4).value = item.total_residuo

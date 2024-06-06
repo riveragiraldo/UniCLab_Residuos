@@ -105,7 +105,7 @@
         <tbody>
             {% for registro in registros %}
             <tr>
-                <td style="width: 6.5%; text-align: center;">{{ forloop.counter }}</td>
+                <td style="width: 6.5%; text-align: center;"><b>{{ forloop.counter }}</b></td>
                 <td style="width: 12.5%; text-align: center;">{{ solicitud.date_create|date:"d/m/Y" }}</td>
                 <td style="width: 29%; text-align: center;">{{ registro.nombre_residuo }}</td>
                 <td style="width: 8.5%; text-align: center;">{{ registro.total_residuo|floatformat:0 }}</td>
