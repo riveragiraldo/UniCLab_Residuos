@@ -127,7 +127,7 @@ class LaboratoriosResources(resources.ModelResource):
 # Inclusión de el modelo LABORATORIOS en la consola de administración de Django
 @admin.register(Laboratorios)
 class Laboratorioadmin(ImportExportModelAdmin, admin.ModelAdmin):
-    list_display=('id','name','created_by', 'date_create','last_update','last_updated_by',)
+    list_display=('id','name','campus_location','created_by', 'date_create','last_update','last_updated_by',)
     ordering=('id',)
     resource_class = LaboratoriosResources
 
@@ -232,7 +232,7 @@ class Inventarioadmin(admin.ModelAdmin):
 
 class UserAdmin(BaseUserAdmin):
     # Especifica los campos a mostrar en la lista de usuarios en el admin
-    list_display = ('id','first_name', 'last_name','acceptDataProcessing','rol','email', 'lab','is_active','user_create', 'date_joined','last_update','last_updated_by','id_number','phone_number',)
+    list_display = ('id','first_name', 'last_name','position_company','acceptDataProcessing','rol','email', 'lab','is_active','user_create', 'date_joined','last_update','last_updated_by','id_number','phone_number',)
     list_editable = ['first_name', 'last_name','email','lab', 'rol',]
     ordering=('id',)
 

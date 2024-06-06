@@ -34,7 +34,7 @@ from django.template.loader import get_template
 from .utils import *
 from django.db.models import Max, Min
 import glob
-
+from openpyxl.worksheet.page import PageMargins
 
 
 # ---------------------------------------------------------- 
@@ -1602,14 +1602,15 @@ class SolicitudPDFEmbView(LoginRequiredMixin, View):
         # Obtener los registros de residuos asociados a la solicitud
         registros = REGISTRO_RESIDUOS.objects.filter(registro_solicitud=solicitud)
         # Generar el PDF y obtener el nombre del archivo
+        logo_path = finders.find('inventarioreac/Images/escudoUnal_black.png')
         
         
-
         # Construir el contexto para la plantilla
         context = {
             'solicitud': solicitud,
             'registros': registros,
             'configuracion': ConfiguracionSistema.objects.first(),
+            'logo_path':logo_path,
             
         }
         
@@ -2500,3 +2501,320 @@ class EnableImportantLink(LoginRequiredMixin, View):
             print(e)
             return JsonResponse({'success': False, 'message': 'Error interno del servidor'})
 
+
+# ------------------------------------------------------------------ #
+# Exportar a Excel registro de residuos por solicitud en formato RP1 #
+class Export2ExcelWastesRP1(LoginRequiredMixin, View):
+    @check_group_permission(groups_required=['ADMINISTRADOR','COORDINADOR','TECNICO', 'ADMINISTRADOR AMBIENTAL'])
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+       
+    @check_group_permission(groups_required=['ADMINISTRADOR','COORDINADOR','TECNICO', 'ADMINISTRADOR AMBIENTAL'])
+    def get(self, request, solicitud_id, *args, **kwargs):
+
+        def get_file_name():
+            now = datetime.now()
+            return f'Mz.FT.SGA.006 Formato RP1 Información Residuos Almacenamiento Temporal {now.strftime("%d%m%Y%H%M%S")}.xlsx'
+        
+        
+        item_id_encoded = base64.urlsafe_b64decode(solicitud_id).decode('utf-8')
+        solicitud = base64.urlsafe_b64decode(item_id_encoded).decode('utf-8')
+        registro_solicitud=get_object_or_404(SOLICITUD_RESIDUO, id=solicitud)
+        
+
+        queryset=REGISTRO_RESIDUOS.objects.filter(registro_solicitud=solicitud, residuo_enviado=True)        
+        
+        queryset = queryset.order_by('id')
+
+        workbook = openpyxl.Workbook()
+        sheet = workbook.active
+
+        # Ajustar la altura de la fila 1
+        sheet.row_dimensions[1].height = 90
+
+        # Ajustar la altura de la fila 3
+        sheet.row_dimensions[3].height = 20
+        # Ajustar la altura de la fila 5
+        sheet.row_dimensions[5].height = 20
+        # Ajustar la altura de la fila 7
+        sheet.row_dimensions[7].height = 20
+
+        # Unir celdas para el texto de la primera línea
+        sheet.merge_cells('A1:D1')
+        cell = sheet['A1']
+        cell.value = 'Sistema de Gestión Ambiental\nFormato RP1 Información Residuos Almacenamiento Temporal'
+        cell.font = Font(bold=True, italic=True)
+        cell.alignment = Alignment(wrap_text=True, horizontal='left', vertical='center')
+
+        # Unir celdas para la imagen
+        # sheet.merge_cells('E1:H1')
+        logo_path = finders.find('inventarioreac/Images/escudoUnal_black.png')
+        pil_image = PILImage.open(logo_path)
+        image = ExcelImage(pil_image)
+        
+        
+        # Agregar la imagen a la celda unida
+        sheet.add_image(image, 'F1')
+
+     
+
+        # Unir celdas para el texto de la segunda línea
+        sheet.merge_cells('A2:H2')
+        cell = sheet['A2']
+        cell.value = 'Dependencia / Area / Laboratorio:'
+        cell.font = Font(bold=True)
+        cell.alignment = Alignment(wrap_text=True, horizontal='left', vertical='top')
+        
+
+        # Unir celdas para el texto de la tercera  línea
+        sheet.merge_cells('A3:H3')
+        cell = sheet['A3']
+        cell.value = f'{registro_solicitud.created_by.lab.name}'
+        cell.alignment = Alignment(wrap_text=True, horizontal='left', vertical='bottom')
+
+        # Bordes para líneas 2 y 3
+        sheet['A2'].border=Border(left=Side(style='thin'),top=Side(style='thin'),)
+        sheet['B2'].border=Border(top=Side(style='thin'),)
+        sheet['C2'].border=Border(top=Side(style='thin'),)
+        sheet['D2'].border=Border(top=Side(style='thin'),)
+        sheet['E2'].border=Border(top=Side(style='thin'),)
+        sheet['F2'].border=Border(top=Side(style='thin'),)
+        sheet['G2'].border=Border(top=Side(style='thin'),)
+        sheet['H2'].border=Border(top=Side(style='thin'),right=Side(style='thin'),)
+
+        sheet['A3'].border=Border(left=Side(style='thin'),bottom=Side(style='thin'),)
+        sheet['B3'].border=Border(bottom=Side(style='thin'),)
+        sheet['C3'].border=Border(bottom=Side(style='thin'),)
+        sheet['D3'].border=Border(bottom=Side(style='thin'),)
+        sheet['E3'].border=Border(bottom=Side(style='thin'),)
+        sheet['F3'].border=Border(bottom=Side(style='thin'),)
+        sheet['G3'].border=Border(bottom=Side(style='thin'),)
+        sheet['H3'].border=Border(bottom=Side(style='thin'),right=Side(style='thin'),)
+
+        # Unir celdas para el texto de la cuarta línea
+        sheet.merge_cells('A4:D4')
+        cell = sheet['A4']
+        cell.value = 'Ubicación de la Dependencia / Area / Laboratorio: '
+        cell.font = Font(bold=True)
+        cell.alignment = Alignment(wrap_text=True, horizontal='left', vertical='top')
+        sheet.merge_cells('E4:H4')
+        cell = sheet['E4']
+        cell.value = '(Bloque, piso, oficina, campus, otros)'
+        cell.font = Font(bold=False, italic=True)
+        cell.alignment = Alignment(wrap_text=True, horizontal='left', vertical='top')
+
+        # Unir celdas para el texto de la quinta  línea
+        sheet.merge_cells('A5:H5')
+        cell = sheet['A5']
+        cell.value = f'{registro_solicitud.created_by.lab.campus_location}'
+        cell.alignment = Alignment(wrap_text=True, horizontal='left', vertical='bottom')
+
+        # Bordes para líneas 4 y 5
+        sheet['A4'].border=Border(left=Side(style='thin'),)
+        sheet['H4'].border=Border(right=Side(style='thin'),)
+        sheet['A5'].border=Border(left=Side(style='thin'),bottom=Side(style='thin'),)
+        sheet['B5'].border=Border(bottom=Side(style='thin'),)
+        sheet['C5'].border=Border(bottom=Side(style='thin'),)
+        sheet['D5'].border=Border(bottom=Side(style='thin'),)
+        sheet['E5'].border=Border(bottom=Side(style='thin'),)
+        sheet['F5'].border=Border(bottom=Side(style='thin'),)
+        sheet['G5'].border=Border(bottom=Side(style='thin'),)
+        sheet['H5'].border=Border(bottom=Side(style='thin'),right=Side(style='thin'),)
+
+        # Unir celdas para el texto de la sexta línea
+        sheet.merge_cells('A6:H6')
+        cell = sheet['A6']
+        cell.value = 'Nombre y cargo del responsable que entrega el residuo: '
+        cell.font = Font(bold=True)
+        cell.alignment = Alignment(wrap_text=True, horizontal='left', vertical='top')
+
+        # Unir celdas para el texto de la SÉPTIMA  línea
+        sheet.merge_cells('A7:H7')
+        cell = sheet['A7']
+        cell.value = f'{registro_solicitud.created_by.first_name} {registro_solicitud.created_by.first_name} - {registro_solicitud.created_by.position_company}'
+        cell.alignment = Alignment(wrap_text=True, horizontal='left', vertical='bottom')
+
+        # Bordes para líneas 6 y 7
+        sheet['A6'].border=Border(left=Side(style='thin'),)
+        sheet['H6'].border=Border(right=Side(style='thin'),)
+        sheet['A7'].border=Border(left=Side(style='thin'),bottom=Side(style='thin'),)
+        sheet['B7'].border=Border(bottom=Side(style='thin'),)
+        sheet['C7'].border=Border(bottom=Side(style='thin'),)
+        sheet['D7'].border=Border(bottom=Side(style='thin'),)
+        sheet['E7'].border=Border(bottom=Side(style='thin'),)
+        sheet['F7'].border=Border(bottom=Side(style='thin'),)
+        sheet['G7'].border=Border(bottom=Side(style='thin'),)
+        sheet['H7'].border=Border(bottom=Side(style='thin'),right=Side(style='thin'),)
+
+        # Unir celdas para el texto de la Octava  línea
+        sheet.merge_cells('A8:H8')
+        cell = sheet['A8']
+        cell.font = Font(bold=False, italic=True)
+        cell.value = f'** Decreto 1076 de 2015'
+        cell.alignment = Alignment(wrap_text=True, horizontal='center', vertical='center')
+        
+        sheet.merge_cells('A9:A10')
+        sheet['A9'] = 'No.'
+        sheet.merge_cells('B9:B10')
+        sheet['B9'] = 'Fecha diligenciamiento'
+        sheet.merge_cells('C9:C10')      
+        sheet['C9'] = 'Residuo'
+        sheet.merge_cells('D9:D10')
+        sheet['D9'] = 'Cant.'
+        sheet['E9'] = 'Und.'
+        sheet['E10'] = '(mg/ml)'
+        sheet['F9'] = 'Clasificado:'
+        sheet['F10'] = 'Y - A**'
+        sheet['G9'] = 'Estado'
+        sheet['G10'] = 'Líquido/Sólido'
+        sheet['H9'] = 'Fecha de Salida'
+        sheet['H10'] = 'Centro de Acopio'
+
+        thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+        bold_font = Font(bold=True)
+        alignment = Alignment(wrap_text=True, vertical="top", horizontal="center")
+        row = 9
+        for col in range(1, 9):
+            # sheet.cell(row=row, column=col).border = thin_border
+            sheet.cell(row=row, column=col).font = bold_font
+            sheet.cell(row=row, column=col).alignment = alignment
+
+        normal_italic_font = Font(bold=False, italic=True)
+        alignment = Alignment(wrap_text=True, vertical="top", horizontal="center")
+        row = 10
+        for col in range(1, 9):
+            # sheet.cell(row=row, column=col).border = thin_border
+            sheet.cell(row=row, column=col).font = normal_italic_font
+            sheet.cell(row=row, column=col).alignment = alignment
+
+        # Bordes para líneas 9 y 10
+        sheet['A9'].border=Border(left=Side(style='thin'),top=Side(style='thin'),right=Side(style='thin'),)
+        sheet['B9'].border=Border(top=Side(style='thin'),right=Side(style='thin'),)
+        sheet['C9'].border=Border(top=Side(style='thin'),right=Side(style='thin'),)
+        sheet['D9'].border=Border(top=Side(style='thin'),right=Side(style='thin'),)
+        sheet['E9'].border=Border(top=Side(style='thin'),right=Side(style='thin'),)
+        sheet['F9'].border=Border(top=Side(style='thin'),right=Side(style='thin'),)
+        sheet['G9'].border=Border(top=Side(style='thin'),right=Side(style='thin'),)
+        sheet['H9'].border=Border(top=Side(style='thin'),right=Side(style='thin'),)
+
+        sheet['A10'].border=Border(left=Side(style='thin'),bottom=Side(style='thin'),right=Side(style='thin'),)
+        sheet['B10'].border=Border(bottom=Side(style='thin'),right=Side(style='thin'),)
+        sheet['C10'].border=Border(bottom=Side(style='thin'),right=Side(style='thin'),)
+        sheet['D10'].border=Border(bottom=Side(style='thin'),right=Side(style='thin'),)
+        sheet['E10'].border=Border(bottom=Side(style='thin'),right=Side(style='thin'),)
+        sheet['F10'].border=Border(bottom=Side(style='thin'),right=Side(style='thin'),)
+        sheet['G10'].border=Border(bottom=Side(style='thin'),right=Side(style='thin'),)
+        sheet['H10'].border=Border(bottom=Side(style='thin'),right=Side(style='thin'),)
+
+       
+
+        # # Establecer Anchos personalizados
+        sheet.column_dimensions['A'].width = 4
+        sheet.column_dimensions['B'].width = 12
+        sheet.column_dimensions['C'].width = 26
+        sheet.column_dimensions['D'].width = 6
+        sheet.column_dimensions['E'].width = 8
+        sheet.column_dimensions['F'].width = 12
+        sheet.column_dimensions['G'].width = 10
+        sheet.column_dimensions['H'].width = 10
+
+
+        
+
+        row = 11
+        
+        for item in queryset:
+            # Organizar las clasificaciones
+            clasificaciones = ', '.join(item.clasificado.values_list('name', flat=True)) if item.clasificado.exists() else 'NO DEFINIDA'
+
+            
+            
+            sheet.cell(row=row, column=1).value = f'{row-10}'
+            sheet.cell(row=row, column=2).value = item.date_create.strftime("%d/%m/%Y")
+            sheet.cell(row=row, column=3).value = item.nombre_residuo
+            sheet.cell(row=row, column=4).value = item.total_residuo
+            sheet.cell(row=row, column=5).value = item.unidades.name
+            sheet.cell(row=row, column=6).value = clasificaciones
+            sheet.cell(row=row, column=7).value = item.estado.name
+            sheet.cell(row=row, column=8).value = ''
+            
+            for col in range(1, 9):
+                sheet.cell(row=row, column=col).border = thin_border
+                sheet.cell(row=row, column=col).alignment = alignment
+
+            row += 1
+        # Después de la última fila de la tabla, en la columna A
+        sheet.cell(row=row, column=1).value = "Código: Mz.FT.SGA.006"
+        sheet.cell(row=row, column=1).font = Font(bold=True, italic=True)
+        sheet.cell(row=row, column=1).alignment = Alignment(horizontal='left')
+
+        # En la columna H
+        sheet.cell(row=row, column=8).value = "Version: 1.0"
+        sheet.cell(row=row, column=8).font = Font(bold=True, italic=True)
+        sheet.cell(row=row, column=8).alignment = Alignment(horizontal='right')
+        sheet.row_dimensions[row].height = 22  # Establecer el alto de la fila en 22
+
+        start_column = 1
+        end_column = 8
+        start_row = 4
+        end_row = row - 1
+
+        start_column_letter = get_column_letter(start_column)
+        end_column_letter = get_column_letter(end_column)
+
+        table_range = f"{start_column_letter}{start_row}:{end_column_letter}{end_row}"
+
+        
+
+        fill = PatternFill(fill_type="solid", fgColor=WHITE)
+        start_cell = sheet['A1']
+        end_column_letter = get_column_letter(end_column)
+        end_row = row+1
+        end_cell = sheet[end_column_letter + str(end_row)]
+        table_range = start_cell.coordinate + ':' + end_cell.coordinate
+
+        for row in sheet[table_range]:
+            for cell in row:
+                cell.fill = fill
+
+        # Color de fondo deseado en formato hexadecimal
+        color_hex = "d9d9d9"
+
+        # Crear un objeto PatternFill con el color deseado
+        fill = PatternFill(start_color=color_hex, end_color=color_hex, fill_type="solid")
+
+        # Aplicar el color de fondo al rango de celdas A9:H10
+        for row in range(9, 11):
+            for column in range(1, 9):
+                sheet.cell(row=row, column=column).fill = fill
+
+        # Color de texto deseado en formato hexadecimal
+        color_hex = "FF0000"  # Rojo
+
+        # Crear un objeto Font con el color deseado
+        font = Font(color=color_hex, bold=True)
+
+        # Aplicar el color de texto a la celda B9
+        sheet['B9'].font = font
+
+        
+
+        # Establecer el tamaño de la hoja para impresión (Letter)
+        sheet.page_setup.paperSize = sheet.PAPERSIZE_LETTER
+
+        # Configuración de los márgenes
+        workbook.page_margins = PageMargins(left=0.2, right=0.2, top=0.2, bottom=0.2, header=0.1, footer=0.1)
+
+        # Establecer el ancho total de la hoja para que se ajuste a las márgenes
+        sheet.page_setup.fitToWidth = 1
+
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename={get_file_name()}'
+
+        workbook.save(response)
+
+        tipo_evento = 'DESCARGA DE ARCHIVOS'
+        usuario_evento = request.user
+        crear_evento(tipo_evento, usuario_evento)
+
+        return response

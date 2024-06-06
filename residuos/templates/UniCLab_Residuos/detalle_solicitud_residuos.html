@@ -1,7 +1,7 @@
 {% extends "webtemplate_residuos.html" %}
 {% load has_group %}
 {% load static %}
-
+{% load custom_filters_1 %}
 <!doctype html>
 <html lang="es">
 
@@ -10,8 +10,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Detalle de registro de residuos{% endblock %}</title>
     {% block head %}
-     
-        <script>
+
+    <script>
         url = "{% url 'residuos:delete_pdf' %}"
         pdf_filename = "{{ pdf_filename }}"
         solicitud = "{{ solicitud }}"
@@ -20,7 +20,7 @@
     <!-- Llama Script  que cierra ventana envía notificación y borra PDF -->
     <script src="{% static 'inventarioreac/js/ClearPDF.js' %}" defer></script>
 
-    
+
 
     {% endblock %}
 </head>
@@ -33,15 +33,17 @@
         <br>
         {% if request.user|has_group:"ADMINISTRADOR" or request.user.is_superuser or request.user|has_group:"ADMINISTRADOR AMBIENTAL" %}
         <div class="text-md-left">
-            
-            {% if registro.respondido %}
-    <p style="color: #555; font-size: 14px; margin-bottom: 10px;">Ya se ha dado respuesta a este registro de residuos</p>
-    {% else %}
-    <button type="button" class="btn btn-default" style="margin-bottom: 10px;" onclick="cerrarVentana()">Cerrar Ventana</button>
-{% endif %}
 
-                        
-        
+            {% if registro.respondido %}
+            <p style="color: #555; font-size: 14px; margin-bottom: 10px;">Ya se ha dado respuesta a este registro de
+                residuos</p>
+            {% else %}
+            <button type="button" class="btn btn-default" style="margin-bottom: 10px;" onclick="cerrarVentana()">Cerrar
+                Ventana</button>
+            {% endif %}
+
+
+
         </div>
         {% endif %}
         <br>
@@ -49,6 +51,11 @@
             <embed src="{{ pdf_url }}" type="application/pdf" id="pdf-viewer">
             ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         </div>
+        <!-- Opciones de exportación -->
+<div class="card-footer text-md-left">
+    <a href="{% url 'residuos:export_2_xls_wastes_rp1' solicitud|double_base64_encode %}" class="btn btn-default" style="color: #555;">Descargar .xlsx</a>
+</div>
+
     </div>
 
 

@@ -11,6 +11,7 @@ from django.core.validators import RegexValidator, EmailValidator
 
 class User(AbstractUser): 
     email = models.EmailField('Correo Electrónico', unique=True)
+    
     lab = models.ForeignKey('reactivos.Laboratorios', on_delete=models.CASCADE, related_name='lab_users', verbose_name='laboratorio', null=True)
     rol = models.ForeignKey('reactivos.Rol', on_delete=models.CASCADE, blank=True, related_name='rol_user', verbose_name='Rol',null=True)
     acceptDataProcessing=models.BooleanField(default=False,verbose_name="Acepta tratamiento de datos")
@@ -19,6 +20,7 @@ class User(AbstractUser):
     last_updated_by = models.ForeignKey('reactivos.User', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Actualizado por',related_name='updateby_User',)
     id_number=models.BigIntegerField('Número de identificación', unique=True,null=True, blank=True,)
     phone_number=models.CharField(max_length=15, verbose_name="Teléfono", unique=True,null=True, blank=True,)
+    position_company = models.CharField(max_length=150, verbose_name="Cargo", blank=False, )
 
    
     USERNAME_FIELD = 'email'
@@ -243,6 +245,7 @@ class Destinos(models.Model):
 # Modelo para tabla Laboratorios en base de datos Reactivos
 class Laboratorios(models.Model):
     name = models.CharField(max_length=100, verbose_name="Nombre Laboratorio")
+    campus_location = models.CharField(max_length=150, null=True, blank=True, verbose_name="Ubicación del Campus")
     is_active = models.BooleanField(default=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Usuario')
     date_create = models.DateTimeField(auto_now_add=True,verbose_name='Fecha registro',)

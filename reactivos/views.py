@@ -1863,6 +1863,9 @@ def crear_laboratorio(request):
         name = request.POST.get('name')
         name = estandarizar_nombre(name)
 
+        campus_location = request.POST.get('campus_location')
+        campus_location = estandarizar_nombre(campus_location)
+
         # Verifica si ya existe un registro con el mismo nombre del laboratorio
         if Laboratorios.objects.filter(name=name).exists():
             laboratorio = Laboratorios.objects.get(name=name)
@@ -1875,6 +1878,7 @@ def crear_laboratorio(request):
         laboratorio = Laboratorios.objects.create(
 
             name=name,
+            campus_location=campus_location,
             created_by=request.user,  # Asignar el usuario actualmente autenticado
             last_updated_by=request.user,  # Asignar el usuario actualmente autenticado
 

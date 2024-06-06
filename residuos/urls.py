@@ -33,6 +33,8 @@ urlpatterns = [
     path('UniCLab_Residuos/Registro_Residuos/Listado/Pag/<int:per_page>/', Wastes_Record_Pagination.as_view(), name='Wastes_Record_Pagination'),# Maneja paginación de listado de residuos
     path('UniCLab_Residuos/Autocompletar_Residuos/', AutocompleteWaste.as_view(), name='autocomplete_waste'), # Autocompletar Residuos
     path('UniCLab_Residuos/Registro_Residuos/Listado/Exportar_a_Excel/', Export2ExcelWastes.as_view(), name='export_2_xls_wastes'),# Maneja paginación de listado de residuos
+
+    path('UniCLab_Residuos/Registro_Residuos/RP1/<str:solicitud_id>/', Export2ExcelWastesRP1.as_view(), name='export_2_xls_wastes_rp1'),# Descargar Excel por solicitud
     path('UniCLab_Residuos/Registro_Residuos/Editar/<str:pk>/', EditarRegistroResiduos.as_view(), name='edit_register'),# Editar Registro de residuos
     path('UniCLab_Residuos/Registro_Residuos/Desactivar/<str:pk>/', DisableWasteRecord.as_view(), name='disable_record_waste'), # Deshabilitar Clasificación
     path('UniCLab_Residuos/Registro_Residuos/Activar/<str:pk>/', EnableWasteRecord.as_view(), name='enable_record_waste'), # Habilitar Registro
