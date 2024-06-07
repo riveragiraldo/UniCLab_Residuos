@@ -219,15 +219,18 @@ class Salidaadmin(admin.ModelAdmin):
     list_per_page=10
     ordering=('id',)
 
+# Para importa export
+class InventarioResources(resources.ModelResource):
+    class Meta:
+        model = Inventarios
+
 # Inclusión de el modelo INVENTARIOS en la consola de administración de Django
 @admin.register(Inventarios)
-class Inventarioadmin(admin.ModelAdmin):
-    list_display=('id','name','is_active','trademark','weight','reference','lab','wlocation','minStockControl','minstock','edate','created_by', 'date_create','last_update','last_updated_by',)
-    list_filter=('trademark','name','reference','lab',)
-    search_fields=('trademark','name','reference','lab',)
-    list_per_page=10
-    ordering=('id',)
-
+class Inventarioadmin(ImportExportModelAdmin, admin.ModelAdmin):
+    list_display = ('id', 'name', 'is_active', 'trademark', 'weight', 'reference', 'lab', 'wlocation', 'minStockControl', 'minstock', 'edate', 'created_by', 'date_create', 'last_update', 'last_updated_by',)
+    list_per_page = 10
+    ordering = ('id',)
+    resource_class = InventarioResources
 
 
 class UserAdmin(BaseUserAdmin):

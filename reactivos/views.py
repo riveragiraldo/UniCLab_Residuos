@@ -1073,9 +1073,10 @@ def solicitud_no_leida(request, solicitud_code):
     crear_evento(tipo_evento, usuario_evento)
     return HttpResponse('Solicitud marcada como no leída correctamente', 200)
 
-
+from django.utils.formats import date_format
 # Enviar Correo
-def enviar_correo(recipient_list, subject, message,attach_path):
+# Enviar Correo
+def enviar_correo(recipient_list, subject, message, attach_path):
     attach = None  # Asigna un valor predeterminado
     # Lógica para construir el mensaje de correo
     if attach_path:
@@ -1084,18 +1085,23 @@ def enviar_correo(recipient_list, subject, message,attach_path):
     # Obtener el dominio
     configuracion = ConfiguracionSistema.objects.first()
     url = configuracion.url
-    # Configura la localización a español
-    locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+    try:
+        # Intenta configurar la localización a español
+        locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+    except locale.Error:
+        # Si falla, usa una configuración regional ampliamente soportada
+        print("Locale 'es_ES.UTF-8' no soportado, usando 'en_US.UTF-8'.")
+        locale.setlocale(locale.LC_TIME, 'en_US.UTF-8')
     
     # Obtén la fecha y hora actual en el formato "dd de mes de aaaa, hh:mm AM/PM"
-    fecha_actual = format_datetime(localtime(), 'dd MMMM yyyy, hh:mm a', locale='es_ES')
+    fecha_actual = date_format(localtime(), 'd M Y, h:i A')
     
     # Contexto del template del diseño del correo 
     context = {
         'url': url,
         'fecha_actual': fecha_actual,
-        'message':message,
-        }
+        'message': message,
+    }
     
     # Template
     html_message = render_to_string('dir_lab/enviar_correo.html', context)
@@ -1117,7 +1123,7 @@ def enviar_correo(recipient_list, subject, message,attach_path):
         if attach:
             attach.close()
 
-    mensaje=f'Se ha enviado el mensaje de manera correcta'
+    mensaje = f'Se ha enviado el mensaje de manera correcta'
     print(mensaje)
 
 # Vista para la creación del index, 
@@ -4412,10 +4418,10 @@ class ListadoUsuarios(LoginRequiredMixin, ListView):
 
 #Crear Usuarios
 class CrearUsuario(LoginRequiredMixin, CreateView):
-    model=User
-    form_class=FormularioUsuario
-    template_name='usuarios/crear_usuario.html'
-    success_url='reactivos:index'
+    model = User
+    form_class = FormularioUsuario
+    template_name = 'usuarios/crear_usuario.html'
+    success_url = 'reactivos:index'
     # Validador de grupos que pueden acceder
     # Sobreescribir el método dispatch para aplicar el decorador
     @check_group_permission(groups_required=['COORDINADOR', 'ADMINISTRADOR'])
@@ -4427,10 +4433,10 @@ class CrearUsuario(LoginRequiredMixin, CreateView):
         context['laboratorio'] = self.request.user.lab
         context['labname'] = self.request.user.lab.name
         context['usuarios'] = User.objects.all()
-        context['roles'] = Rol.objects.all()  
-        context['laboratorios'] = Laboratorios.objects.all()  
+        context['roles'] = Rol.objects.all()
+        context['laboratorios'] = Laboratorios.objects.all()
         return context
-    
+
     def send_confirmation_email(self, user):
         protocol = 'https' if self.request.is_secure() else 'http'
         domain = self.request.get_host()
@@ -4442,15 +4448,15 @@ class CrearUsuario(LoginRequiredMixin, CreateView):
 
         subject = _('Bienvenido a la Gestión de Insumos Químicos')
         if user.acceptDataProcessing:
-            aceptapolitica='Acepta'
+            aceptapolitica = 'Acepta'
         else:
-            aceptapolitica='No acepta'
+            aceptapolitica = 'No acepta'
 
         context = {
             'user': user,
             'reset_url': reset_url,
-            'aceptapolitica':aceptapolitica,
-            'home_url':home_url,
+            'aceptapolitica': aceptapolitica,
+            'home_url': home_url,
         }
         message = render_to_string('registration/registro_exitoso_email.html', context)
         plain_message = strip_tags(message)
@@ -4458,44 +4464,41 @@ class CrearUsuario(LoginRequiredMixin, CreateView):
         recipient_list = [user.email]
         # envío de correo electrónico en segundo plano
         # Archivo adjunto nulo
-        attach_path=None
+        attach_path = None
         # Crear un hilo y ejecutar enviar_correo en segundo plano
         correo_thread = threading.Thread(
-        target=enviar_correo, args=(recipient_list, subject, message, attach_path),)
+            target=enviar_correo, args=(recipient_list, subject, message, attach_path),)
         correo_thread.start()
 
     def form_valid(self, form):
-
         def has_required_password_conditions(password):
             # Mínimo 8 caracteres, al menos una mayúscula, un número y un carácter especial
             password_pattern = r"^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
             return re.match(password_pattern, password) is not None
-        
+
         # Verificar si el id_number ya existe en la base de datos
         id_number = form.cleaned_data['id_number']
 
         if User.objects.filter(id_number=id_number).exists():
             messages.error(self.request, f"No es posible crear el usuario {form.cleaned_data['username']} ya que su número de identificación {id_number} ya existe en la base de datos.")
             return HttpResponseBadRequest("Ya existe un registro en la base de datos")
-        
+
         # Verificar si el phone_number ya existe en la base de datos
         phone_number = form.cleaned_data['phone_number']
 
         if User.objects.filter(phone_number=phone_number).exists():
             messages.error(self.request, f"No es posible crear el usuario {form.cleaned_data['username']} ya que su número de teléfono {phone_number} ya existe en la base de datos.")
             return HttpResponseBadRequest("Ya existe un registro en la base de datos")
-        
+
         # Verificar si el email ya existe en la base de datos
         email = form.cleaned_data['email']
-        
 
         if User.objects.filter(email=email).exists():
             messages.error(self.request, f"No es posible crear el usuario {form.cleaned_data['username']} ya que su correo electrónico {email} ya existe en la base de datos.")
             return HttpResponseBadRequest("Ya existe un registro en la base de datos")
-        
+
         # Verificar si el username ya existe en la base de datos
         username = form.cleaned_data['username']
-        
 
         if User.objects.filter(username=username).exists():
             messages.error(self.request, f"No es posible crear el usuario {form.cleaned_data['username']} ya que su nombre de usuario {username} ya existe en la base de datos.")
@@ -4504,17 +4507,16 @@ class CrearUsuario(LoginRequiredMixin, CreateView):
         # Validación personalizada para contraseñas
         password1 = form.cleaned_data.get('password1')
         password2 = form.cleaned_data.get('password2')
-        
+
         if password1 != password2:
             messages.error(self.request, "No se puedo crear el usuario porque las contraseñas no coinciden.")
             return HttpResponse('Contraseña no cumple', status=400)
 
         if not has_required_password_conditions(password1):
             messages.error(self.request, "No se puedo crear el usuario porque la contraseña no satisface los requisitos de la política de contraseñas: Mínimo 8 caracteres, al menos una letra mayúscula, un número y un caracter especial")
-            
+
             return HttpResponse('Contraseña no cumple', status=400)
-        
-        
+
         # Agrega los campos adicionales al usuario antes de guardarlo en la base de datos
 
         user = form.save(commit=False)
@@ -4529,46 +4531,15 @@ class CrearUsuario(LoginRequiredMixin, CreateView):
         user.user_create = self.request.user
         # Asignar el usuario actual al campo last_updated_by
         user.last_updated_by = self.request.user
-        
+
         # Guarda el usuario en la base de datos
         user.save()
-        
+
         # Establece el objeto creado para que se pueda usar en la redirección
         self.object = user
-        
-     
+
         # Enviar correo electrónico de confirmación
-        protocol = 'https' if self.request.is_secure() else 'http'
-        domain = self.request.get_host()
-        # Codificar el correo electrónico en base64 y agregarlo en la URL
-        encoded_email = base64.urlsafe_b64encode(user.email.encode()).decode()
-        reset_link = reverse('reactivos:password_reset') + '?' + urlencode({'email': encoded_email})
-        reset_url = f"{protocol}://{domain}{reset_link}"
-        home_url = f"{protocol}://{domain}"
-
-        subject = _('Bienvenido a la Gestión de Insumos Químicos')
-        if user.acceptDataProcessing:
-            aceptapolitica='Acepta'
-        else:
-            aceptapolitica='No acepta'
-
-        context = {
-            'user': user,
-            'reset_url': reset_url,
-            'aceptapolitica':aceptapolitica,
-            'home_url':home_url,
-        }
-        message = render_to_string('registration/registro_exitoso_email.html', context)
-        plain_message = strip_tags(message)
-        from_email = "Notificaciones UniCLab <noreply@unal.edu.co>"
-        recipient_list = [user.email]
-        # envío de correo electrónico en segundo plano
-        # Archivo adjunto nulo
-        attach_path=None
-        # Crear un hilo y ejecutar enviar_correo en segundo plano
-        correo_thread = threading.Thread(
-        target=enviar_correo, args=(recipient_list, subject, message, attach_path),)
-        correo_thread.start()
+        self.send_confirmation_email(user)
 
         # Agregar mensaje de éxito
         # Crea un evento de crear usuario
@@ -4577,6 +4548,7 @@ class CrearUsuario(LoginRequiredMixin, CreateView):
         crear_evento(tipo_evento, usuario_evento)
         messages.success(self.request, f"Se ha creado exitosamente el usuario {user.first_name} {user.last_name} y se ha enviado un correo electrónico de confirmación a {user.email}.")
 
+        
         return HttpResponse('Operación exitosa', status=200)
     
 # Vista para editar usuarios

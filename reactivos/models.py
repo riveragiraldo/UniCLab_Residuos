@@ -371,11 +371,11 @@ class Almacenamiento(models.Model):
 
 # Modelo para tabla Reactivos en base de datos Reactivos
 class Reactivos(models.Model):
-    code = models.CharField(max_length=255, verbose_name="Código", unique=True)
+    code = models.CharField(max_length=255, verbose_name="Código", unique=False)
     name = models.CharField(max_length=255, verbose_name="Nombre", unique=True)
     unit = models.ForeignKey(Unidades, on_delete=models.CASCADE,
                              related_name='reactive', verbose_name="Unidad")
-    cas = models.CharField(max_length=20, verbose_name="Código CAS", unique=False)
+    cas = models.CharField(max_length=100, verbose_name="Código CAS", unique=False)
     state = models.ForeignKey(Estados, on_delete=models.CASCADE,
                               related_name='state', verbose_name="Presentación")
     almacenamiento_interno = models.ForeignKey(AlmacenamientoInterno, on_delete=models.CASCADE,
@@ -398,6 +398,7 @@ class Reactivos(models.Model):
     class Meta:
         verbose_name_plural = 'Reactivos'
         verbose_name = 'Reactivo'
+
 
 # Modelo para tabla Entradas en base de datos Reactivos
 class Entradas(models.Model):
@@ -429,7 +430,7 @@ class Entradas(models.Model):
     last_updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Actualizado por',related_name='updateby_In',)
     
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     @property
     def unity_name(self):
@@ -438,6 +439,7 @@ class Entradas(models.Model):
     class Meta:
         verbose_name_plural = 'Entradas'
         verbose_name = 'Entrada'
+
 
 
 # Modelo para tabla Salidas en base de datos Reactivos
@@ -475,30 +477,30 @@ class Salidas(models.Model):
         verbose_name_plural = 'Salidas'
         verbose_name = 'Salida'
 
-# Modelo para tabla Inventarios en base de datos Reactivos
 class Inventarios(models.Model):
     name = models.ForeignKey('Reactivos', on_delete=models.CASCADE, verbose_name="Nombre del reactivo")
     trademark = models.ForeignKey('Marcas', on_delete=models.CASCADE, verbose_name="Marca")
     weight = models.DecimalField(max_digits=15, decimal_places=2, verbose_name="Cantidad en inventario")
     reference = models.CharField(max_length=20, verbose_name="Referencia")
-    lab=models.ForeignKey(Laboratorios, on_delete=models.CASCADE, related_name='laboratorio', verbose_name='Laboratorio')
-    wlocation=models.ForeignKey(Almacenamiento, on_delete=models.CASCADE, related_name='wloc', verbose_name='Ubicación en Almacén')
-    edate=models.DateField(verbose_name="Fecha de vencimiento", null=True, blank=True)
-    visibility=models.BooleanField(default=True, verbose_name='Visibilidad')
+    lab = models.ForeignKey(Laboratorios, on_delete=models.CASCADE, related_name='laboratorio', verbose_name='Laboratorio')
+    wlocation = models.ForeignKey(Almacenamiento, on_delete=models.CASCADE, related_name='wloc', verbose_name='Ubicación en Almacén')
+    edate = models.DateField(verbose_name="Fecha de vencimiento", null=True, blank=True)
+    visibility = models.BooleanField(default=True, verbose_name='Visibilidad')
     minStockControl = models.BooleanField(default=True, verbose_name='Control de Stock Mínimo')
     minstock = models.DecimalField(
         max_digits=8, decimal_places=2, blank=True, null=True, default=0, help_text="Ingrese el stock mínimo (puede ser nulo).", verbose_name="Stock mínimo")
     is_active = models.BooleanField(default=True, verbose_name='Activo')
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Usuario')
-    date_create = models.DateTimeField(auto_now_add=True,verbose_name='Fecha registro',)
-    last_update = models.DateTimeField(auto_now=True,verbose_name='Última Actualización')
-    last_updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Actualizado por',related_name='updateby_Inventory',)
+    date_create = models.DateTimeField(auto_now_add=True, verbose_name='Fecha registro')
+    last_update = models.DateTimeField(auto_now=True, verbose_name='Última Actualización')
+    last_updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Actualizado por', related_name='updateby_Inventory')
 
     class Meta:
         verbose_name_plural = "Inventarios"
 
     def __str__(self):
-        return f"{self.reactivo.nombre} ({self.marca.nombre}): {self.cantidad}"
+        return f"{self.name.name} ({self.trademark.name}): {self.weight}"
+
 
 
 
