@@ -1091,7 +1091,8 @@ def enviar_correo(recipient_list, subject, message, attach_path):
     except locale.Error:
         # Si falla, usa una configuración regional ampliamente soportada
         print("Locale 'es_ES.UTF-8' no soportado, usando 'en_US.UTF-8'.")
-        locale.setlocale(locale.LC_TIME, 'en_US.UTF-8')
+        # locale.setlocale(locale.LC_TIME, 'en_US.UTF-8')
+        locale.setlocale(locale.LC_TIME, 'C.utf8')
     
     # Obtén la fecha y hora actual en el formato "dd de mes de aaaa, hh:mm AM/PM"
     fecha_actual = date_format(localtime(), 'd M Y, h:i A')

@@ -58,7 +58,7 @@ class CLASIFICACION_RESIDUOS(models.Model):
     )
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     class Meta:
         verbose_name = "Clasificación de Residuos"
@@ -114,7 +114,7 @@ class SOLICITUD_RESIDUO(models.Model):
     )
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     class Meta:
         verbose_name = "Registro de Residuo"
@@ -206,7 +206,7 @@ class REGISTRO_RESIDUOS(models.Model):
     )
 
     def __str__(self):
-        return self.nombre_residuo
+        return str(self.nombre_residuo)
 
     class Meta:
         verbose_name = "Registro de Residuos"
@@ -250,7 +250,7 @@ class FichaSeguridad(models.Model):
         verbose_name_plural = "Fichas de Seguridad"
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
 
 # ---------------------------------- #
@@ -304,7 +304,7 @@ class CERTIFICADO_DISPOSICION(models.Model):
     )
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     class Meta:
         verbose_name = "Certificado de Disposición"
@@ -348,7 +348,7 @@ class InformacionInteres(models.Model):
     )
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     class Meta:
         verbose_name = "Información de Interés"

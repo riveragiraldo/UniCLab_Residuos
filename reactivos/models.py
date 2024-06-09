@@ -61,7 +61,7 @@ class Rol(models.Model):
         verbose_name_plural = 'Roles'
         verbose_name = 'Rol'
     def __str__(self):
-        return self.name
+        return str(self.name)
     def save(self, *args,**kwargs):
         permisos_defecto=['add','change','delete','view']
         if not self.id:
@@ -103,7 +103,7 @@ class Unidades(models.Model):
     last_updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Actualizado por', related_name='updateby_units',)
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     class Meta:
         verbose_name_plural = 'Unidades'
@@ -119,7 +119,7 @@ class TipoSolicitud(models.Model):
     last_updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Actualizado por', related_name='updateby_TipoS',)
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     class Meta:
         verbose_name_plural = 'Tipo de solicitud'
@@ -130,7 +130,7 @@ class TipoEvento(models.Model):
     name = models.CharField(max_length=100, verbose_name="Nombre del tipo de evento")
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     class Meta:
         verbose_name_plural = 'Tipos de eventos'
@@ -143,7 +143,7 @@ class Eventos(models.Model):
     fecha_evento = models.DateTimeField(auto_now_add=True,verbose_name='Fecha evento', null=True, blank=True)
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     class Meta:
         verbose_name_plural = 'Eventos'
@@ -166,7 +166,7 @@ class Solicitudes(models.Model):
     last_updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Actualizado por', related_name='updateby_solicitudes',)
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     class Meta:
         verbose_name_plural = 'Solicitudes'
@@ -204,7 +204,7 @@ class Marcas(models.Model):
     last_update = models.DateTimeField(auto_now=True,verbose_name='Última Actualización')
     last_updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Actualizado por',related_name='updateby_trademarks',)
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     class Meta:
         verbose_name_plural = 'Marcas'
@@ -220,7 +220,7 @@ class Estados(models.Model):
     last_updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Actualizado por',related_name='updateby_states',)
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     class Meta:
         verbose_name_plural = 'Estados'
@@ -236,7 +236,7 @@ class Destinos(models.Model):
     last_updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Actualizado por',related_name='updateby_Destinos',)
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     class Meta:
         verbose_name_plural = 'Destinos'
@@ -253,7 +253,7 @@ class Laboratorios(models.Model):
     last_updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Actualizado por',related_name='updateby_Lab',)
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     class Meta:
         verbose_name_plural = 'Laboratorios'
@@ -273,7 +273,7 @@ class Responsables(models.Model):
     last_updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Actualizado por',related_name='updateby_Manager',)
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     class Meta:
         verbose_name_plural = 'Responsables'
@@ -289,7 +289,7 @@ class Facultades(models.Model):
     last_updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Actualizado por',related_name='updateby_Facultades',)
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     class Meta:
         verbose_name_plural = 'Facultades'
@@ -307,7 +307,7 @@ class AlmacenamientoInterno(models.Model):
     last_updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Actualizado por',related_name='updateby_respel',)
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     class Meta:
         verbose_name_plural = 'Almacenamiento Interno'
@@ -324,7 +324,7 @@ class ClaseAlmacenamiento(models.Model):
     last_updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Actualizado por', related_name='updateby_storage_class')
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     class Meta:
         verbose_name_plural = 'Clases de almacenamiento'
@@ -344,7 +344,7 @@ class Ubicaciones(models.Model):
     
    
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     class Meta:
         verbose_name_plural = 'Ubicaciones/Asignaturas'
@@ -363,7 +363,7 @@ class Almacenamiento(models.Model):
     last_updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Actualizado por',related_name='updateby_Storage',)
     
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     class Meta:
         verbose_name_plural = 'Ubicación en Almacén'
@@ -389,11 +389,11 @@ class Reactivos(models.Model):
     last_updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Actualizado por',related_name='updateby_Reactivo',)
     
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     @property
     def unity_name(self):
-        return self.unity.name
+        return str(self.unity.name)
 
     class Meta:
         verbose_name_plural = 'Reactivos'
@@ -467,11 +467,11 @@ class Salidas(models.Model):
     last_updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Actualizado por',related_name='updateby_Out',)
     
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     @property
     def unity_name(self):
-        return self.unity.name
+        return str(self.unity.name)
 
     class Meta:
         verbose_name_plural = 'Salidas'
