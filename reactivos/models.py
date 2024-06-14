@@ -143,7 +143,7 @@ class Eventos(models.Model):
     fecha_evento = models.DateTimeField(auto_now_add=True,verbose_name='Fecha evento', null=True, blank=True)
 
     def __str__(self):
-        return str(self.name)
+        return f'{self.fecha_evento} - {self.tipo_evento}'
 
     class Meta:
         verbose_name_plural = 'Eventos'
@@ -536,7 +536,7 @@ class SolicitudesExternas(models.Model):
     message = models.TextField(max_length=1000, verbose_name='Mensaje',)
     attach = models.FileField(upload_to='solicitud_attachments/', null=True, blank=True, verbose_name='Archivos adjunto',)
     registration_date = models.DateTimeField(auto_now_add=True, editable=False)
-    lab = models.ForeignKey(Laboratorios, on_delete=models.CASCADE, verbose_name='Fecha y hora de solicitud',)
+    lab = models.ForeignKey(Laboratorios, on_delete=models.CASCADE, verbose_name='Laboratorio que recepciona',)
     email = models.EmailField(validators=[email_validator], verbose_name='Correo Electrónico',)
     mobile_number = models.CharField(max_length=10, validators=[mobile_number_validator], verbose_name='Teléfono Móvil',)
     department = models.CharField(max_length=100, verbose_name='Departamento',)

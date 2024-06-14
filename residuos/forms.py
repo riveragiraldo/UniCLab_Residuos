@@ -63,6 +63,12 @@ class ClasificacionResiduosForm(forms.ModelForm):
 # Formulario para registro de residuos #
 class RegistroResiduosForm(forms.ModelForm):
 
+    clasificado = forms.ModelMultipleChoiceField(
+        queryset=CLASIFICACION_RESIDUOS.objects.filter(is_active=True),
+        widget=forms.SelectMultiple(attrs={"class": "form-control"}),
+        label="Clasificado"
+    )
+
     class Meta:
         model = REGISTRO_RESIDUOS
         fields = [
@@ -97,7 +103,6 @@ class RegistroResiduosForm(forms.ModelForm):
             "cantidad": forms.NumberInput(attrs={"class": "form-control", "min": 0}),
             "unidades": forms.Select(attrs={"class": "form-control"}),
             "numero_envases": forms.NumberInput(attrs={"class": "form-control"}),
-            "clasificado": forms.SelectMultiple(attrs={"class": "form-control"}),
             "estado": forms.Select(attrs={"class": "form-control"}),
             "observaciones": forms.TextInput(attrs={"class": "form-control"}),
         }
@@ -117,12 +122,15 @@ class RegistroResiduosForm(forms.ModelForm):
 
         return cleaned_data
 
-
 # ------------------------------------ #
 # Formulario para registro de residuos #
 class EditResiduosForm(forms.ModelForm):
     # ficha_seguridad = forms.FileField(widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'multiple': ''}), required=False)
-
+    clasificado = forms.ModelMultipleChoiceField(
+        queryset=CLASIFICACION_RESIDUOS.objects.filter(is_active=True),
+        widget=forms.SelectMultiple(attrs={"class": "form-control"}),
+        label="Clasificado"
+    )
     def __init__(self, *args, **kwargs):
         # Extraer el valor máximo de solicitud del kwargs
         max_solicitud = kwargs.pop("max_solicitud", None)

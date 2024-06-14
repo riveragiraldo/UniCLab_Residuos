@@ -124,8 +124,15 @@ class Wastes_Classification_List(LoginRequiredMixin,ListView):
         queryset = super().get_queryset()
 
         id_classification = self.request.GET.get('id_classification')
-        if id_classification:
-            queryset = queryset.filter(id=id_classification)
+        if self.request.user.rol.name=='ADMINISTRADOR' or self.request.user.rol.name=='ADMINISTRADOR AMBIENTAL':
+            
+            if id_classification:
+                queryset = queryset.filter(id=id_classification) 
+        else:
+            
+            queryset = queryset.filter(is_active=True)
+            if id_classification:
+                queryset = queryset.filter(id=id_classification, is_active=True)
 
         queryset = queryset.order_by('id')
         return queryset

@@ -4028,7 +4028,7 @@ class EntradasListView(LoginRequiredMixin,ListView):
             queryset = queryset.filter(is_active=True)
 
             
-        queryset = queryset.order_by('id')
+        queryset = queryset.order_by('-id')
         return queryset
     
 # Muestra el listado de salidas
@@ -4172,7 +4172,7 @@ class SalidasListView(LoginRequiredMixin,ListView):
             queryset = queryset.filter(is_active=True)
 
             
-        queryset = queryset.order_by('id')
+        queryset = queryset.order_by('-id')
         return queryset
     
 # Muestra el listado de usuarios
@@ -4250,7 +4250,7 @@ class UsuariosListView(LoginRequiredMixin,ListView):
         if user_id:
             queryset = queryset.filter(id=user_id)
                     
-        queryset = queryset.order_by('id')
+        queryset = queryset.order_by('-id')
         return queryset
 # Listado de eventos
 
@@ -5382,11 +5382,13 @@ def export_to_excel(request):
     sheet['I4'] = 'Inventario mínimo'
     sheet['J4'] = 'Ubicación'
     sheet['K4'] = 'Laboratorio'
-    sheet['L4'] = 'Vencimiento'
-    sheet['M4'] = 'Registrado por'
-    sheet['N4'] = 'Fecha y hora de Registro'
-    sheet['O4'] = 'Actualizado por'
-    sheet['P4'] = 'Fecha y hora de última Actualización'
+    sheet['L4'] = 'Clase de almacenamiento'
+    sheet['M4'] = 'Almacenamiento Interno'
+    sheet['N4'] = 'Vencimiento'
+    sheet['O4'] = 'Registrado por'
+    sheet['P4'] = 'Fecha y hora de Registro'
+    sheet['Q4'] = 'Actualizado por'
+    sheet['R4'] = 'Fecha y hora de última Actualización'
 
     # Establecer la altura de la fila 1 y 2 a 30
     sheet.row_dimensions[1].height = 35
@@ -5449,7 +5451,7 @@ def export_to_excel(request):
 
     row = 4
     # Aplicar el estilo de borde a las celdas de la fila actual
-    for col in range(1, 17):
+    for col in range(1, 19):
         sheet.cell(row=row, column=col).border = thin_border
         sheet.cell(row=row, column=col).font = bold_font
 
@@ -5466,21 +5468,23 @@ def export_to_excel(request):
         sheet.cell(row=row, column=9).value = f'{int(item.minstock)} {item.name.unit.name}'
         sheet.cell(row=row, column=10).value = item.wlocation.name
         sheet.cell(row=row, column=11).value = item.lab.name
-        sheet.cell(row=row, column=12).value = item.edate
-        sheet.cell(row=row, column=13).value = item.created_by.first_name+' '+item.created_by.last_name
-        sheet.cell(row=row, column=14).value = str((item.date_create).strftime('%d/%m/%Y %H:%M:%S'))
-        sheet.cell(row=row, column=15).value = item.last_updated_by.first_name+' '+item.last_updated_by.last_name
-        sheet.cell(row=row, column=16).value = str((item.last_update).strftime('%d/%m/%Y %H:%M:%S'))
+        sheet.cell(row=row, column=12).value = item.name.clase_almacenamiento.name
+        sheet.cell(row=row, column=13).value = item.name.almacenamiento_interno.name
+        sheet.cell(row=row, column=14).value = item.edate
+        sheet.cell(row=row, column=15).value = item.created_by.first_name+' '+item.created_by.last_name
+        sheet.cell(row=row, column=16).value = str((item.date_create).strftime('%d/%m/%Y %H:%M:%S'))
+        sheet.cell(row=row, column=17).value = item.last_updated_by.first_name+' '+item.last_updated_by.last_name
+        sheet.cell(row=row, column=18).value = str((item.last_update).strftime('%d/%m/%Y %H:%M:%S'))
 
         # Aplicar el estilo de borde a las celdas de la fila actual
-        for col in range(1, 17):
+        for col in range(1, 19):
             sheet.cell(row=row, column=col).border = thin_border
 
         row += 1
 
     # Obtén el rango de las columnas de la tabla
     start_column = 1
-    end_column = 16
+    end_column = 18
     start_row = 4
     end_row = row - 1
 

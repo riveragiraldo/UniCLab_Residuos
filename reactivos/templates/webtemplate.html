@@ -478,9 +478,11 @@
 
 							<a class="side-bar-link btn-primary multiline" href="{% url 'reactivos:crear_laboratorio'%}"
 								title="Redirecciona al formulario de creación de laboratorios">Crear Laboratorio</a>
-
+								
+								{% if  request.user.is_superuser %}	
 							<a class="side-bar-link btn-primary multiline" href="{% url 'reactivos:crear_roles'%}"
 								title="Redirecciona al formulario de creación de roles">Crear Roles</a>
+								{% endif %}
 
 							{% endif %}
 							{% if request.user|has_group:"COORDINADOR" or request.user|has_group:"ADMINISTRADOR" or request.user.is_superuser %}
