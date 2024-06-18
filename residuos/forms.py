@@ -66,7 +66,8 @@ class RegistroResiduosForm(forms.ModelForm):
     clasificado = forms.ModelMultipleChoiceField(
         queryset=CLASIFICACION_RESIDUOS.objects.filter(is_active=True),
         widget=forms.SelectMultiple(attrs={"class": "form-control"}),
-        label="Clasificado"
+        label="Clasificado",
+        required=False,
     )
 
     class Meta:
@@ -129,7 +130,8 @@ class EditResiduosForm(forms.ModelForm):
     clasificado = forms.ModelMultipleChoiceField(
         queryset=CLASIFICACION_RESIDUOS.objects.filter(is_active=True),
         widget=forms.SelectMultiple(attrs={"class": "form-control"}),
-        label="Clasificado"
+        label="Clasificado",
+        required=False,
     )
     def __init__(self, *args, **kwargs):
         # Extraer el valor máximo de solicitud del kwargs
