@@ -53,7 +53,8 @@ INSTALLED_APPS = [
     "django_apscheduler",
     'crispy_forms',
     'dir_lab',
-    'residuos', 
+    'residuos',
+    'etiquetas', 
 ]
 
 MIDDLEWARE = [
