@@ -1,0 +1,212 @@
+{% extends "webtemplate_label.html" %}
+{% load static %}<!-- Permite invocar archivos estáticos -->
+
+{% block head %}
+<style>
+	.form-container {
+		background-color: #f0f0f0;
+		border: 1px solid #ccc;
+		padding: 20px;
+	}
+
+	.separator {
+		border-top: 1px solid #ccc;
+		margin: 20px 0;
+	}
+
+	.section-title {
+		font-weight: bold;
+		margin-bottom: 10px;
+	}
+</style>
+
+
+<!-- para el autocompletado -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.0/themes/smoothness/jquery-ui.css">
+
+<script src="{% static 'inventarioreac/js/autocompleteChemicalSubstances.js' %}" defer></script>
+
+<!-- Deshabilitar / Habilitar entradas para formato libre -->
+<script src="{% static 'inventarioreac/js/DisableInputsGenerateLabel.js' %}" defer></script>
+
+<!-- Envío de datos al servidor -->
+<script src="{% static 'inventarioreac/js/sendInfoSubstancesLabel.js' %}" defer></script>
+
+
+{% endblock %}
+
+
+<title>{% block title %}Generar Etiquetas de Sustancias Químicas{% endblock %}
+</title>
+</head>
+
+<body>
+
+
+
+
+	<main class="detalle">
+
+		{% block content %}
+		<div class="container">
+			<div class="row">
+				<div class="col-md-8 col-md-offset-2">
+					<div class="form-container">
+						<h2 class="text-center">GENERADOR DE ETIQUETAS DE SUSTANCIAS QUÍMICAS</h2>
+						{% if messages %}
+						{% for message in messages %}
+						
+							Archivo generado correctamente
+							
+							<div class="form-group row" style="margin-top: 15px;">
+								<div class="col-md-6" id="generate_button_div">
+									
+									
+									<a href="{{ message }}"
+										class="btn btn-primary  btn-block" id="download_link">Descargar Etiqueta</a>
+								</div>
+								<div class="col-md-6">
+									<button type="button" class="btn btn-default btn-block"
+											id="clear_fields" onclick="window.location.reload();">Generar más</button>
+								</div>
+								
+							
+						{% endfor %}
+						{% else %}
+						<!-- Sección 1: Datos de la sustancia -->
+						<div class="section-title">Datos de la sustancia</div>
+						<form method="post" enctype="multipart/form-data" class="needs-validation"
+							id="label_substances_form" name="form">
+							{% csrf_token %}
+							<div class="form-group row">
+								<div class="col-md-6">
+									<label for="keyword">Buscar por nombre o CAS</label>
+									<input type="text" class="form-control" id="keyword" name="keyword"
+										title="Escriba el nombre o CAS de la sustancia">
+								</div>
+								<div class="col-md-6">
+									<label for="number">Número de etiquetas (Máximo 50)</label>
+									<input value="1" type="number" class="form-control" id="number" name="number" min="1" max="50"
+										required title="Se permite generar máximo 50 etiquetas">
+								</div>
+							</div>
+							<div class="form-group row">
+								<div class="col-md-6">
+									<label for="reagent">Nombre</label>
+									<input type="text" class="form-control" id="reagent" name="reagent" required>
+								</div>
+								<div class="col-md-6">
+									<label for="id_reagent">CAS</label>
+									<input type="text" class="form-control" id="cas" name="cas" required readonly>
+									<input type="hidden" class="form-control" id="id_reagent" name="id_reagent" readonly>
+								</div>
+							</div>
+
+							<!-- Separador -->
+							<div class="separator"></div>
+
+							<!-- Sección 2: Características de la etiqueta -->
+							<div class="section-title">Características de la etiqueta</div>
+							<div class="form-group row">
+								<div class="col-md-6">
+									<label>
+										<input type="radio" name="label_type" id="label_type1" value="1" required
+											checked> Etiqueta básica < 30mL </label>
+								</div>
+								<div class="col-md-6">
+									<label>
+										<input type="radio" name="label_type" id="label_type2" value="2" required> 50L >
+										Etiqueta Mediana > 3L
+									</label>
+								</div>
+							</div>
+							<div class="form-group row">
+								<div class="col-md-6">
+									<label>
+										<input type="radio" name="label_type" id="label_type3" value="3" required>
+										Etiqueta pequeña < 3L </label>
+								</div>
+								<div class="col-md-6">
+									<label>
+										<input type="radio" name="label_type" id="label_type4" value="4" required>
+										Etiqueta grande > 50L
+									</label>
+								</div>
+							</div>
+
+							<!-- Separador -->
+							<div class="separator"></div>
+
+							<!-- Sección 3: Datos Adicionales -->
+							<div class="section-title">Datos Adicionales</div>
+							<div class="form-group row">
+								<div class="col-md-12">
+									<label for="lab">Laboratorio</label>
+									<select class="form-control" id="lab" name="lab">
+										<option value="">Seleccione</option>
+										{% for lab in labs %}
+										<option value="{{ lab.id }}">{{ lab.name }}</option>
+										{% endfor %}
+									</select>
+								</div>
+							</div>
+							<div class="form-group row">
+								<div class="col-md-6">
+									<label for="ID_Hermes">ID Hermes</label>
+									<input type="text" class="form-control" id="ID_Hermes" name="ID_Hermes">
+								</div>
+								<div class="col-md-6">
+									<label for="telefono_emergencia">Teléfono Emergencia Unal</label>
+									<input type="tel" class="form-control" id="emergency_number" name="emergency_number"
+										pattern="(^60\d{8}$|^3\d{9}$)"
+										title="Ingrese un número telefónico válido para Colombia que debe tener el formato 60xxxxxxxx o 3xxxxxxxxx">
+
+								</div>
+							</div>
+							<div class="form-group row">
+								<div class="col-md-12">
+									<label>
+										<input type="checkbox" id="empty_template" name="empty_template"> Formato Libre
+									</label>
+								</div>
+							</div>
+
+							<!-- Botones -->
+							<div class="form-group row">
+								<div class="col-md-6">
+									<button type="reset" class="btn btn-default btn-block"
+										id="clear_fields">Limpiar</button>
+								</div>
+								<div class="col-md-6" id="generate_button_div">
+									<button type="submit" class="btn btn-primary btn-block"
+										id="generate_button">Generar</button>
+									<!-- Hidden link initially -->
+									<a href="{% url 'etiquetas:download_format' %}"
+										class="btn btn-primary btn-block hidden" id="download_link">Descargar</a>
+								</div>
+							</div>
+						</form>
+
+					</div>
+						{% endif %}
+
+						
+				</div>
+			</div>
+		</div>
+
+
+
+
+
+
+		{% endblock %}
+
+	</main>
+
+
+</body>
+
+</html>

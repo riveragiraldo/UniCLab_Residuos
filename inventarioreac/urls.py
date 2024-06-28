@@ -24,7 +24,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('',include('reactivos.urls')),
     path('',include('dir_lab.urls')),
-     path('',include('residuos.urls')),
+    path('',include('residuos.urls')),
+    path('',include('etiquetas.urls')),
     path('captcha',include('captcha.urls')),
 ]
 

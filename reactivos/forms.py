@@ -366,6 +366,19 @@ class ConfiguracionSistemaForm(forms.ModelForm):
         label="Logo Institucional",
     )
 
+    formato_libre = forms.FileField(
+        widget=forms.FileInput(
+            attrs={
+                "class": "form.control",
+                "title": "Formato libre para etiquetas",
+                "accept": ".xlsx",
+                "size": "512",
+            }
+        ),
+        required=False,
+        label="Formato para etiquetas de sustancias",
+    )
+
     class Meta:
         model = ConfiguracionSistema
         fields = [
@@ -376,6 +389,7 @@ class ConfiguracionSistemaForm(forms.ModelForm):
             "programacion_activa",
             "manual",
             "logo_institucional",
+            "formato_libre",
         ]
 
     def clean(self):
