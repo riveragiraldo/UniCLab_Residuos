@@ -44,26 +44,22 @@ $(document).ready(function () {
                                         window.location.reload(); // Actualiza la ventana actual si no hay ventana padre o está cerrada
                                     }
                                 }
-
                             });
 
                             // Puedes realizar acciones adicionales aquí según la respuesta del servidor
                         } else {
+                            console.log(response)
                             // Imprimir la respuesta en la consola
                             console.log('Respuesta:', response.errors);
-                            // Formatear mensajes de error para mostrarlos en la alerta
-                            respuesta = response.errors
 
                             let formattedErrors = '';
 
-
-
-                            if (respuesta === 'La sesión no es válida o ha caducado, debe autenticarse nuevamente para realizar la solicitud') {
+                            if (response.errors === 'La sesión no es válida o ha caducado, debe autenticarse nuevamente para realizar la solicitud') {
                                 // Mostrar alerta de errores de validación
                                 Swal.fire({
                                     icon: 'warning',
                                     title: 'Mensaje del servidor',
-                                    text: respuesta,
+                                    text: response.errors,
                                     confirmButtonText: 'Aceptar'
                                 }).then((result) => {
                                     // Redirigir a la página anterior al hacer clic en "Aceptar"
@@ -76,27 +72,24 @@ $(document).ready(function () {
                                         return encodeURIComponent(ciphertext);
                                     };
 
-
-
                                     // Mensaje de ejemplo
-                                    const errorMessage = respuesta;
+                                    const errorMessage = response.errors;
 
                                     // Codificar el mensaje
                                     const encodedMessage = encodeMessage(errorMessage);
                                     pag_anterior += `?error=${encodedMessage}`
 
                                     window.location.href = pag_anterior;
-
                                 });
                             } else {
                                 const errorMessage = response.errors;
-                                console.log(errorMessage);
+                                console.log('Mensaje de error: ', errorMessage);
 
-                                if (typeof errorMessage === "string" && errorMessage.includes("campos")) {
-                                    // Si errorMessage es una cadena que contiene "fichas"
+                                if (typeof errorMessage === "string" && (errorMessage.includes("campos") || errorMessage.includes("generar"))) {
+                                    // Si errorMessage es una cadena que contiene "campos" o "generar"
                                     formattedErrors = errorMessage;
-                                } else  {
-                                    // Si errorMessage es un arreglo de errores
+                                } else if (typeof errorMessage === "object") {
+                                    // Si errorMessage es un objeto
                                     for (const field in errorMessage) {
                                         if (errorMessage.hasOwnProperty(field)) {
                                             formattedErrors += `${errorMessage[field][0]}\n`;

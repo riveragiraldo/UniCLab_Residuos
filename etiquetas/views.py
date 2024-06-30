@@ -8,6 +8,14 @@ from .models import *
 from .utils import check_group_permission
 
 
+from openpyxl.drawing.image import Image as ExcelImage
+from openpyxl.styles import Border, Side, Alignment, Font, PatternFill
+from openpyxl.utils import get_column_letter
+from PIL import Image as PILImage
+import openpyxl
+from openpyxl import Workbook
+import math
+
 # -------------------------------------------- #
 # Vista para la descarga del formato en blanco #
 class DownloadFormatLabelView(LoginRequiredMixin, View):
@@ -54,6 +62,7 @@ class GenerateLabel(LoginRequiredMixin, View):
         try:
             # Obtener los valores de los campos del formulario
             nombre = request.POST.get('reagent')
+            numero = request.POST.get('number')
             cas = request.POST.get('cas')
             id_sustancia = request.POST.get('id_reagent')
             etiqueta = request.POST.get('label_type')
@@ -65,6 +74,7 @@ class GenerateLabel(LoginRequiredMixin, View):
             formato_libre_estado = True if formato_libre == 'on' else False
             # Imprimir los valores en la terminal
             print("Nombre:", nombre)
+            print("Número: ", numero)
             print("CAS:", cas)
             print("ID Sustancia:", id_sustancia)
             print("Etiqueta:", etiqueta)
@@ -95,11 +105,16 @@ class GenerateLabel(LoginRequiredMixin, View):
 
             # Funcionalidad basada en la etiqueta seleccionada
             if etiqueta == '1':
-                mensaje = 'Funcionalidad de etiqueta básica'
+                numero=int(numero)
+                if numero > 56:
+                    mensaje= f'Solo es posible generar 56 etiquetas básicas de manera simultanea, revise e intente nuevamente'
+                    return JsonResponse({'success': False, 'errors': mensaje})
+
+                mensaje = 'Enlace de etiqueta básica generado correctamente'
                 print(mensaje)
                 download_url = reverse('etiquetas:download_basic_label')
                 # Agregar parámetros a la URL
-                download_url = f"{download_url}?lab={laboratorio}&substance_name={nombre}&substance_id={id_sustancia}&hermes_id={id_hermes}&e_number={telefono_emergencia}"
+                download_url = f"{download_url}?substance_name={nombre}&substance_id={id_sustancia}&label_number={numero}"
                 print(download_url)
                 messages.success(self.request, f'{download_url}')
                 return JsonResponse({'success': True, 'message': mensaje})
@@ -145,8 +160,7 @@ class autocompleteChemicalSubstances(LoginRequiredMixin,View):
         term = request.GET.get('term', '')
         
         substances = Sustancias.objects.filter(
-                Q(name__icontains=term) | Q(cas__icontains=term)).order_by('name')[:20]
-        
+                Q(name__icontains=term) | Q(cas__icontains=term)).order_by('name')[:20]        
 
         results = []
         for substance in substances:
@@ -158,6 +172,8 @@ class autocompleteChemicalSubstances(LoginRequiredMixin,View):
             results.append(result)
         return JsonResponse(results, safe=False)
     
+
+
 
 # ----------------------- #
 # Generar Etiqueta Básica #
@@ -173,132 +189,220 @@ class GenerateBasicLabel(LoginRequiredMixin, View):
             return f'Etiqueta_básica_{now.strftime("%d%m%Y%H%M%S")}.xlsx'
         
         # Extraer parámetros de la URL
-        laboratorio = request.GET.get('lab')
         nombre_sustancia = request.GET.get('substance_name')
         id_sustancia = request.GET.get('substance_id')
-        id_hermes = request.GET.get('hermes_id')
-        telefono_emergencia = request.GET.get('e_number')
         
-        print('Hola Mundo')
+        numero_etiquetas = int(request.GET.get('label_number'))  # Convertir a entero
+
+        # Verificar si el número de etiquetas es superior a 56
+        if numero_etiquetas > 56:
+            workbook = openpyxl.Workbook()
+            sheet = workbook.active
+            
+            # Mensaje de error
+            # Mensaje de error
+            error_message = "¡Upps algo ocurrió mal!\nEl número máximo de etiquetas debe ser menor o igual a 56, revisa y genera nuevamente tus etiquetas."
+
+            # Ajustar la celda para el mensaje
+            cell = sheet.cell(row=1, column=1)
+            cell.value = error_message
+            cell.font = Font(name='Arial', size=10, bold=True, color='FF0000')  # Letras llamativas, tamaño más pequeño
+            cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)  # Ajuste de texto y nueva línea
+            sheet.merge_cells('A1:E10')  # Unir celdas para el mensaje, aumentando la altura
+            sheet.row_dimensions[1].height = 40  # Ajustar la altura de la fila
+            sheet.column_dimensions[get_column_letter(1)].width = 50  # Ajustar el ancho de la columna
+            
+            # Guardar el archivo en la memoria y preparar la respuesta HTTP
+            file_name = get_file_name()
+            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = f'attachment; filename={file_name}'
+            workbook.save(response)
+            return response
+
+        sustancia = get_object_or_404(Sustancias, id=id_sustancia)
+        cas = sustancia.cas
+        advertencia = sustancia.warning.name
+        
         workbook = openpyxl.Workbook()
         sheet = workbook.active
 
-        logo_path = finders.find('inventarioreac/Images/escudoUnal_black.png')
-        pil_image = PILImage.open(logo_path)
-        image = ExcelImage(pil_image)
-        sheet.add_image(image, 'A1')
+        # Definir un relleno con fondo blanco
+        white_fill = PatternFill(start_color='FFFFFF', end_color='FFFFFF', fill_type='solid')
 
-        fecha_creacion = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        # Crear un borde de puntos
+        thin_border = Side(style='thin')
+
+        # Calcular número de líneas necesarias
+        num_lines = math.ceil(numero_etiquetas / 4)
         
-        sheet['C1'] = 'Listado de registro de residuos'
-        sheet['C2'] = 'Fecha de Creación: '+fecha_creacion
-        sheet['A4'] = 'ID Solicitud'
-        sheet['B4'] = 'Dependencia'
-        sheet['C4'] = 'Nombre del residuo'
-        sheet['D4'] = 'Cantidad'
-        sheet['E4'] = 'Número de envases'
-        sheet['F4'] = 'Total Residuo'
-        sheet['G4'] = 'Unidades'
-        sheet['H4'] = 'Clasificado Y - A'
-        sheet['I4'] = 'Estado'
-        sheet['J4'] = 'Dependencia que realiza registro'
-        sheet['K4'] = 'Usuario que registra'
+
+        for line in range(num_lines):
+            # Calcular el offset de fila para cada línea
+            row_offset = line * 9  # 9 filas por etiqueta (8 etiquetas + 1 separación)
+
+            for i in range(4):
+                index = line * 4 + i
+                if index >= numero_etiquetas:
+                    break
+
+                # Calcular el offset de columna para cada etiqueta
+                col_offset = i * 7
+                
+                # Aplicar el fondo blanco a las celdas de la etiqueta actual
+                for row in range(1, 9):  # Filas 1 a 8
+                    for col in range(1, 7):  # Columnas A a F
+                        cell = sheet.cell(row=row + row_offset, column=col + col_offset)
+                        cell.fill = white_fill
+
+                # Anchos de columna para cada etiqueta
+                sheet.column_dimensions[get_column_letter(1 + col_offset)].width = 1.68  # Ancho = 1
+                sheet.column_dimensions[get_column_letter(2 + col_offset)].width = 4.9   # Ancho = 4.27
+                sheet.column_dimensions[get_column_letter(3 + col_offset)].width = 3     # Ancho = 2.36 
+                sheet.column_dimensions[get_column_letter(4 + col_offset)].width = 2.90  # Ancho 2.27
+                sheet.column_dimensions[get_column_letter(5 + col_offset)].width = 5.3   # Ancho 4.64 
+                sheet.column_dimensions[get_column_letter(6 + col_offset)].width = 1.68  # Ancho = 1
+
+                # Separador para la siguiente etiqueta a la derecha
+                if i < 3:
+                    sheet.column_dimensions[get_column_letter(7 + col_offset)].width = 1.55
+
+                # # Ajustar las alturas de las filas
+                
+
+                
+                
+                # Ajustar las alturas de las filas
+                sheet.row_dimensions[1 + row_offset].height = 3.8
+                sheet.row_dimensions[2 + row_offset].height = 13.5
+                sheet.row_dimensions[3 + row_offset].height = 9
+                sheet.row_dimensions[4 + row_offset].height = 4.5
+                sheet.row_dimensions[5 + row_offset].height = 11.5
+                sheet.row_dimensions[6 + row_offset].height = 16
+                sheet.row_dimensions[7 + row_offset].height = 29
+                sheet.row_dimensions[8 + row_offset].height = 5.3
+                # Separador para la siguiente etiqueta abajo
+                sheet.row_dimensions[9+ row_offset].height = 8.5
+
+                
+                
+                
+                
+                
+                # Aplicar bordes manualmente para formar el rectángulo
+                # A1: Borde izquierdo y borde arriba
+                sheet.cell(row=1 + row_offset, column=1 + col_offset).border = Border(left=thin_border, top=thin_border)
+
+                # A2:A7 Borde izquierdo
+                for row in range(2, 8):
+                    sheet.cell(row=row + row_offset, column=1 + col_offset).border = Border(left=thin_border)
+
+                # A8 Borde izquierdo y borde abajo
+                sheet.cell(row=8 + row_offset, column=1 + col_offset).border = Border(left=thin_border, bottom=thin_border)
+
+                # B1:E1 Borde arriba
+                for col in range(2, 6):
+                    sheet.cell(row=1 + row_offset, column=col + col_offset).border = Border(top=thin_border)
+
+                # F1: Borde arriba, borde derecho
+                sheet.cell(row=1 + row_offset, column=6 + col_offset).border = Border(top=thin_border, right=thin_border)
+
+                # B7:E8 Borde abajo
+                for col in range(2, 6):
+                    sheet.cell(row=8 + row_offset, column=col + col_offset).border = Border(bottom=thin_border)
+
+                # F8 Borde abajo, borde derecho
+                sheet.cell(row=8 + row_offset, column=6 + col_offset).border = Border(bottom=thin_border, right=thin_border)
+
+                # F2:F7 Borde derecho
+                for row in range(2, 8):
+                    sheet.cell(row=row + row_offset, column=6 + col_offset).border = Border(right=thin_border)
+
+                # Unir celdas B2:E2 y colocar "Nombre de la sustancia"
+                sheet.merge_cells(start_row=2 + row_offset, start_column=2 + col_offset, end_row=2 + row_offset, end_column=5 + col_offset)
+                merged_cell = sheet.cell(row=2 + row_offset, column=2 + col_offset)
+                merged_cell.value = nombre_sustancia.upper()  # Normalizar a mayúscula
+                merged_cell.alignment = Alignment(horizontal='center', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=10)  # Fuente y tamaño
+
+                # Unir celdas B3:C3 y colocar "CAS"
+                sheet.merge_cells(start_row=3 + row_offset, start_column=2 + col_offset, end_row=3 + row_offset, end_column=3 + col_offset)
+                merged_cell = sheet.cell(row=3 + row_offset, column=2 + col_offset)
+                merged_cell.value = 'CAS'
+                merged_cell.alignment = Alignment(horizontal='center', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=8)  # Fuente y tamaño
+
+                # Unir celdas D3:E3 y colocar CAS de la sustancia
+                sheet.merge_cells(start_row=3 + row_offset, start_column=4 + col_offset, end_row=3 + row_offset, end_column=5 + col_offset)
+                merged_cell = sheet.cell(row=3 + row_offset, column=4 + col_offset)
+                merged_cell.value = cas.upper()  # Normalizar a mayúscula
+                merged_cell.alignment = Alignment(horizontal='center', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=8)  # Fuente y tamaño
+
+                # Unir celdas B4:B7, girar 90° a la izquierda y colocar palabra de advertencia en mayúscula y negrita
+                sheet.merge_cells(start_row=4 + row_offset, start_column=2 + col_offset, end_row=7 + row_offset, end_column=2 + col_offset)
+                merged_cell = sheet.cell(row=4 + row_offset, column=2 + col_offset)
+                merged_cell.value = advertencia.upper()  # Normalizar a mayúscula
+                merged_cell.alignment = Alignment(horizontal='center', vertical='center', shrink_to_fit=True, text_rotation=90)  # Girar texto 90°
+                merged_cell.font = Font(name='Ancizar Sans', size=9, bold=True)  # Fuente, tamaño y negrita
+
+                # C5: Agregar el pictograma1 si existe
+                if sustancia and sustancia.pictogram_clp1:
+                    fila_picto=4+row_offset
+                    pictogram_path = sustancia.pictogram_clp1.pictogram.path
+                    img = openpyxl.drawing.image.Image(pictogram_path)
+                    img.height = 40  # Ajuste Altura
+                    img.width = 40   # Ajuste Ancho
+                    img.anchor = f'{get_column_letter(3 + col_offset)}{fila_picto}'
+                    sheet.add_image(img)
+                
+                # C7: Agregar el pictograma2 si existe
+                if sustancia and sustancia.pictogram_clp2:
+                    fila_picto=7+row_offset
+                    pictogram_path = sustancia.pictogram_clp2.pictogram.path
+                    img = openpyxl.drawing.image.Image(pictogram_path)
+                    img.height = 40  # Ajuste Altura
+                    img.width = 40   # Ajuste Ancho
+                    img.anchor = f'{get_column_letter(3 + col_offset)}{fila_picto}'
+                    sheet.add_image(img)
+
+                # D6: Agregar el pictograma3 si existe
+                if sustancia and sustancia.pictogram_clp3:
+                    fila_picto=6+row_offset
+                    pictogram_path = sustancia.pictogram_clp3.pictogram.path
+                    img = openpyxl.drawing.image.Image(pictogram_path)
+                    img.height = 40  # Ajuste Altura
+                    img.width = 40   # Ajuste Ancho
+                    img.anchor = f'{get_column_letter(4 + col_offset)}{fila_picto}'
+                    sheet.add_image(img)
+
+                # E4: Agregar el pictograma4 si existe
+                if sustancia and sustancia.pictogram_clp4:
+                    fila_picto=4+row_offset
+                    pictogram_path = sustancia.pictogram_clp4.pictogram.path
+                    img = openpyxl.drawing.image.Image(pictogram_path)
+                    img.height = 40  # Ajuste Altura
+                    img.width = 40   # Ajuste Ancho
+                    img.anchor = f'{get_column_letter(5 + col_offset)}{fila_picto}'
+                    sheet.add_image(img)
+
+                # E7: Agregar el pictograma5 si existe
+                if sustancia and sustancia.pictogram_clp5:
+                    fila_picto=7+row_offset
+                    pictogram_path = sustancia.pictogram_clp5.pictogram.path
+                    img = openpyxl.drawing.image.Image(pictogram_path)
+                    img.height = 40  # Ajuste Altura
+                    img.width = 40   # Ajuste Ancho
+                    img.anchor = f'{get_column_letter(5 + col_offset)}{fila_picto}'
+                    sheet.add_image(img)
         
-        # Agregar datos de la etiqueta
-        sheet['A5'] = id_sustancia
-        sheet['B5'] = laboratorio
-        sheet['C5'] = nombre_sustancia
-        sheet['D5'] = 'N/A'
-        sheet['E5'] = 'N/A'
-        sheet['F5'] = 'N/A'
-        sheet['G5'] = 'N/A'
-        sheet['H5'] = 'N/A'
-        sheet['I5'] = 'N/A'
-        sheet['J5'] = 'N/A'
-        sheet['K5'] = request.user.username
-
-        # Si hay datos adicionales, agregarlos también
-        if id_hermes:
-            sheet['A6'] = 'ID Hermes'
-            sheet['B6'] = id_hermes
-
-        if telefono_emergencia:
-            sheet['A7'] = 'Teléfono de Emergencia'
-            sheet['B7'] = telefono_emergencia
-
-        sheet.row_dimensions[1].height = 30
-        sheet.row_dimensions[2].height = 30
-        sheet.row_dimensions[3].height = 25
-
-        Titulo = sheet['C1']
-        Titulo.font = Font(bold=True, size=16)
-        Titulo.alignment = Alignment(horizontal='left')
-
-        Fecha = sheet['C2']
-        Fecha.alignment = Alignment(horizontal='left')
-        
-        thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
-
-        bold_font = Font(bold=True)
-
-        # Establecer Anchos personalizados
-        sheet.column_dimensions['A'].width = 12
-        sheet.column_dimensions['B'].width = 31
-        sheet.column_dimensions['C'].width = 27
-        sheet.column_dimensions['D'].width = 10
-        sheet.column_dimensions['E'].width = 10
-        sheet.column_dimensions['F'].width = 10
-        sheet.column_dimensions['G'].width = 10
-        sheet.column_dimensions['H'].width = 10
-        sheet.column_dimensions['I'].width = 10
-        sheet.column_dimensions['J'].width = 21
-        sheet.column_dimensions['K'].width = 31
-        sheet.column_dimensions['L'].width = 10
-
-        alignment = Alignment(wrap_text=True, vertical="top", horizontal="left")
-        
-        row = 4
-        for col in range(1, 13):
-            sheet.cell(row=row, column=col).border = thin_border
-            sheet.cell(row=row, column=col).font = bold_font
-            sheet.cell(row=row, column=col).alignment = alignment
-
-        row = 5
-        for col in range(1, 13):
-            sheet.cell(row=row, column=col).border = thin_border
-            sheet.cell(row=row, column=col).alignment = alignment
-        row += 1
-        start_column = 1
-        end_column = 12
-        start_row = 4
-        end_row = row - 1
-
-        start_column_letter = get_column_letter(start_column)
-        end_column_letter = get_column_letter(end_column)
-
-        table_range = f"{start_column_letter}{start_row}:{end_column_letter}{end_row}"
-
-        sheet.auto_filter.ref = table_range
-
-        fill = PatternFill(fill_type="solid", fgColor=WHITE)
-        start_cell = sheet['A1']
-        end_column_letter = get_column_letter(end_column+1)
-        end_row = row+1
-        end_cell = sheet[end_column_letter + str(end_row)]
-        table_range = start_cell.coordinate + ':' + end_cell.coordinate
-
-        for row in sheet[table_range]:
-            for cell in row:
-                cell.fill = fill
-
+        # Guardar el archivo en la memoria y preparar la respuesta HTTP
+        file_name = get_file_name()
         response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = f'attachment; filename={get_file_name()}'
-
+        response['Content-Disposition'] = f'attachment; filename={file_name}'
         workbook.save(response)
-
-        tipo_evento = 'DESCARGA DE ARCHIVOS'
-        usuario_evento = request.user
-        crear_evento(tipo_evento, usuario_evento)
-
         return response
+
+
+
+
 
