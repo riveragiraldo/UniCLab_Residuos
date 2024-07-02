@@ -20,49 +20,49 @@
 	}
 
 	/* Estilos para el tooltip */
-	#number-container[data-tooltip] {
-		position: relative;
-		cursor: pointer;
-	}
+#number-container[data-tooltip] {
+    position: relative;
+    cursor: pointer;
+}
 
-	#number-container[data-tooltip]::before {
-		content: attr(data-tooltip);
-		position: absolute;
-		bottom: 100%;
-		/* Colocar el tooltip arriba del contenedor */
-		left: 50%;
-		transform: translateX(-50%);
-		background-color: #333;
-		color: #fff;
-		padding: 5px 10px;
-		border-radius: 5px;
-		white-space: nowrap;
-		opacity: 0;
-		pointer-events: none;
-		transition: opacity 0.3s;
-		z-index: 1;
-	}
+#number-container[data-tooltip]::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%; /* Colocar el tooltip arriba del contenedor */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    white-space: pre-line; /* Permitir saltos de línea */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    z-index: 1;
+}
 
-	#number-container[data-tooltip]::after {
-		content: '';
-		position: absolute;
-		bottom: 100%;
-		/* Colocar la flecha arriba del contenedor */
-		left: 50%;
-		transform: translateX(-50%) translateY(5px);
-		border-width: 5px;
-		border-style: solid;
-		border-color: transparent transparent #333 transparent;
-		opacity: 0;
-		pointer-events: none;
-		transition: opacity 0.3s;
-		z-index: 1;
-	}
+#number-container[data-tooltip]::after {
+    content: '';
+    position: absolute;
+    bottom: 100%; /* Colocar la flecha arriba del contenedor */
+    left: 50%;
+    transform: translateX(-50%) translateY(5px);
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent #333 transparent;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    z-index: 1;
+}
 
-	#number-container[data-tooltip]:hover::before,
-	#number-container[data-tooltip]:hover::after {
-		opacity: 1;
-	}
+#number-container[data-tooltip]:hover::before,
+#number-container[data-tooltip]:hover::after {
+    opacity: 1;
+}
+
+
 </style>
 {% if messages %}
 {% for message in messages %}
@@ -161,13 +161,12 @@
 										<input type="text" class="form-control" id="keyword" name="keyword"
 											title="Escriba el nombre o CAS de la sustancia">
 									</div>
-									<div class="col-md-6" id="number-container"
-										data-tooltip="Etiquetas Básicas máximo 56">
+									<div class="col-md-6" id="number-container" data-tooltip="Máximo número de etiquetas Etiquetas Básicas: 56, Etiquetas Pequeñas: 24">
 										<label for="number">Número de etiquetas (Máximo 56)</label>
-										<input value="1" type="number" class="form-control" id="number" name="number"
-											min="1" max="56" required title="Se permite generar máximo 56 etiquetas">
+										<input value="1" type="number" class="form-control" id="number" name="number" min="1" max="56" required title="Se permite generar máximo 56 etiquetas">
 									</div>
-
+									
+									
 								</div>
 								<div class="form-group row">
 									<div class="col-md-6">

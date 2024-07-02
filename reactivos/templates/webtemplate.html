@@ -184,6 +184,15 @@
 						src="{% static 'inventarioreac/Images/wastedchemical_icon.png' %}" width="32" height="32">Residuos</a>
 
 			</li>
+			{% if request.user|has_group:"ADMINISTRADOR" or request.user.is_superuser %}
+			
+			<li>
+				<a href="{% url 'etiquetas:generate_label' %}"
+					title="Ir a Herramienta de gestión de Etiquetas"><img
+						src="{% static 'inventarioreac/Images/label_icon.png' %}" width="32" height="32">Etiquetas</a>
+
+			</li>
+			{% endif %}
 		</ul>
 	</div>
 
@@ -560,7 +569,26 @@
 						</div>
 					</div>
 				</div>
-			
+				{% if request.user|has_group:"ADMINISTRADOR" or request.user.is_superuser %}
+				<div class="card">
+					<div class="card-header" id="headingThirteen">
+						<h5 class="mb-0">
+							<a class="btn btn-primary  lateral_button" id="button_reagent" href="{% url 'etiquetas:generate_label'%}"
+								title="Ir a Herramienta de generación de etiquetas de sustancias químicas">
+								<img style="vertical-align: middle; margin-right: 5px;"
+									src="{% static 'inventarioreac/Images/label_icon.png' %}" width="32" height="32"
+									alt="Etiquetas" class="lateral_button">
+								Etiquetas
+							</a>
+						</h5>
+					</div>
+					<div id="collapseThirteen" class="collapse" aria-labelledby="headingThirteen" data-parent="#accordion">
+						<div class="card-body " style="color: white;">
+
+						</div>
+					</div>
+				</div>
+				{% endif %}
 			{% endif %}
 		</div>	
 
