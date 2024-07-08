@@ -20,7 +20,7 @@ import math
 # -------------------------------------------- #
 # Vista para la descarga del formato en blanco #
 class DownloadFormatLabelView(LoginRequiredMixin, View):
-    @check_group_permission(groups_required=['ADMINISTRADOR'])
+    @check_group_permission(groups_required=['ADMINISTRADOR, COORDINADOR, TECNICO'])
     def get(self, request, *args, **kwargs):
         try:
             configuracion_sistema = ConfiguracionSistema.objects.first()
@@ -50,14 +50,14 @@ class DownloadFormatLabelView(LoginRequiredMixin, View):
 class GenerateLabel(LoginRequiredMixin, View):
     template_name = 'Etiquetas/generar_etiquetas.html'
     
-    @check_group_permission(groups_required=['ADMINISTRADOR'])
+    @check_group_permission(groups_required=['ADMINISTRADOR, COORDINADOR, TECNICO'])
     def get(self, request, *args, **kwargs):
         context = {
             'labs': Laboratorios.objects.all(),
         }
         return render(request, self.template_name, context)
 
-    @check_group_permission(groups_required=['ADMINISTRADOR'])
+    @check_group_permission(groups_required=['ADMINISTRADOR, COORDINADOR, TECNICO'])
     def post(self, request, *args, **kwargs):
         
         try:
@@ -175,7 +175,7 @@ class GenerateLabel(LoginRequiredMixin, View):
 # Autocompletado de sustancias químicas #
 
 class autocompleteChemicalSubstances(LoginRequiredMixin,View):
-    @check_group_permission(groups_required=['ADMINISTRADOR'])
+    @check_group_permission(groups_required=['ADMINISTRADOR, COORDINADOR, TECNICO'])
     def get(self, request):
         term = request.GET.get('term', '')
         
@@ -198,11 +198,11 @@ class autocompleteChemicalSubstances(LoginRequiredMixin,View):
 # ----------------------- #
 # Generar Etiqueta Pequeña #
 class GenerateSmallLabel(LoginRequiredMixin, View):
-    @check_group_permission(groups_required=['ADMINISTRADOR'])
+    @check_group_permission(groups_required=['ADMINISTRADOR, COORDINADOR, TECNICO'])
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
        
-    @check_group_permission(groups_required=['ADMINISTRADOR'])
+    @check_group_permission(groups_required=['ADMINISTRADOR, COORDINADOR, TECNICO'])
     def get(self, request, *args, **kwargs):
         def get_file_name():
             now = datetime.now()
@@ -247,8 +247,10 @@ class GenerateSmallLabel(LoginRequiredMixin, View):
 
         sustancia = get_object_or_404(Sustancias, id=id_sustancia)
         cas = sustancia.cas
-        advertencia = sustancia.warning.name
-        
+        if sustancia.warning:
+            advertencia = sustancia.warning.name
+        else:
+            advertencia=''
         workbook = openpyxl.Workbook()
         sheet = workbook.active
         # Configurar la orientación de la página
@@ -277,10 +279,10 @@ class GenerateSmallLabel(LoginRequiredMixin, View):
                 col_offset = i * 14
                 
                 # Aplicar el fondo blanco a las celdas de la etiqueta actual
-                # for row in range(1, 12):  # Filas 1 a 11
-                #     for col in range(1, 14):  # Columnas A a M
-                #         cell = sheet.cell(row=row + row_offset, column=col + col_offset)
-                #         cell.fill = white_fill
+                for row in range(1, 12):  # Filas 1 a 11
+                    for col in range(1, 14):  # Columnas A a M
+                        cell = sheet.cell(row=row + row_offset, column=col + col_offset)
+                        cell.fill = white_fill
 
                 # Anchos de columna para cada etiqueta
                 sheet.column_dimensions[get_column_letter(1 + col_offset)].width = 0.98     # Ancho = 0.61
@@ -473,13 +475,15 @@ class GenerateSmallLabel(LoginRequiredMixin, View):
 
                 # Organizar Frases H
                 frases_h = '\n'.join(sustancia.phrase_h.values_list('name', flat=True)) if sustancia.phrase_h.exists() else '-'
+
                 # Unir celdas I6:J7 y Colocar las Frases H
                 sheet.merge_cells(start_row=6 + row_offset, start_column=9 + col_offset, end_row=7 + row_offset, end_column=10 + col_offset)
                 merged_cell = sheet.cell(row=6 + row_offset, column=9 + col_offset)
                 merged_cell.value = frases_h
-                merged_cell.alignment = Alignment(horizontal='left', vertical='top', wrap_text=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.alignment = Alignment(horizontal='left', vertical='top', wrap_text=True)
                 merged_cell.font = Font(name='Ancizar Sans', size=6)  # Fuente y tamaño
-                # Configurar bordes superior e inferior                
+
+                # Configurar bordes superior e inferior
                 for col in range(9, 11):
                     cell = sheet.cell(row=6 + row_offset, column=col + col_offset)
                     cell.border = Border(bottom=thin_border, top=thin_border, left=thin_border, right=thin_border)
@@ -488,18 +492,31 @@ class GenerateSmallLabel(LoginRequiredMixin, View):
 
                 # Organizar Frases P
                 frases_p = '\n'.join(sustancia.phrase_p.values_list('name', flat=True)) if sustancia.phrase_p.exists() else '-'
-                # Unir celdas K6:L7 y Colocar las Frases H
+
+                # Unir celdas K6:L7 y Colocar las Frases P
                 sheet.merge_cells(start_row=6 + row_offset, start_column=11 + col_offset, end_row=7 + row_offset, end_column=12 + col_offset)
                 merged_cell = sheet.cell(row=6 + row_offset, column=11 + col_offset)
                 merged_cell.value = frases_p
-                merged_cell.alignment = Alignment(horizontal='left', vertical='top', wrap_text=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.alignment = Alignment(horizontal='left', vertical='top', wrap_text=True)  # Ajuste de texto
                 merged_cell.font = Font(name='Ancizar Sans', size=6)  # Fuente y tamaño
-                # Configurar bordes superior e inferior                
+
+                # Configurar bordes superior e inferior
                 for col in range(11, 13):
                     cell = sheet.cell(row=6 + row_offset, column=col + col_offset)
                     cell.border = Border(bottom=thin_border, top=thin_border, left=thin_border, right=thin_border)
                     cell = sheet.cell(row=7 + row_offset, column=col + col_offset)
                     cell.border = Border(bottom=thin_border, top=thin_border, left=thin_border, right=thin_border)
+
+                # Ajustar altura de las filas según el contenido
+                max_lines_h = max(len(frases_h.split('\n')), 1)  # Calcular el número de líneas para frases H
+                max_lines_p = max(len(frases_p.split('\n')), 1)  # Calcular el número de líneas para frases P
+                max_lines = max(max_lines_h, max_lines_p)  # Obtener el mayor número de líneas entre H y P
+                line_height = 12  # Altura estimada por línea (puedes ajustar este valor según la fuente y el tamaño)
+                total_height = max_lines * line_height
+
+                # Ajustar las alturas de la fila 7 teniendo presente que el tamaño de la fila 6 debe ser inamovible (20)
+                sheet.row_dimensions[7 + row_offset].height = (total_height * 2) - 20
+
 
                 # Linea Que divide los datos del reactivo con los adicionales                
                 for col in range(2, 13):
@@ -613,11 +630,11 @@ class GenerateSmallLabel(LoginRequiredMixin, View):
 # ----------------------- #
 # Generar Etiqueta Básica #
 class GenerateBasicLabel(LoginRequiredMixin, View):
-    @check_group_permission(groups_required=['ADMINISTRADOR'])
+    @check_group_permission(groups_required=['ADMINISTRADOR, COORDINADOR, TECNICO'])
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
        
-    @check_group_permission(groups_required=['ADMINISTRADOR'])
+    @check_group_permission(groups_required=['ADMINISTRADOR, COORDINADOR, TECNICO'])
     def get(self, request, *args, **kwargs):
         def get_file_name():
             now = datetime.now()
