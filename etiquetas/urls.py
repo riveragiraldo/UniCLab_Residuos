@@ -14,7 +14,8 @@ urlpatterns = [
     path('UniCLab/Etiquetas/Automcompletar_Sustancias/', autocompleteChemicalSubstances.as_view(), name='autocomplete_substances'), # Página de incio del aplicativo etiquetas, generar etiquetas
     path('UniCLab/Etiquetas/Formato_Etiquetas/', DownloadFormatLabelView.as_view(), name='download_format'), # Descargar formato en blanco
     path('UniCLab/Etiquetas/Etiqueta_Basica/', GenerateBasicLabel.as_view(), name='download_basic_label'), # Descargar etiqueta básica
-    path('UniCLab/Etiquetas/Etiqueta_Pequena/', GenerateSmallLabel.as_view(), name='download_small_label'), # Descargar etiqueta básica
+    path('UniCLab/Etiquetas/Etiqueta_Pequena/', GenerateSmallLabel.as_view(), name='download_small_label'), # Descargar etiqueta pequeña
+    path('UniCLab/Etiquetas/Etiqueta_Mediana/', GenerateMediumLabel.as_view(), name='download_medium_label'), # Descargar etiqueta mediana
     
     ]
 
