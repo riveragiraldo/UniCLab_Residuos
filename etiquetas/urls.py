@@ -16,6 +16,7 @@ urlpatterns = [
     path('UniCLab/Etiquetas/Etiqueta_Basica/', GenerateBasicLabel.as_view(), name='download_basic_label'), # Descargar etiqueta básica
     path('UniCLab/Etiquetas/Etiqueta_Pequena/', GenerateSmallLabel.as_view(), name='download_small_label'), # Descargar etiqueta pequeña
     path('UniCLab/Etiquetas/Etiqueta_Mediana/', GenerateMediumLabel.as_view(), name='download_medium_label'), # Descargar etiqueta mediana
+    path('UniCLab/Etiquetas/Etiqueta_Grande/', GenerateBigLabel.as_view(), name='download_big_label'), # Descargar etiqueta grande
     
     ]
 

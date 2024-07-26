@@ -161,8 +161,18 @@ class GenerateLabel(LoginRequiredMixin, View):
                 messages.success(self.request, f'{download_url}')
                 return JsonResponse({'success': True, 'message': mensaje})
             elif etiqueta == '4':
-                mensaje = 'Funcionalidad de etiqueta grande'
+                numero=int(numero)
+                if numero > 4:
+                    mensaje= f'Solo es posible generar 4 etiquetas grandes de manera simultanea, revise e intente nuevamente'
+                    return JsonResponse({'success': False, 'errors': mensaje})
+
+                mensaje = 'Enlace de etiqueta grande generado correctamente'
                 print(mensaje)
+                download_url = reverse('etiquetas:download_big_label')
+                # Agregar parámetros a la URL
+                download_url = f"{download_url}?substance_name={nombre}&substance_id={id_sustancia}&label_number={numero}&lab={laboratorio}&hermes_id={id_hermes}&e_number={telefono_emergencia}"
+                print(download_url)
+                messages.success(self.request, f'{download_url}')
                 return JsonResponse({'success': True, 'message': mensaje})
 
             # Si no se cumple ninguno de los casos de etiqueta
@@ -202,6 +212,525 @@ class autocompleteChemicalSubstances(LoginRequiredMixin,View):
             }
             results.append(result)
         return JsonResponse(results, safe=False)
+
+
+
+# ----------------------- #
+# Generar Etiqueta Grande #
+class GenerateBigLabel(LoginRequiredMixin, View):
+    @check_group_permission(groups_required=['ADMINISTRADOR, COORDINADOR, TECNICO'])
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+       
+    @check_group_permission(groups_required=['ADMINISTRADOR, COORDINADOR, TECNICO'])
+    def get(self, request, *args, **kwargs):
+        def get_file_name():
+            nombre_sustancia = request.GET.get('substance_name')
+            now = datetime.now()
+            return f'Etiqueta_grande_{nombre_sustancia}_{now.strftime("%d%m%Y%H%M%S")}.xlsx'
+        
+        # Extraer parámetros de la URL
+        nombre_sustancia = request.GET.get('substance_name')
+        id_sustancia = request.GET.get('substance_id')
+        
+        numero_etiquetas = int(request.GET.get('label_number'))  # Convertir a entero
+        id_hermes = request.GET.get('hermes_id')
+        lab = request.GET.get('lab')
+        if lab =='':
+            lab=''
+        else:
+            lab=get_object_or_404(Laboratorios, id=lab)
+        numero_emergencia = request.GET.get('e_number')        
+
+        # Verificar si el número de etiquetas es superior a 56
+        if numero_etiquetas > 4:
+            workbook = openpyxl.Workbook()
+            sheet = workbook.active
+            
+            # Mensaje de error
+            error_message = "¡Upps algo ocurrió mal!\nEl número máximo de etiquetas debe ser menor o igual a 4, revisa y genera nuevamente tus etiquetas."
+
+            # Ajustar la celda para el mensaje
+            cell = sheet.cell(row=1, column=1)
+            cell.value = error_message
+            cell.font = Font(name='Arial', size=10, bold=True, color='FF0000')  # Letras llamativas, tamaño más pequeño
+            cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)  # Ajuste de texto y nueva línea
+            sheet.merge_cells('A1:E10')  # Unir celdas para el mensaje, aumentando la altura
+            sheet.row_dimensions[1].height = 40  # Ajustar la altura de la fila
+            sheet.column_dimensions[get_column_letter(1)].width = 50  # Ajustar el ancho de la columna
+            
+            # Guardar el archivo en la memoria y preparar la respuesta HTTP
+            file_name = get_file_name()
+            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = f'attachment; filename={file_name}'
+            workbook.save(response)
+            return response
+
+        sustancia = get_object_or_404(Sustancias, id=id_sustancia)
+        cas = sustancia.cas
+        if sustancia.warning:
+            advertencia = sustancia.warning.name
+        else:
+            advertencia=''
+        workbook = openpyxl.Workbook()
+        sheet = workbook.active
+        # Configurar la orientación de la página
+        # sheet.page_setup = PrintPageSetup(orientation='landscape')
+
+        # Definir un relleno con fondo blanco
+        white_fill = PatternFill(start_color='FFFFFF', end_color='FFFFFF', fill_type='solid')
+
+        # Crear un borde de puntos
+        thin_border = Side(style='thin')
+
+        # Calcular número de líneas necesarias
+        num_lines = math.ceil(numero_etiquetas / 1)
+        
+
+        for line in range(num_lines):
+            # Calcular el offset de fila para cada etiqueta
+            row_offset = line * 19  # 19 filas por etiqueta (18 etiqueta + 1 separación)
+
+            for i in range(1): # Número de etiquetas horizontales
+                index = line * 1 + i
+                if index >= numero_etiquetas:
+                    break
+
+                # Calcular el offset de columna para cada etiqueta
+                col_offset = i * 18
+                
+                # Aplicar el fondo blanco a las celdas de la etiqueta actual
+                # for row in range(1, 19):  # Filas 1 a 19
+                #     for col in range(1, 18):  # Columnas A a R
+                #         cell = sheet.cell(row=row + row_offset, column=col + col_offset)
+                #         cell.fill = white_fill
+
+                # Anchos de columna para cada etiqueta
+                sheet.column_dimensions[get_column_letter(1  + col_offset)].width = 1.90    # Ancho A = 1.27
+                sheet.column_dimensions[get_column_letter(2  + col_offset)].width = 4.00    # Ancho B = 3.36
+                sheet.column_dimensions[get_column_letter(3  + col_offset)].width = 7.55    # Ancho C = 6.91 
+                sheet.column_dimensions[get_column_letter(4  + col_offset)].width = 7.55    # Ancho D = 6.91
+                sheet.column_dimensions[get_column_letter(5  + col_offset)].width = 1.00    # Ancho E = 0.61 
+                sheet.column_dimensions[get_column_letter(6  + col_offset)].width = 7.55    # Ancho F = 6.91
+                sheet.column_dimensions[get_column_letter(7  + col_offset)].width = 7.55    # Ancho G = 6.91
+                sheet.column_dimensions[get_column_letter(8  + col_offset)].width = 1.00    # Ancho H = 0.61
+                sheet.column_dimensions[get_column_letter(9  + col_offset)].width = 7.55    # Ancho I = 6.91
+                sheet.column_dimensions[get_column_letter(10 + col_offset)].width = 7.55    # Ancho J = 6.91
+                sheet.column_dimensions[get_column_letter(11 + col_offset)].width = 1.00    # Ancho K = 0.61
+                sheet.column_dimensions[get_column_letter(12 + col_offset)].width = 7.55    # Ancho L = 6.91
+                sheet.column_dimensions[get_column_letter(13 + col_offset)].width = 7.55    # Ancho M = 6.91
+                sheet.column_dimensions[get_column_letter(14 + col_offset)].width = 1.00    # Ancho N = 0.61
+                sheet.column_dimensions[get_column_letter(15 + col_offset)].width = 7.55    # Ancho O = 6.91
+                sheet.column_dimensions[get_column_letter(16 + col_offset)].width = 7.55    # Ancho P = 6.91
+                sheet.column_dimensions[get_column_letter(17 + col_offset)].width = 4.00    # Ancho Q = 3.36
+                sheet.column_dimensions[get_column_letter(18 + col_offset)].width = 1.90    # Ancho R = 1.27
+                
+                
+                
+                
+                # Ajustar las alturas de las filas
+                sheet.row_dimensions[1  + row_offset].height = 11.30    # Alto 1 = 11.3
+                sheet.row_dimensions[2  + row_offset].height = 51.00    # Alto 2 = 51
+                sheet.row_dimensions[3  + row_offset].height = 28.00    # Alto 3 = 28   
+                sheet.row_dimensions[4  + row_offset].height = 23.00    # Alto 4 = 23 
+                sheet.row_dimensions[5  + row_offset].height = 23.00    # Alto 5 = 23
+                sheet.row_dimensions[6  + row_offset].height = 5.800    # Alto 6 = 5.8  
+                sheet.row_dimensions[7  + row_offset].height = 85.00    # Alto 7 = 85  
+                sheet.row_dimensions[8  + row_offset].height = 5.800    # Alto 8 = 5.8 
+                sheet.row_dimensions[9  + row_offset].height = 23.00    # Alto 9 = 23
+                sheet.row_dimensions[10 + row_offset].height = 39.00    # Alto 10 = 39
+                sheet.row_dimensions[11 + row_offset].height = 20.00    # Alto 11 = 20
+                # sheet.row_dimensions[12 + row_offset].height = 239.0    # Alto 12 = 239
+                sheet.row_dimensions[13 + row_offset].height = 21.00    # Alto 13 = 21
+                sheet.row_dimensions[14 + row_offset].height = 21.00    # Alto 14 = 21
+                sheet.row_dimensions[15 + row_offset].height = 21.00    # Alto 15 = 21
+                sheet.row_dimensions[16 + row_offset].height = 21.00    # Alto 16 = 21
+                sheet.row_dimensions[17 + row_offset].height = 21.00    # Alto 17 = 21
+                sheet.row_dimensions[18 + row_offset].height = 11.30    # Alto 18 = 11.3
+                
+
+                # Separador para la siguiente etiqueta abajo
+                sheet.row_dimensions[19+ row_offset].height = 5.8       # Alto 19 = 5.8           
+                
+                # Aplicar bordes manualmente para formar el rectángulo
+                # A1: Borde izquierdo y borde arriba
+                sheet.cell(row=1 + row_offset, column=1 + col_offset).border = Border(left=thin_border, top=thin_border)
+                # A2:A17 Borde izquierdo
+                for row in range(2, 18):
+                    sheet.cell(row=row + row_offset, column=1 + col_offset).border = Border(left=thin_border)
+
+                # A18 Borde izquierdo y borde abajo
+                sheet.cell(row=18 + row_offset, column=1 + col_offset).border = Border(left=thin_border, bottom=thin_border)
+
+                # B1:Q1 Borde arriba
+                for col in range(2, 18):
+                    sheet.cell(row=1 + row_offset, column=col + col_offset).border = Border(top=thin_border)
+
+                # R1: Borde arriba, borde derecho
+                sheet.cell(row=1 + row_offset, column=18 + col_offset).border = Border(top=thin_border, right=thin_border)
+
+                # B18:Q18 Borde abajo
+                for col in range(2, 18):
+                    sheet.cell(row=18 + row_offset, column=col + col_offset).border = Border(bottom=thin_border)
+
+                # Rl8 Borde abajo, borde derecho
+                sheet.cell(row=18 + row_offset, column=18 + col_offset).border = Border(bottom=thin_border, right=thin_border)
+
+                # R2:R17 Borde derecho
+                for row in range(2, 18):
+                    sheet.cell(row=row + row_offset, column=18 + col_offset).border = Border(right=thin_border)
+
+                #### Unir celdas B2:Q2 y colocar "Nombre de la sustancia" ####
+                sheet.merge_cells(start_row=2 + row_offset, start_column=2 + col_offset, end_row=2 + row_offset, end_column=17 + col_offset)
+                merged_cell = sheet.cell(row=2 + row_offset, column=2 + col_offset)
+                merged_cell.value = nombre_sustancia.upper()  # Normalizar a mayúscula
+                merged_cell.alignment = Alignment(horizontal='center', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=34, bold=True)  # Fuente, tamaño y negrita
+
+                
+                # Unir celdas B3:I3 y colocar "CAS"
+                sheet.merge_cells(start_row=3 + row_offset, start_column=2 + col_offset, end_row=3 + row_offset, end_column=9 + col_offset)
+                merged_cell = sheet.cell(row=3 + row_offset, column=2 + col_offset)
+                merged_cell.value = 'CAS'
+                merged_cell.alignment = Alignment(horizontal='center', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=18, bold=True)  # Fuente y tamaño
+
+                # Unir celdas J3:Q3 y colocar CAS de la sustancia
+                sheet.merge_cells(start_row=3 + row_offset, start_column=10 + col_offset, end_row=3 + row_offset, end_column=17 + col_offset)
+                merged_cell = sheet.cell(row=3 + row_offset, column=10 + col_offset)
+                merged_cell.value = cas.upper()  # Normalizar a mayúscula
+                merged_cell.alignment = Alignment(horizontal='center', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=18, bold=True)  # Fuente y tamaño
+
+                # Unir celdas B4:Q4 y colocar "Etiquetado conforme al SGA/GHS:"
+                sheet.merge_cells(start_row=4 + row_offset, start_column=2 + col_offset, end_row=4 + row_offset, end_column=17 + col_offset)
+                merged_cell = sheet.cell(row=4 + row_offset, column=2 + col_offset)
+                merged_cell.value = 'Etiquetado conforme al SGA/GHS:'  
+                merged_cell.alignment = Alignment(horizontal='center', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=14, underline='single', bold=True)  # Fuente, tamaño y negrita
+    
+
+                # Unir celdas B5:Q5 y colocar "Pictogramas"
+                sheet.merge_cells(start_row=5 + row_offset, start_column=2 + col_offset, end_row=5 + row_offset, end_column=17 + col_offset)
+                merged_cell = sheet.cell(row=5 + row_offset, column=2 + col_offset)
+                merged_cell.value = 'Pictográmas'  
+                merged_cell.alignment = Alignment(horizontal='center', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=14, underline='single', bold=True)  # Fuente, tamaño y negrita
+
+                # C7: Agregar el pictograma1 si existe
+                if sustancia and sustancia.pictogram_clp1:
+                    fila_picto=7+row_offset
+                    pictogram_path = sustancia.pictogram_clp1.pictogram.path
+                    img = openpyxl.drawing.image.Image(pictogram_path)
+                    img.height = 113.2     # Ajuste Altura 3.0
+                    img.width = 113.2      # Ajuste Ancho 3.0
+                    img.anchor = f'{get_column_letter(3 + col_offset)}{fila_picto}'
+                    sheet.add_image(img)
+
+                # F7: Agregar el pictograma2 si existe
+                if sustancia and sustancia.pictogram_clp2:
+                    fila_picto=7+row_offset
+                    pictogram_path = sustancia.pictogram_clp2.pictogram.path
+                    img = openpyxl.drawing.image.Image(pictogram_path)
+                    img.height = 113.2     # Ajuste Altura 3.0
+                    img.width = 113.2      # Ajuste Ancho 3.0
+                    img.anchor = f'{get_column_letter(6 + col_offset)}{fila_picto}'
+                    sheet.add_image(img)
+                
+                # I7: Agregar el pictograma3 si existe
+                if sustancia and sustancia.pictogram_clp3:
+                    fila_picto=7+row_offset
+                    pictogram_path = sustancia.pictogram_clp3.pictogram.path
+                    img = openpyxl.drawing.image.Image(pictogram_path)
+                    img.height = 113.2     # Ajuste Altura 3.0
+                    img.width = 113.2      # Ajuste Ancho 3.0
+                    img.anchor = f'{get_column_letter(9 + col_offset)}{fila_picto}'
+                    sheet.add_image(img)
+                
+                # L7: Agregar el pictograma4 si existe
+                if sustancia and sustancia.pictogram_clp4:
+                    fila_picto=7+row_offset
+                    pictogram_path = sustancia.pictogram_clp4.pictogram.path
+                    img = openpyxl.drawing.image.Image(pictogram_path)
+                    img.height = 113.2     # Ajuste Altura 3.0
+                    img.width = 113.2      # Ajuste Ancho 3.0
+                    img.anchor = f'{get_column_letter(12 + col_offset)}{fila_picto}'
+                    sheet.add_image(img)
+                
+                # O7: Agregar el pictograma5 si existe
+                if sustancia and sustancia.pictogram_clp5:
+                    fila_picto=7+row_offset
+                    pictogram_path = sustancia.pictogram_clp5.pictogram.path
+                    img = openpyxl.drawing.image.Image(pictogram_path)
+                    img.height = 113.2     # Ajuste Altura 3.0
+                    img.width = 113.2      # Ajuste Ancho 3.0
+                    img.anchor = f'{get_column_letter(15 + col_offset)}{fila_picto}'
+                    sheet.add_image(img)
+
+                # Unir celdas B9:Q9 y colocar "Palabra de Advertencia"
+                sheet.merge_cells(start_row=9 + row_offset, start_column=2 + col_offset, end_row=9 + row_offset, end_column=17 + col_offset)
+                merged_cell = sheet.cell(row=9 + row_offset, column=2 + col_offset)
+                merged_cell.value = 'Palabra de Advertencia:'  
+                merged_cell.alignment = Alignment(horizontal='center', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=14, bold=True)  # Fuente, tamaño y negrita
+
+                # Unir celdas B10:Q10 y colocar "La Palabra de Advertencia"
+                sheet.merge_cells(start_row=10 + row_offset, start_column=2 + col_offset, end_row=10 + row_offset, end_column=17 + col_offset)
+                merged_cell = sheet.cell(row=10 + row_offset, column=2 + col_offset)
+                merged_cell.value = advertencia.upper()  # Normalizar a mayúscula
+                merged_cell.alignment = Alignment(horizontal='center', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=28, bold=True, color="FF0000")  # Fuente, tamaño y negrita
+                
+                
+                # Unir celdas B11:I11 y Colocar Frases H
+                sheet.merge_cells(start_row=11 + row_offset, start_column=2 + col_offset, end_row=11 + row_offset, end_column=9 + col_offset)
+                merged_cell = sheet.cell(row=11 + row_offset, column=2 + col_offset)
+                merged_cell.value = 'Frases H'
+                merged_cell.alignment = Alignment(horizontal='center', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=15, bold=True)  # Fuente y tamaño
+                # Configurar bordes superior e inferior                
+                for col in range(2, 10):
+                    cell = sheet.cell(row=11 + row_offset, column=col + col_offset)
+                    cell.border = Border(bottom=thin_border, top=thin_border, left=thin_border, right=thin_border)
+                
+                # Unir celdas J11:Q11 y Colocar Frases P
+                sheet.merge_cells(start_row=11 + row_offset, start_column=10 + col_offset, end_row=11 + row_offset, end_column=17 + col_offset)
+                merged_cell = sheet.cell(row=11 + row_offset, column=10 + col_offset)
+                merged_cell.value = 'Frases P'
+                merged_cell.alignment = Alignment(horizontal='center', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=15, bold=True)  # Fuente y tamaño
+                # Configurar bordes superior e inferior                
+                for col in range(10, 18):
+                    cell = sheet.cell(row=11 + row_offset, column=col + col_offset)
+                    cell.border = Border(bottom=thin_border, top=thin_border, left=thin_border, right=thin_border)
+
+                # Organizar Frases H
+                frases_h = '\n'.join(sustancia.phrase_h.values_list('name', flat=True)) if sustancia.phrase_h.exists() else '-'
+
+                # Unir celdas B12:I12 y Colocar las Frases H
+                sheet.merge_cells(start_row=12 + row_offset, start_column=2 + col_offset, end_row=12 + row_offset, end_column=9 + col_offset)
+                merged_cell = sheet.cell(row=12 + row_offset, column=2 + col_offset)
+                merged_cell.value = frases_h
+                merged_cell.alignment = Alignment(horizontal='left', vertical='top', wrap_text=True)
+                merged_cell.font = Font(name='Ancizar Sans', size=12)  # Fuente y tamaño
+
+                # Configurar bordes superior e inferior
+                for col in range(2, 10):
+                    cell = sheet.cell(row=12 + row_offset, column=col + col_offset)
+                    cell.border = Border(bottom=thin_border, top=thin_border, left=thin_border, right=thin_border)
+                    
+
+                # Organizar Frases P
+                frases_p = '\n'.join(sustancia.phrase_p.values_list('name', flat=True)) if sustancia.phrase_p.exists() else '-'
+
+                # Unir celdas J12:Q12 y Colocar las Frases P
+                sheet.merge_cells(start_row=12 + row_offset, start_column=10 + col_offset, end_row=12 + row_offset, end_column=17 + col_offset)
+                merged_cell = sheet.cell(row=12 + row_offset, column=10 + col_offset)
+                merged_cell.value = frases_p
+                merged_cell.alignment = Alignment(horizontal='left', vertical='top', wrap_text=True)  # Ajuste de texto
+                merged_cell.font = Font(name='Ancizar Sans', size=12)  # Fuente y tamaño
+
+                # Configurar bordes superior e inferior
+                for col in range(10, 18):
+                    cell = sheet.cell(row=12 + row_offset, column=col + col_offset)
+                    cell.border = Border(bottom=thin_border, top=thin_border, left=thin_border, right=thin_border)
+                
+                # Ajustar altura de las filas según el contenido
+                if not frases_h=='-' or not frases_p=='-':
+                    max_lines_h = max(len(frases_h.split('\n')), 1)  # Calcular el número de líneas para frases H
+                    max_lines_p = max(len(frases_p.split('\n')), 1)  # Calcular el número de líneas para frases P
+                    max_lines = max(max_lines_h, max_lines_p)  # Obtener el mayor número de líneas entre H y P
+                    line_height = 17  # Altura estimada por línea 
+                    total_height = max_lines * line_height * 2
+
+                    # Ajustar las alturas de la fila 12
+                    sheet.row_dimensions[12 + row_offset].height = total_height
+
+                # Unir celdas B13:C13 y Colocar Cantidad
+                sheet.merge_cells(start_row=13 + row_offset, start_column=2 + col_offset, end_row=13 + row_offset, end_column=3 + col_offset)
+                merged_cell = sheet.cell(row=13 + row_offset, column=2 + col_offset)
+                merged_cell.value = 'Cantidad:'
+                merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=12)  # Fuente y tamaño
+
+                # Unir celdas D13:F13 y Colocar la raya
+                sheet.merge_cells(start_row=13 + row_offset, start_column=4 + col_offset, end_row=13 + row_offset, end_column=6 + col_offset)
+                merged_cell = sheet.cell(row=13 + row_offset, column=4 + col_offset)
+                merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=12)  # Fuente y tamaño
+                # Configurar bordes superior e inferior                
+                for col in range(4, 7):
+                    cell = sheet.cell(row=13 + row_offset, column=col + col_offset)
+                    cell.border = Border(bottom=thin_border)
+
+                # Colocar "Lote:" en la celda G13
+                merged_cell = sheet.cell(row=13 + row_offset, column=7 + col_offset)
+                merged_cell.value = 'Lote:'
+                merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=12)  # Fuente y tamaño
+
+                # Unir celdas H13:J13 y Colocar la raya
+                sheet.merge_cells(start_row=13 + row_offset, start_column=8 + col_offset, end_row=13 + row_offset, end_column=10 + col_offset)
+                merged_cell = sheet.cell(row=13 + row_offset, column=8 + col_offset)
+                merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=12)  # Fuente y tamaño
+                # Configurar bordes superior e inferior                
+                for col in range(8, 11):
+                    cell = sheet.cell(row=13 + row_offset, column=col + col_offset)
+                    cell.border = Border(bottom=thin_border)
+
+
+                # Unir celdas L13:O13 y Colocar Fecha de vencimiento
+                sheet.merge_cells(start_row=13 + row_offset, start_column=12 + col_offset, end_row=13 + row_offset, end_column=15 + col_offset)
+                merged_cell = sheet.cell(row=13 + row_offset, column=12 + col_offset)
+                merged_cell.value = 'Fecha de vencimiento:'
+                merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=12)  # Fuente y tamaño
+
+                 # Unir celdas P13:Q13 y Colocar la raya
+                sheet.merge_cells(start_row=13 + row_offset, start_column=16 + col_offset, end_row=13 + row_offset, end_column=17 + col_offset)
+                merged_cell = sheet.cell(row=13 + row_offset, column=16 + col_offset)
+                merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=11)  # Fuente y tamaño
+                # Configurar bordes superior e inferior                
+                for col in range(16, 18):
+                    cell = sheet.cell(row=13 + row_offset, column=col + col_offset)
+                    cell.border = Border(bottom=thin_border)
+
+
+                # Unir celdas B14:C14 y Colocar Laboratorio
+                sheet.merge_cells(start_row=14 + row_offset, start_column=2 + col_offset, end_row=14 + row_offset, end_column=3 + col_offset)
+                merged_cell = sheet.cell(row=14 + row_offset, column=2 + col_offset)
+                merged_cell.value = 'Laboratorio:'
+                merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=12)  # Fuente y tamaño
+
+               # Unir celdas D14:J14 y colocar "El laboratorio"
+                sheet.merge_cells(start_row=14 + row_offset, start_column=4 + col_offset, end_row=14 + row_offset, end_column=10 + col_offset)
+                merged_cell = sheet.cell(row=14 + row_offset, column=4 + col_offset)
+                if lab:
+                    merged_cell.value = lab.name
+                else:
+                    merged_cell.value = ''
+                merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=12)  # Fuente y tamaño
+                # Configurar borde inferior
+                for col in range(4, 11):
+                    cell = sheet.cell(row=14 + row_offset, column=col + col_offset)
+                    cell.border = Border(bottom=thin_border)
+
+                # Unir celdas L14:O14 y Colocar ID Hermes
+                sheet.merge_cells(start_row=14 + row_offset, start_column=12 + col_offset, end_row=14 + row_offset, end_column=13 + col_offset)
+                merged_cell = sheet.cell(row=14 + row_offset, column=12 + col_offset)
+                merged_cell.value = 'ID Hermes:'
+                merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=12)  # Fuente y tamaño
+
+                 # Unir celdas N14:Q14 y Colocar la raya y el id de hermes
+                sheet.merge_cells(start_row=14 + row_offset, start_column=14 + col_offset, end_row=14 + row_offset, end_column=17 + col_offset)
+                merged_cell = sheet.cell(row=14 + row_offset, column=14 + col_offset)
+                merged_cell.value = id_hermes
+                merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=11)  # Fuente y tamaño
+                # Configurar bordes superior e inferior                
+                for col in range(14, 18):
+                    cell = sheet.cell(row=14 + row_offset, column=col + col_offset)
+                    cell.border = Border(bottom=thin_border)
+                
+            #     # Unir celdas B14:C14 y colocar "Teléfono Emergencia UNAL"
+            #     sheet.merge_cells(start_row=14 + row_offset, start_column=2 + col_offset, end_row=14 + row_offset, end_column=3 + col_offset)
+            #     merged_cell = sheet.cell(row=14 + row_offset, column=2 + col_offset)
+            #     merged_cell.value = 'Teléfono Emergencia UNAL:'
+            #     merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+            #     merged_cell.font = Font(name='Ancizar Sans', size=8)  # Fuente y tamaños
+
+            #     # Unir celdas D13:M13 y colocar ""
+            #     sheet.merge_cells(start_row=14 + row_offset, start_column=4 + col_offset, end_row=14 + row_offset, end_column=8 + col_offset)
+            #     merged_cell = sheet.cell(row=14 + row_offset, column=4 + col_offset)
+            #     merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+            #     merged_cell.font = Font(name='Ancizar Sans', size=8)  # Fuente y tamaño
+            #     # Configurar borde inferior
+            #     for col in range(4, 9):
+            #         cell = sheet.cell(row=14 + row_offset, column=col + col_offset)
+            #         cell.border = Border(bottom=thin_border)
+                
+            #     # Colocar "Sede:" en la celda J14
+            #     merged_cell = sheet.cell(row=14 + row_offset, column=10 + col_offset)
+            #     merged_cell.value = 'Sede:'
+            #     merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+            #     merged_cell.font = Font(name='Ancizar Sans', size=8)  # Fuente y tamaño
+
+            #     # Unir celdas I14:M14 y colocar por defecto "Manizales"
+            #     sheet.merge_cells(start_row=14 + row_offset, start_column=11 + col_offset, end_row=14 + row_offset, end_column=13 + col_offset)
+            #     merged_cell = sheet.cell(row=14 + row_offset, column=11 + col_offset)
+            #     merged_cell.value = 'Manizales'
+            #     merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+            #     merged_cell.font = Font(name='Ancizar Sans', size=8)  # Fuente y tamaño
+            #     # Configurar borde inferior
+            #     for col in range(11, 14):
+            #         cell = sheet.cell(row=14 + row_offset, column=col + col_offset)
+            #         cell.border = Border(bottom=thin_border)
+                
+            #     # Colocar "Proveedor" en la celda B15
+            #     merged_cell = sheet.cell(row=15 + row_offset, column=2 + col_offset)
+            #     merged_cell.value = 'Proveedor:'
+            #     merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+            #     merged_cell.font = Font(name='Ancizar Sans', size=8)  # Fuente y tamaño
+
+            #     # Unir celdas C15:M15 y colocar por defecto ""
+            #     sheet.merge_cells(start_row=15 + row_offset, start_column=3 + col_offset, end_row=15 + row_offset, end_column=13 + col_offset)
+            #     merged_cell = sheet.cell(row=15 + row_offset, column=3   + col_offset)
+            #     merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+            #     merged_cell.font = Font(name='Ancizar Sans', size=8)  # Fuente y tamaño
+            #     # Configurar borde inferior
+            #     for col in range(3, 14):
+            #         cell = sheet.cell(row=15 + row_offset, column=col + col_offset)
+            #         cell.border = Border(bottom=thin_border)
+
+            #     # Colocar "Dirección" en la celda B16
+            #     merged_cell = sheet.cell(row=16 + row_offset, column=2 + col_offset)
+            #     merged_cell.value = 'Dirección:'
+            #     merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+            #     merged_cell.font = Font(name='Ancizar Sans', size=8)  # Fuente y tamaño
+
+            #     # Unir celdas C16:H16 y colocar por defecto ""
+            #     sheet.merge_cells(start_row=16 + row_offset, start_column=3 + col_offset, end_row=16 + row_offset, end_column=8 + col_offset)
+            #     merged_cell = sheet.cell(row=16 + row_offset, column=3   + col_offset)
+            #     merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+            #     merged_cell.font = Font(name='Ancizar Sans', size=8)  # Fuente y tamaño
+            #     # Configurar borde inferior
+            #     for col in range(3, 9):
+            #         cell = sheet.cell(row=16 + row_offset, column=col + col_offset)
+            #         cell.border = Border(bottom=thin_border)
+                
+            #     # Colocar "Teléfono:" en la celda J16
+            #     merged_cell = sheet.cell(row=16 + row_offset, column=10 + col_offset)
+            #     merged_cell.value = 'Teléfono:'
+            #     merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+            #     merged_cell.font = Font(name='Ancizar Sans', size=8)  # Fuente y tamaño
+
+            #     # Unir celdas I16:M16 y colocar por defecto ""
+            #     sheet.merge_cells(start_row=16 + row_offset, start_column=11 + col_offset, end_row=16 + row_offset, end_column=13 + col_offset)
+            #     merged_cell = sheet.cell(row=16 + row_offset, column=11 + col_offset)
+            #     merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+            #     merged_cell.font = Font(name='Ancizar Sans', size=8)  # Fuente y tamaño
+            #     # Configurar borde inferior
+            #     for col in range(11, 14):
+            #         cell = sheet.cell(row=16 + row_offset, column=col + col_offset)
+            #         cell.border = Border(bottom=thin_border)
+         # Configurar márgenes estrechos sin encabezado ni pie de página
+
+        sheet.page_margins = PageMargins(left=1/2.54, right=1/2.54, top=1/2.54, bottom=1/2.54, header=0, footer=0)
+
+        # Configurar la orientación de la página
+        # sheet.page_setup = PrintPageSetup(orientation='landscape')
+
+        # Guardar el archivo en la memoria y preparar la respuesta HTTP
+        file_name = get_file_name()
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename={file_name}'
+        workbook.save(response)
+        return response
     
 
 # ----------------------- #
