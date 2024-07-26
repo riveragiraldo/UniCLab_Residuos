@@ -637,87 +637,95 @@ class GenerateBigLabel(LoginRequiredMixin, View):
                     cell = sheet.cell(row=14 + row_offset, column=col + col_offset)
                     cell.border = Border(bottom=thin_border)
                 
-            #     # Unir celdas B14:C14 y colocar "Teléfono Emergencia UNAL"
-            #     sheet.merge_cells(start_row=14 + row_offset, start_column=2 + col_offset, end_row=14 + row_offset, end_column=3 + col_offset)
-            #     merged_cell = sheet.cell(row=14 + row_offset, column=2 + col_offset)
-            #     merged_cell.value = 'Teléfono Emergencia UNAL:'
-            #     merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
-            #     merged_cell.font = Font(name='Ancizar Sans', size=8)  # Fuente y tamaños
+                # Unir celdas B15:F15 y Colocar Teléfono de Emergencia UNAL
+                sheet.merge_cells(start_row=15 + row_offset, start_column=2 + col_offset, end_row=15 + row_offset, end_column=6 + col_offset)
+                merged_cell = sheet.cell(row=15 + row_offset, column=2 + col_offset)
+                merged_cell.value = 'Teléfono de Emergencia UNAL:'
+                merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=12)  # Fuente y tamaño
 
-            #     # Unir celdas D13:M13 y colocar ""
-            #     sheet.merge_cells(start_row=14 + row_offset, start_column=4 + col_offset, end_row=14 + row_offset, end_column=8 + col_offset)
-            #     merged_cell = sheet.cell(row=14 + row_offset, column=4 + col_offset)
-            #     merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
-            #     merged_cell.font = Font(name='Ancizar Sans', size=8)  # Fuente y tamaño
-            #     # Configurar borde inferior
-            #     for col in range(4, 9):
-            #         cell = sheet.cell(row=14 + row_offset, column=col + col_offset)
-            #         cell.border = Border(bottom=thin_border)
+                # Unir celdas G15:J15 y colocar la raya y el teléfono de emergencia
+                sheet.merge_cells(start_row=15 + row_offset, start_column=7 + col_offset, end_row=15 + row_offset, end_column=10 + col_offset)
+                merged_cell = sheet.cell(row=15 + row_offset, column=7 + col_offset)
+                if numero_emergencia:
+                    merged_cell.value = numero_emergencia
+                else:
+                    merged_cell.value = ''
+                merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=12)  # Fuente y tamaño
+                # Configurar borde inferior
+                for col in range(7, 11):
+                    cell = sheet.cell(row=15 + row_offset, column=col + col_offset)
+                    cell.border = Border(bottom=thin_border)
                 
-            #     # Colocar "Sede:" en la celda J14
-            #     merged_cell = sheet.cell(row=14 + row_offset, column=10 + col_offset)
-            #     merged_cell.value = 'Sede:'
-            #     merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
-            #     merged_cell.font = Font(name='Ancizar Sans', size=8)  # Fuente y tamaño
+                # Unir celdas L15:O15 y Sede
+                # sheet.merge_cells(start_row=15 + row_offset, start_column=12 + col_offset, end_row=15 + row_offset, end_column=13 + col_offset)
+                merged_cell = sheet.cell(row=15 + row_offset, column=12 + col_offset)
+                merged_cell.value = 'Sede:'
+                merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=12)  # Fuente y tamaño
 
-            #     # Unir celdas I14:M14 y colocar por defecto "Manizales"
-            #     sheet.merge_cells(start_row=14 + row_offset, start_column=11 + col_offset, end_row=14 + row_offset, end_column=13 + col_offset)
-            #     merged_cell = sheet.cell(row=14 + row_offset, column=11 + col_offset)
-            #     merged_cell.value = 'Manizales'
-            #     merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
-            #     merged_cell.font = Font(name='Ancizar Sans', size=8)  # Fuente y tamaño
-            #     # Configurar borde inferior
-            #     for col in range(11, 14):
-            #         cell = sheet.cell(row=14 + row_offset, column=col + col_offset)
-            #         cell.border = Border(bottom=thin_border)
+                # Unir celdas N15:Q15 y Colocar la raya 
+                sheet.merge_cells(start_row=15 + row_offset, start_column=13 + col_offset, end_row=15 + row_offset, end_column=17 + col_offset)
+                merged_cell = sheet.cell(row=15 + row_offset, column=13 + col_offset)
+                merged_cell.value='Manizales'
+                merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=11)  # Fuente y tamaño
+                # Configurar bordes superior e inferior                
+                for col in range(13, 18):
+                    cell = sheet.cell(row=15 + row_offset, column=col + col_offset)
+                    cell.border = Border(bottom=thin_border)
                 
-            #     # Colocar "Proveedor" en la celda B15
-            #     merged_cell = sheet.cell(row=15 + row_offset, column=2 + col_offset)
-            #     merged_cell.value = 'Proveedor:'
-            #     merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
-            #     merged_cell.font = Font(name='Ancizar Sans', size=8)  # Fuente y tamaño
-
-            #     # Unir celdas C15:M15 y colocar por defecto ""
-            #     sheet.merge_cells(start_row=15 + row_offset, start_column=3 + col_offset, end_row=15 + row_offset, end_column=13 + col_offset)
-            #     merged_cell = sheet.cell(row=15 + row_offset, column=3   + col_offset)
-            #     merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
-            #     merged_cell.font = Font(name='Ancizar Sans', size=8)  # Fuente y tamaño
-            #     # Configurar borde inferior
-            #     for col in range(3, 14):
-            #         cell = sheet.cell(row=15 + row_offset, column=col + col_offset)
-            #         cell.border = Border(bottom=thin_border)
-
-            #     # Colocar "Dirección" en la celda B16
-            #     merged_cell = sheet.cell(row=16 + row_offset, column=2 + col_offset)
-            #     merged_cell.value = 'Dirección:'
-            #     merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
-            #     merged_cell.font = Font(name='Ancizar Sans', size=8)  # Fuente y tamaño
-
-            #     # Unir celdas C16:H16 y colocar por defecto ""
-            #     sheet.merge_cells(start_row=16 + row_offset, start_column=3 + col_offset, end_row=16 + row_offset, end_column=8 + col_offset)
-            #     merged_cell = sheet.cell(row=16 + row_offset, column=3   + col_offset)
-            #     merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
-            #     merged_cell.font = Font(name='Ancizar Sans', size=8)  # Fuente y tamaño
-            #     # Configurar borde inferior
-            #     for col in range(3, 9):
-            #         cell = sheet.cell(row=16 + row_offset, column=col + col_offset)
-            #         cell.border = Border(bottom=thin_border)
+                # Unir celdas B16:C16 y Colocar Proveedor
+                sheet.merge_cells(start_row=16 + row_offset, start_column=2 + col_offset, end_row=16 + row_offset, end_column=3 + col_offset)
+                merged_cell = sheet.cell(row=16 + row_offset, column=2 + col_offset)
+                merged_cell.value = 'Proveedor:'
+                merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=12)  # Fuente y tamaño
                 
-            #     # Colocar "Teléfono:" en la celda J16
-            #     merged_cell = sheet.cell(row=16 + row_offset, column=10 + col_offset)
-            #     merged_cell.value = 'Teléfono:'
-            #     merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
-            #     merged_cell.font = Font(name='Ancizar Sans', size=8)  # Fuente y tamaño
+                # Unir celdas D16:Q16 y Colocar la raya 
+                sheet.merge_cells(start_row=16 + row_offset, start_column=4 + col_offset, end_row=16 + row_offset, end_column=17 + col_offset)
+                merged_cell = sheet.cell(row=16 + row_offset, column=4 + col_offset)
+                merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=11)  # Fuente y tamaño
+                # Configurar bordes superior e inferior                
+                for col in range(4, 18):
+                    cell = sheet.cell(row=16 + row_offset, column=col + col_offset)
+                    cell.border = Border(bottom=thin_border)
 
-            #     # Unir celdas I16:M16 y colocar por defecto ""
-            #     sheet.merge_cells(start_row=16 + row_offset, start_column=11 + col_offset, end_row=16 + row_offset, end_column=13 + col_offset)
-            #     merged_cell = sheet.cell(row=16 + row_offset, column=11 + col_offset)
-            #     merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
-            #     merged_cell.font = Font(name='Ancizar Sans', size=8)  # Fuente y tamaño
-            #     # Configurar borde inferior
-            #     for col in range(11, 14):
-            #         cell = sheet.cell(row=16 + row_offset, column=col + col_offset)
-            #         cell.border = Border(bottom=thin_border)
+                # Unir celdas B17:C17 y Colocar Dirección
+                sheet.merge_cells(start_row=17 + row_offset, start_column=2 + col_offset, end_row=17 + row_offset, end_column=3 + col_offset)
+                merged_cell = sheet.cell(row=17 + row_offset, column=2 + col_offset)
+                merged_cell.value = 'Dirección:'
+                merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=12)  # Fuente y tamaño
+            
+                # Unir celdas D17:J17 y Colocar la raya 
+                sheet.merge_cells(start_row=17 + row_offset, start_column=4 + col_offset, end_row=17 + row_offset, end_column=10 + col_offset)
+                merged_cell = sheet.cell(row=17 + row_offset, column=4 + col_offset)
+                merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=11)  # Fuente y tamaño
+                # Configurar bordes superior e inferior                
+                for col in range(4, 11):
+                    cell = sheet.cell(row=17 + row_offset, column=col + col_offset)
+                    cell.border = Border(bottom=thin_border)
+                
+                # Unir celdas L17:O17 y Telefóno
+                # sheet.merge_cells(start_row=17 + row_offset, start_column=12 + col_offset, end_row=17 + row_offset, end_column=13 + col_offset)
+                merged_cell = sheet.cell(row=17 + row_offset, column=12 + col_offset)
+                merged_cell.value = 'Teléfono:'
+                merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=11)  # Fuente y tamaño
+
+                # Unir celdas N15:Q15 y Colocar la raya 
+                sheet.merge_cells(start_row=17 + row_offset, start_column=13 + col_offset, end_row=17 + row_offset, end_column=17 + col_offset)
+                merged_cell = sheet.cell(row=17 + row_offset, column=13 + col_offset)
+                merged_cell.alignment = Alignment(horizontal='left', vertical='center', shrink_to_fit=True)  # Formato "Reducir hasta ajustar"
+                merged_cell.font = Font(name='Ancizar Sans', size=11)  # Fuente y tamaño
+                # Configurar bordes superior e inferior                
+                for col in range(13, 18):
+                    cell = sheet.cell(row=17 + row_offset, column=col + col_offset)
+                    cell.border = Border(bottom=thin_border)
          # Configurar márgenes estrechos sin encabezado ni pie de página
 
         sheet.page_margins = PageMargins(left=1/2.54, right=1/2.54, top=1/2.54, bottom=1/2.54, header=0, footer=0)
