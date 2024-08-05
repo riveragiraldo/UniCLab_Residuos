@@ -17,7 +17,11 @@ urlpatterns = [
     path('UniCLab/Etiquetas/Etiqueta_Pequena/', GenerateSmallLabel.as_view(), name='download_small_label'), # Descargar etiqueta pequeña
     path('UniCLab/Etiquetas/Etiqueta_Mediana/', GenerateMediumLabel.as_view(), name='download_medium_label'), # Descargar etiqueta mediana
     path('UniCLab/Etiquetas/Etiqueta_Grande/', GenerateBigLabel.as_view(), name='download_big_label'), # Descargar etiqueta grande
-    
+    path('UniCLab/Etiquetas/Listado_Pictogramas/', PictogramsList.as_view(), name='pictograms_list'), # Listado de Pictogramas
+    path('UniCLab/Etiquetas/Cargar_Pictograma/', LoadNewPictogram.as_view(), name='load_new_pictogram'), # Cargar Nuevo Pictograma
+    path('UniCLab/Etiquetas/Editar_Pictograma/<str:id>/', EditPictogram.as_view(), name='edit_pictogram'),  # Editar Pictograma
+    path('UniCLab/Etiquetas/Inhabilitar_Pictograma/<str:id>/', DisablePictogram.as_view(), name='disable_pictogram'),  # Inhabilitar Pictograma
+    path('UniCLab/Etiquetas/Habilitar_Pictograma/<str:id>/', EnablePictogram.as_view(), name='enable_pictogram'),  # Habilitar Pictograma
     ]
 
 if settings.DEBUG:

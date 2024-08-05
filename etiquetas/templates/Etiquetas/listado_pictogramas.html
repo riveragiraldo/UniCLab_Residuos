@@ -1,0 +1,250 @@
+{% extends "webtemplate_label.html" %}
+{% load static %} <!-- Permite invocar archivos estáticos -->
+{% load has_group %}
+{% load custom_filters_1 %}
+{% load custom_filters_2_1 %}
+{% block head %}
+
+<style>
+    .list-container {
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        padding: 20px;
+    }
+
+    .separator {
+        border-top: 1px solid #ccc;
+        margin: 20px 0;
+    }
+
+    .section-title {
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .pictogram-img {
+        width: 48px;
+        height: 48px;
+    }
+
+    /* Centrado vertical de celdas */
+    .table tbody tr td,
+    .table thead tr th {
+        vertical-align: middle;
+    }
+
+    .add-button {
+        position: relative;
+        display: inline-block;
+        border-radius: 4px;
+        background-color: #70a4db;
+        color: white;
+        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.5);
+        padding: 10px 20px;
+        margin: 20px 0;
+        text-decoration: none;
+    }
+
+    .add-button:hover {
+        background-color: #0056b3;
+        box-shadow: 0 6px 12px rgba(0, 123, 255, 0.7);
+    }
+
+    .add-button span {
+        position: absolute;
+        top: 50%;
+        left: 175%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(0, 0, 0, 0.6);
+        color: white;
+        border-radius: 5px;
+        padding: 4px 8px;
+        font-size: 14px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .add-button:hover span {
+        opacity: 1;
+    }
+
+    .table thead th {
+        background-color: #81b8f3; /* Color de fondo azul */
+        color: white; /* Color de texto blanco */
+        font-weight: bold; /* Negrita */
+        text-align: center; /* Alinear el texto al centro */
+    }
+
+    .table thead th:hover {
+        background-color: #0056b3; /* Color de fondo azul más oscuro al pasar el cursor */
+        color: #e2e6ea; /* Color de texto gris claro al pasar el cursor */
+    }
+
+    .table tbody tr {
+        transition: background-color 0.3s ease; /* Suaviza la transición de color de fondo */
+    }
+
+    .table tbody tr:hover {
+        background-color: #dbd8d8; /* Color de fondo gris claro al pasar el cursor */
+        
+    }
+
+    .inactive-item {
+        background-color: #f8d7da; /* Color de fondo rosado claro */
+        color: #721c24; /* Color de texto rojo oscuro */
+    }
+
+    @media (max-width: 767px) {
+    .column-name {
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .table .column-name {
+        text-align: center;
+    }
+}
+
+</style>
+
+
+
+<script src="{% static 'inventarioreac/listActionsControl.js' %}" defer></script>
+    <!-- Llama Script que controla las acciones de la lista -->
+
+{% endblock %}
+
+<title>{% block title %}Listado de Pictogramas{% endblock %}</title>
+</head>
+
+<body>
+
+<main class="detalle">
+
+    {% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <div class="list-container">
+                    <h2 class="text-center">Listado de Pictogramas</h2>
+                    
+                    <div class="text-center" style="margin-bottom: 20px;">
+
+                        <!-- Agregar -->
+                        <a href="javascript:void(0);"
+                            onclick="openPopupAdd('{% url 'etiquetas:load_new_pictogram' %}')"
+                            title="Agregar Pictograma" class="add-button">
+                            <img src="{% static 'inventarioreac/Images/ADD.svg' %}" alt="Agregar Pictograma"
+                                title="Agregar Pictograma">
+                            <span>Agregar Pictograma</span>
+
+                        </a>
+
+                    </div>
+                    <div class="text-right" style="margin-bottom: 20px;">
+                        <!-- Selector de registros por página -->
+                        <form method="get" action="{% url 'etiquetas:pictograms_list' %}">
+                            <label for="records-per-page">Registros por página:</label>
+                            <select id="records-per-page" name="per_page" onchange="this.form.submit()">
+                                <option value="5" {% if request.GET.per_page == '5' %}selected{% endif %}>5</option>
+                                <option value="10" {% if request.GET.per_page == '10' %}selected{% endif %}>10</option>
+                                <option value="20" {% if request.GET.per_page == '20' %}selected{% endif %}>20</option>
+                            </select>
+                        </form>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th class="text-center column-name">Nombre</th>
+
+                                    <th class="text-center">Pictograma</th>
+                                    
+                                    <th class="text-center">Acciones</th>
+                                    
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in object_list %}
+                                <tr class="{% if not item.is_active %}inactive-item{% endif %}">
+                                    <td class="text-center column-name" title="Nombre: {{ item.name }}">{{ item.name }}</td>
+                                    <td class="text-center">
+                                        <a href="{{ item.pictogram.url }}" download="{{ item.name }}">
+                                            <img src="{{ item.pictogram.url }}" alt="{{ item.name }}" class="pictogram-img">
+                                        </a>
+                                    </td>
+                                    <td class="text-center action-icons">
+                                        <!-- Editar -->
+                                        <a href="javascript:void(0);"
+                                            onclick="openEditPictogram('{{ item.id|double_base64_encode }}')">
+                                            <img src="{% static 'inventarioreac/Images/edit_register.png' %}" alt="Editar Registro"
+                                                width="22" height="26"
+                                                title="Edita Registro {{ item.name }}">
+                                        </a>
+                                        {% if item.is_active %}
+                                        <!-- Deshabilitar -->
+                                        <a href="javascript:void(0);"
+                                            onclick="disablePictogram('{{ item.id|double_base64_encode }}')">
+                                            <img src="{% static 'inventarioreac/Images/off_icon.png' %}" alt="Inhabilitar Registro"
+                                                width="29" height="29"
+                                                title="Deshabilitar Registro {{ item.name }}">
+                                        </a>
+                                        {% else %}
+                                        <!-- Habilitar -->
+                                        <a href="javascript:void(0);"
+                                            onclick="enablePictogram('{{ item.id|double_base64_encode }}')">
+                                            <img src="{% static 'inventarioreac/Images/on_icon.png' %}" alt="Habilitar Registro"
+                                                width="29" 
+                                                title="Habilitar Registro {{ item.name }}">
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="text-center">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination">
+                                {% if is_paginated %}
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item"><a class="page-link" href="?page=1">Primera</a></li>
+                                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+                                    {% else %}
+                                        <li class="page-item disabled"><a class="page-link" href="#">Primera</a></li>
+                                        <li class="page-item disabled"><a class="page-link" href="#">Anterior</a></li>
+                                    {% endif %}
+                                    {% for page_num in paginator.page_range %}
+                                        {% if page_num == page_obj.number %}
+                                            <li class="page-item active"><a class="page-link" href="#">{{ page_num }}</a></li>
+                                        {% elif page_num > page_obj.number|add:'-5' and page_num < page_obj.number|add:'5' %}
+                                            <li class="page-item"><a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a></li>
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
+                                        <li class="page-item"><a class="page-link" href="?page={{ paginator.num_pages }}">Última</a></li>
+                                    {% else %}
+                                        <li class="page-item disabled"><a class="page-link" href="#">Siguiente</a></li>
+                                        <li class="page-item disabled"><a class="page-link" href="#">Última</a></li>
+                                    {% endif %}
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+
+</main>
+
+</body>
+
+</html>

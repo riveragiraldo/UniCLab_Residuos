@@ -1,0 +1,11 @@
+{% load extras %}
+
+<input type="{{ widget.type }}" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>
+
+{% if widget.is_initial %}
+    <div>
+        <label>{{ widget.initial_text }}:</label>
+        <a href="{{ widget.value.url }}" download="{{ widget.name }}">{{ widget.value.name|basename }}</a>
+    </div>
+    
+{% endif %}

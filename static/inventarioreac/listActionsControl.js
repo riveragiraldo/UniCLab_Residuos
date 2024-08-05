@@ -1673,8 +1673,131 @@ function enableImportantLink(itemId, itemName) {
     });
 }
 
+// ------------------------------------ //
+// Abre vista de Edición de Pictogramas //
+
+function openEditPictogram(itemId) {
+    // Construye la URL del formulario de edición con el ID del elemento
+    var editUrl = '/UniCLab/Etiquetas/Editar_Pictograma/' + itemId + '/';
+
+    // Abre una nueva ventana emergente con el formulario de edición
+    window.open(editUrl, 'popupWindow', 'width=1280, height=800,menubar=no,toolbar=no,location=no,status=no,resizable=no');
+    
+
+}
 
 
+// ------------------------- //
+// Desactivar de Pictogramas //
+
+function disablePictogram(itemId, itemName) {
+    // Muestra una Sweet Alert de confirmación
+    Swal.fire({
+        title: 'Deshabilitar Registro',
+        text: '¿Realmente desea deshabilitar este Pictograma?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí',
+        cancelButtonText: 'No',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Si el usuario hace clic en "Sí", realiza una solicitud AJAX 
+            var deactivateUrl = '/UniCLab/Etiquetas/Inhabilitar_Pictograma/' + itemId + '/';  // Ruta de la vista de acción
+
+            fetch(deactivateUrl, {
+                method: 'POST', // Método HTTP POST
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'), // Incluir el token CSRF si se utiliza Django
+                },
+            })
+            .then(response => {
+                // Verificar el estado de la respuesta y capturar el mensaje
+                if (response.ok) {
+                    return response.json();  // Leer los datos JSON de la respuesta
+                } else {
+                    throw new Error('Error al ejecutar la acción');
+                }
+            })
+            .then(data => {
+                // Mostrar el mensaje de éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Mensaje del servidor',
+                    text: data.message,
+                }).then(() => {
+                    // Recargar la página o realizar otras acciones si es necesario
+                    location.reload(); // Recarga la página después de desactivar la clasificación
+                });
+            })
+            .catch(error => {
+                // Manejar errores de la solicitud AJAX
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message,
+                });
+            });
+        } else {
+            // Si el usuario hace clic en "No", cierra la Sweet Alert
+            Swal.close();
+        }
+    });
+}
+// ---------------------- //
+// Activar de Pictogramas //
+function enablePictogram(itemId, itemName) {
+    // Muestra una Sweet Alert de confirmación
+    Swal.fire({
+        title: 'Habilitar Registro',
+        text: '¿Realmente desea habilitar este Pictograma?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí',
+        cancelButtonText: 'No',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Si el usuario hace clic en "Sí", realiza una solicitud AJAX 
+            var deactivateUrl = '/UniCLab/Etiquetas/Habilitar_Pictograma/' + itemId + '/';  // Ruta de la vista de acción
+
+            fetch(deactivateUrl, {
+                method: 'POST', // Método HTTP POST
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'), // Incluir el token CSRF si se utiliza Django
+                },
+            })
+            .then(response => {
+                // Verificar el estado de la respuesta y capturar el mensaje
+                if (response.ok) {
+                    return response.json();  // Leer los datos JSON de la respuesta
+                } else {
+                    throw new Error('Error al ejecutar la acción');
+                }
+            })
+            .then(data => {
+                // Mostrar el mensaje de éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Mensaje del servidor',
+                    text: data.message,
+                }).then(() => {
+                    // Recargar la página o realizar otras acciones si es necesario
+                    location.reload(); // Recarga la página después de desactivar la clasificación
+                });
+            })
+            .catch(error => {
+                // Manejar errores de la solicitud AJAX
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message,
+                });
+            });
+        } else {
+            // Si el usuario hace clic en "No", cierra la Sweet Alert
+            Swal.close();
+        }
+    });
+}
 // ------------------------------------------------- //
 // Función para obtener el token CSRF de las cookies //
 function getCookie(name) {

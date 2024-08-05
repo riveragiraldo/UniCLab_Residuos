@@ -215,12 +215,12 @@
 					data-newWindow="true"></div>
 			</div>
 			<div class="mainMenu" style="margin-bottom: 0%;">
-				<div class="btn-group"><a href="{% url 'etiquetas:generate_label' %}" class="btn btn-default dropdown-toggle" title="Redirecciona al formulario de generación de etiquetas de sustenacias químicas">Generar Etiquetas</a><span class="caret-right"></span></div>
+				<div class="btn-group"><a href="{% url 'etiquetas:generate_label' %}" class="btn btn-default dropdown-toggle" title="Redirecciona al formulario de generación de etiquetas de sustenacias químicas">Etiquetas</a><span class="caret-right"></span></div>
 				<div class="btn-group">
-					<div class="btn btn-default dropdown-toggle" data-toggle="dropdown">Nosotros<span
+					<div class="btn btn-default dropdown-toggle" data-toggle="dropdown">Configuración<span
 							class="caret"></span></div>
 					<ul class="dropdown-menu">
-						<li><a href="#">Quiénes somos</a></li>
+						<li><a href="{% url 'etiquetas:pictograms_list' %}">Pictogramas</a></li>
 						<li><a href="#">Servicios</a></li>
 						<li><a href="#">Iniciativa Laboratorios al parque</a></li>
 					</ul>

@@ -5,6 +5,7 @@ from residuos.views import *
 from reactivos.models import *
 from residuos.models import *
 from .models import *
+from .forms import*
 from .utils import check_group_permission
 
 
@@ -1909,5 +1910,179 @@ class GenerateBasicLabel(LoginRequiredMixin, View):
         return response
 
 
+class PictogramsList(LoginRequiredMixin, ListView):
+    model = Pictograma
+    template_name = "Etiquetas/listado_pictogramas.html"
+    paginate_by = 10
+
+    @check_group_permission(groups_required=['ADMINISTRADOR'])
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        # Obtener el número de registros por página de la solicitud del usuario
+        per_page = request.GET.get('per_page', request.session.get('per_page', 10))
+        self.paginate_by = int(per_page)
+        request.session['per_page'] = self.paginate_by
+        return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['usuarios'] = User.objects.all()
+        context['laboratorios'] = Laboratorios.objects.all()
+        # Añadir parámetro de ordenamiento a contexto
+        context['ordering'] = self.request.GET.get('ordering', '-id')
+        return context
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        # Obtener el parámetro de ordenamiento desde la solicitud GET
+        ordering = self.request.GET.get('ordering', '-id')
+        queryset = queryset.order_by(ordering)
+        return queryset
+
+# ----------------------- #
+# Cargar nuevo pictograma #
+
+class LoadNewPictogram(LoginRequiredMixin, View):
+    template_name = 'Etiquetas/crear_pictogramas.html'
+
+    @check_group_permission(groups_required=['ADMINISTRADOR'])
+    def get(self, request, *args, **kwargs):
+        form = PictogramaForm()
+        
+
+        return render(request, self.template_name, {'form': form,})
+
+    @check_group_permission(groups_required=['ADMINISTRADOR'])
+    def post(self, request, *args, **kwargs):
+        form = PictogramaForm(request.POST, request.FILES)
+        try:
+            if form.is_valid():
+                # Asignar el usuario actual a los campos created_by y last_updated_by
+                form.instance.created_by = request.user
+                form.instance.last_updated_by = request.user
+
+                
+                # Guardar el registro si el formulario es válido
+                pictograma = form.save()
+                                                
+                # Registrar evento
+                tipo_evento = 'CARGAR PICTOGRAMA'
+                usuario_evento = request.user
+                crear_evento(tipo_evento, usuario_evento)
+
+                mensaje = f'Pictograma {pictograma.name} cargado correctamente.'
+                return JsonResponse({'success': True, 'message': mensaje})
+            else:
+                print(form.errors)
+                return JsonResponse({'success': False, 'errors': form.errors})
+                
+        except Exception as e:
+            print(e)
+            mensaje = f'Error: {e}'
+            return HttpResponseBadRequest(f'Error interno del servidor: {mensaje}')
 
 
+# --------------------------- #
+# Editar pictograma existente #
+class EditPictogram(LoginRequiredMixin, View):
+    template_name = 'Etiquetas/editar_pictogramas.html'
+
+    @check_group_permission(groups_required=['ADMINISTRADOR'])
+    def get(self, request, *args, **kwargs):
+        encoded_id = kwargs.get('id')
+        decoded_id = base64.b64decode(base64.b64decode(encoded_id)).decode('utf-8')
+        pictogram = get_object_or_404(Pictograma, id=decoded_id)
+        form = PictogramaForm(instance=pictogram)
+        return render(request, self.template_name, {'form': form, 'pictogram': pictogram})
+
+    @check_group_permission(groups_required=['ADMINISTRADOR'])
+    def post(self, request, *args, **kwargs):
+        encoded_id = kwargs.get('id')
+        decoded_id = base64.b64decode(base64.b64decode(encoded_id)).decode('utf-8')
+        pictogram = get_object_or_404(Pictograma, id=decoded_id)
+        form = PictogramaForm(request.POST, request.FILES, instance=pictogram)
+        try:
+            if form.is_valid():
+                # Asignar el usuario actual a los campos last_updated_by
+                form.instance.last_updated_by = request.user
+
+                # Guardar el registro si el formulario es válido
+                pictogram = form.save()
+                                                
+                # Registrar evento
+                tipo_evento = 'EDITAR PICTOGRAMA'
+                usuario_evento = request.user
+                crear_evento(tipo_evento, usuario_evento)
+
+                mensaje = f'Pictograma {pictogram.name} actualizado correctamente.'
+                return JsonResponse({'success': True, 'message': mensaje})
+            else:
+                print(form.errors)
+                return JsonResponse({'success': False, 'errors': form.errors})
+                
+        except Exception as e:
+            print(e)
+            mensaje = f'Error: {e}'
+            return HttpResponseBadRequest(f'Error interno del servidor: {mensaje}')
+        
+# --------------------- #
+# Desactivar Pictograma #
+class DisablePictogram(LoginRequiredMixin, View):
+    @check_group_permission(groups_required=['ADMINISTRADOR'])
+    def post(self, request, *args, **kwargs):
+        try:
+            # Obtener el ID codificado dos veces desde los parámetros de la solicitud
+            pictogram_key = kwargs.get('id')
+            item_id_encoded = base64.urlsafe_b64decode(pictogram_key).decode('utf-8')
+            pictogram_id = base64.urlsafe_b64decode(item_id_encoded).decode('utf-8')
+            
+            # Obtener la instancia del registro
+            pictogram = get_object_or_404(Pictograma, id=pictogram_id)
+            # incluir el usuario que realiza el cambio
+            pictogram.last_updated_by= request.user
+            # Desactivar el registro
+            pictogram.is_active = False
+            pictogram.save()
+            
+            # Registrar evento
+            tipo_evento = 'DESACTIVAR PICTOGRAMA'
+            usuario_evento = request.user
+            crear_evento(tipo_evento, usuario_evento)
+
+            # Devolver una respuesta JSON de éxito
+            return JsonResponse({'success': True, 'message': f'Pictograma {pictogram.name} deshabilitado correctamente.'})
+        except Exception as e:
+            print(e)
+            return JsonResponse({'success': False, 'message': 'Error interno del servidor'})
+
+# --------------------- #
+# Activar Pictograma #
+class EnablePictogram(LoginRequiredMixin, View):
+    @check_group_permission(groups_required=['ADMINISTRADOR'])
+    def post(self, request, *args, **kwargs):
+        try:
+            # Obtener el ID codificado dos veces desde los parámetros de la solicitud
+            pictogram_key = kwargs.get('id')
+            item_id_encoded = base64.urlsafe_b64decode(pictogram_key).decode('utf-8')
+            pictogram_id = base64.urlsafe_b64decode(item_id_encoded).decode('utf-8')
+            
+            # Obtener la instancia del registro
+            pictogram = get_object_or_404(Pictograma, id=pictogram_id)
+            # incluir el usuario que realiza el cambio
+            pictogram.last_updated_by= request.user
+            # Desactivar el registro
+            pictogram.is_active = True
+            pictogram.save()
+            
+            # Registrar evento
+            tipo_evento = 'ACTIVAR PICTOGRAMA'
+            usuario_evento = request.user
+            crear_evento(tipo_evento, usuario_evento)
+
+            # Devolver una respuesta JSON de éxito
+            return JsonResponse({'success': True, 'message': f'Pictograma {pictogram.name} habilitado correctamente.'})
+        except Exception as e:
+            print(e)
+            return JsonResponse({'success': False, 'message': 'Error interno del servidor'})

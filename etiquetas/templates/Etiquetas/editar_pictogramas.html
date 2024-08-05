@@ -1,0 +1,102 @@
+{% extends "webtemplate_label.html" %}
+{% load static %}
+{% load extras %}
+
+{% block head %}
+<style>
+    .form-container {
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        padding: 20px;
+    }
+
+    .separator {
+        border-top: 1px solid #ccc;
+        margin: 20px 0;
+    }
+
+    .section-title {
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .form-text {
+        font-size: 0.9em;
+        color: #555;
+    }
+</style>
+<!-- Envío de datos al servidor -->
+<script src="{% static 'inventarioreac/js/sendInfoSubstancesLabel.js' %}" defer></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const cancelButton = document.getElementById("clear_fields");
+
+    cancelButton.addEventListener("click", function(event) {
+        event.preventDefault(); // Previene el comportamiento por defecto del botón
+
+        // Verificar si la ventana es emergente
+        const isPopup = window.opener && window.opener !== window;
+
+        // Limpiar los campos del formulario
+        const form = document.getElementById("label_substances_form");
+        form.reset();
+
+        if (isPopup) {
+            // Si es una ventana emergente, cerrarla
+            window.close();
+        }
+    });
+});
+</script>
+{% endblock %}
+
+<title>{% block title %}Editar Pictogramas Etiquetas de Sustancias Químicas{% endblock %}</title>
+</head>
+
+<body>
+<main class="detalle">
+    {% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <div class="form-container">
+                    <h2 class="text-center">EDICIÓN DE PICTOGRAMAS PARA ETIQUETAS DE SUSTANCIAS QUÍMICAS</h2>
+                    <!-- Separador -->
+                    <div class="separator"></div>
+                    <!-- Sección 1: Datos del pictograma -->
+                    <div class="section-title">Datos del pictograma:</div>
+                    <form method="post" enctype="multipart/form-data" class="needs-validation" id="label_substances_form" name="form">
+                        {% csrf_token %}
+                        <div class="form-group row">
+                            <div class="col-md-6">
+                                {{ form.name.label_tag }}
+                                {{ form.name }}
+                                <small class="form-text">Máximo de 50 caracteres.</small>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.pictogram.label_tag }}
+                                {{ form.pictogram }}
+                                <small class="form-text">Máx. 100 KB, Ext. *.png, dimensiones simétricas (<b>ancho = altura</b>).</small>
+                            </div>
+                        </div>
+                        <!-- Separador -->
+                        <div class="separator"></div>
+                        <!-- Botones -->
+                        <div class="form-group row">
+                            <div class="col-md-6">
+                                <button type="reset" class="btn btn-default btn-block" id="clear_fields">Cancelar</button>
+                            </div>
+                            <div class="col-md-6" id="generate_button_div">
+                                <button type="submit" class="btn btn-primary btn-block" id="generate_button">Guardar Cambios</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+</main>
+</body>
+</html>
